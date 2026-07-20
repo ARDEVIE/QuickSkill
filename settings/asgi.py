@@ -1,0 +1,11 @@
+import os
+
+from django.core.asgi import get_asgi_application
+
+from settings.conf import ALLOWED_ENV_ID, ENV_ID
+
+
+assert ENV_ID in ALLOWED_ENV_ID, f'Invalid ENV_ID: {ENV_ID}. Allowed values are {ALLOWED_ENV_ID}'
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'settings.env.{ENV_ID}')
+
+application = get_asgi_application()
