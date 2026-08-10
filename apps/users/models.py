@@ -1,27 +1,26 @@
-from django.contrib.auth.models import (
-    AbstractBaseUser,
-    BaseUserManager,
-    PermissionsMixin,
-)
+# Django modules
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db.models import (
     CASCADE,
-    OneToOneField,
     BooleanField,
     CharField,
     DateTimeField,
     EmailField,
     ImageField,
+    Model,
+    OneToOneField,
     TextChoices,
     TextField,
-    Model,
 )
 from django.utils import timezone
 
 
 class CustomUserManager(BaseUserManager):
+    '''Manager for CustomUser using email as the unique identifier.'''
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("Email is required.")
+            raise ValueError('Email is required.')
 
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
@@ -30,31 +29,33 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault("role", CustomUser.Roles.ADMIN)
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault('role', CustomUser.Roles.ADMIN)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
 
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
 
         return self.create_user(email, password, **extra_fields)
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    '''Project's user: logs in by email, carries a site-wide role and author status.'''
+
     class Roles(TextChoices):
-        USER = "user", "User"
-        MODERATOR = "moderator", "Moderator"
-        ADMIN = "admin", "Admin"
+        USER = 'user', 'User'
+        MODERATOR = 'moderator', 'Moderator'
+        ADMIN = 'admin', 'Admin'
 
     email = EmailField(unique=True)
     username = CharField(max_length=150, unique=True)
     first_name = CharField(max_length=150, blank=True)
     last_name = CharField(max_length=150, blank=True)
     telegram_username = CharField(max_length=64, blank=True)
-    avatar = ImageField(upload_to="avatars/", blank=True, null=True)
+    avatar = ImageField(upload_to='avatars/', blank=True, null=True)
     bio = TextField(blank=True)
     role = CharField(max_length=20, choices=Roles.choices, default=Roles.USER)
     is_active = BooleanField(default=True)
@@ -63,8 +64,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.username
@@ -79,16 +80,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_author(self) -> bool:
-        """True once the user has published at least one course."""
+        '''True once the user has published at least one course.'''
         return self.authored_courses.exists()
 
 
 class UserSettings(Model):
-    class ThemeChoices(TextChoices):
-        LIGHT = "light", "Light"
-        DARK = "dark", "Dark"
+    '''Per-user preferences: theme, profile privacy, and notifications.'''
 
-    user = OneToOneField(CustomUser, on_delete=CASCADE, related_name="settings")
+    class ThemeChoices(TextChoices):
+        LIGHT = 'light', 'Light'
+        DARK = 'dark', 'Dark'
+
+    user = OneToOneField(CustomUser, on_delete=CASCADE, related_name='settings')
     theme = CharField(max_length=20, choices=ThemeChoices.choices, default=ThemeChoices.LIGHT)
     is_private = BooleanField(default=False)
     notifications_enabled = BooleanField(default=True)
@@ -96,8 +99,8 @@ class UserSettings(Model):
     updated_at = DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Settings for {self.user.username}"
+        return f'Settings for {self.user.username}'
 
     class Meta:
-        verbose_name = "User settings"
-        verbose_name_plural = "User settings"
+        verbose_name = 'User settings'
+        verbose_name_plural = 'User settings'

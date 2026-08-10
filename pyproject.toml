@@ -1,0 +1,18 @@
+[tool.isort]
+profile = "black"
+line_length = 100
+import_heading_stdlib = "Python modules"
+import_heading_django = "Django modules"
+import_heading_thirdparty = "Third-party modules"
+import_heading_firstparty = "Project modules"
+known_django = ["django"]
+known_first_party = ["apps", "settings"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip = [".venv", "migrations"]
+
+[tool.ruff]
+line-length = 100
+exclude = [".venv", "migrations"]
+
+[tool.ruff.format]
+quote-style = "single"

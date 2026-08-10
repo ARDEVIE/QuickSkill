@@ -1,10 +1,14 @@
+# Python modules
 import os
 
-from decouple import config
+# Django modules
 from django.urls import reverse_lazy
 
-from settings.conf import *  #noqa
+# Third-party modules
+from decouple import config
 
+# Project modules
+from settings.conf import *  # noqa
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_URLCONF = 'settings.urls'
@@ -37,7 +41,6 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',

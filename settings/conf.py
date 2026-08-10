@@ -1,6 +1,8 @@
-from decouple import Csv, config
+# Python modules
 from datetime import timedelta
 
+# Third-party modules
+from decouple import Csv, config
 
 SECRET_KEY = config('PROJECT_SECRET_KEY', default='default-secret-key', cast=str)
 ENV_ID = config('PROJECT_ENV_ID', default='dev', cast=str)
@@ -14,9 +16,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
-    ),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_PAGINATION_CLASS': 'apps.common.pagination.DefaultPagination',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -35,6 +35,4 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS', default='http://localhost:5173', cast=Csv()
-)
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173', cast=Csv())

@@ -1,9 +1,11 @@
+# Third-party modules
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
+# Project modules
 from apps.users.serializers import RegisterSerializer, UserSerializer
 
 
@@ -29,10 +31,11 @@ class LogoutAPIView(APIView):
     serializer_class = LogoutSerializer
 
     def post(self, request):
-        refresh_token = request.data.get("refresh")
+        '''Blacklist the given refresh token so it can no longer be used.'''
+        refresh_token = request.data.get('refresh')
         if not refresh_token:
             return Response(
-                {"refresh": ["This field is required."]},
+                {'refresh': ['This field is required.']},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -40,7 +43,7 @@ class LogoutAPIView(APIView):
             RefreshToken(refresh_token).blacklist()
         except TokenError:
             return Response(
-                {"refresh": ["Invalid or expired token."]},
+                {'refresh': ['Invalid or expired token.']},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

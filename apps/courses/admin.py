@@ -1,5 +1,7 @@
+# Django modules
 from django.contrib import admin
 
+# Project modules
 from apps.courses.models import Category, Course, Favorite, Material
 
 
@@ -10,27 +12,27 @@ class MaterialInline(admin.TabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug")
-    prepopulated_fields = {"slug": ("name",)}
-    search_fields = ("name",)
+    list_display = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ('name',)
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ("title", "author", "category", "is_published", "created_at")
-    list_filter = ("is_published", "category")
-    search_fields = ("title", "author__username", "author__email")
+    list_display = ('title', 'author', 'category', 'is_published', 'created_at')
+    list_filter = ('is_published', 'category')
+    search_fields = ('title', 'author__username', 'author__email')
     inlines = [MaterialInline]
 
 
 @admin.register(Material)
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ("title", "course", "type", "order")
-    list_filter = ("type",)
-    search_fields = ("title", "course__title")
+    list_display = ('title', 'course', 'type', 'order')
+    list_filter = ('type',)
+    search_fields = ('title', 'course__title')
 
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ("user", "course", "created_at")
-    search_fields = ("user__username", "course__title")
+    list_display = ('user', 'course', 'created_at')
+    search_fields = ('user__username', 'course__title')
