@@ -12,7 +12,18 @@ __pycache__/
 # Database
 db.sqlite3
 
+# Uploaded and collected static/media files
+media/
+staticfiles/
+
 # System files and IDE settings
 .DS_Store
 .vscode/
 .idea/
+
+# Some files
+*.md
+!README.md
+.ruff_cache
+.coverage
+htmlcov/
