@@ -10,15 +10,21 @@
 <body>
     <div class="page">
         <nav class="navbar">
-            <a class="navbar__brand" href="{% url 'courses:catalog' %}">QuickSkill</a>
-            <form method="get" action="{% url 'courses:catalog' %}" class="navbar__search">
-                <input type="text" name="search" value="{{ search }}" placeholder="Поиск курсов..." aria-label="Поиск курсов">
-            </form>
-            <div class="navbar__links">
-                <a href="{% url 'courses:catalog' %}">Каталог</a>
+            <div class="navbar__brand-group">
+                <a class="navbar__brand" href="{% url 'courses:catalog' %}">QuickSkill</a>
+                <div class="navbar__nav">
+                    <a href="{% url 'courses:catalog' %}">Каталог</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'courses:my_learning' %}">Моё обучение</a>
+                        <a href="{% url 'courses:teaching' %}">Преподавание</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="navbar__actions">
+                <form method="get" action="{% url 'courses:catalog' %}" class="navbar__search">
+                    <input type="text" name="search" value="{{ search }}" placeholder="Поиск курсов..." aria-label="Поиск курсов">
+                </form>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'courses:my_learning' %}">Моё обучение</a>
-                    <a href="{% url 'courses:teaching' %}">Преподавание</a>
                     <div class="user-menu">
                         <button
                             type="button"

@@ -46,7 +46,7 @@ body {
 }
 
 .page {
-    max-width: 880px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: 0 20px 64px;
 }
@@ -76,14 +76,10 @@ a:hover {
     z-index: 30;
 }
 
-.navbar__search {
-    flex: 1;
-    max-width: 320px;
-    margin: 0;
-}
-
-.navbar__search input {
-    width: 100%;
+.navbar__brand-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .navbar__brand {
@@ -98,23 +94,34 @@ a:hover {
     color: var(--color-primary);
 }
 
-.navbar__links {
+.navbar__nav,
+.navbar__actions {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.navbar__links a {
+.navbar__nav a,
+.navbar__actions a {
     color: var(--color-text-muted);
     font-weight: 500;
     padding: 8px 12px;
     border-radius: var(--radius-sm);
 }
 
-.navbar__links a:hover {
+.navbar__nav a:hover,
+.navbar__actions a:hover {
     background: var(--color-border);
     text-decoration: none;
     color: var(--color-text);
+}
+
+.navbar__search {
+    margin: 0;
+}
+
+.navbar__search input {
+    width: 220px;
 }
 
 .navbar form {
