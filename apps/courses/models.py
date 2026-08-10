@@ -18,6 +18,8 @@ from django.db.models import (
 )
 from django.utils.text import slugify
 
+from apps.common.models import TimeStampedModel
+
 
 class Category(Model):
     name = CharField(max_length=100, unique=True)
@@ -37,7 +39,7 @@ class Category(Model):
         super().save(*args, **kwargs)
 
 
-class Course(Model):
+class Course(TimeStampedModel):
     title = CharField(max_length=200)
     description = TextField(blank=True)
     category = ForeignKey(
@@ -53,8 +55,6 @@ class Course(Model):
         related_name="authored_courses",
     )
     is_published = BooleanField(default=False)
-    created_at = DateTimeField(auto_now_add=True)
-    updated_at = DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -63,7 +63,7 @@ class Course(Model):
         return self.title
 
 
-class Material(Model):
+class Material(TimeStampedModel):
     class MaterialType(TextChoices):
         PDF = "pdf", "PDF"
         VIDEO_LINK = "video_link", "Video link"
@@ -74,7 +74,6 @@ class Material(Model):
     file = FileField(upload_to="materials/", blank=True, null=True)
     url = URLField(blank=True)
     order = PositiveIntegerField(default=0)
-    created_at = DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["order", "created_at"]

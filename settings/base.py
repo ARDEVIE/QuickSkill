@@ -1,6 +1,8 @@
 import os
 from datetime import timedelta
 
+from django.urls import reverse_lazy
+
 from settings.conf import *  #noqa
 
 
@@ -23,9 +25,11 @@ DJANGO_AND_THIRD_PARTY_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_spectacular',
     'corsheaders',
 ]
 PROJECT_APPS = [
+    'apps.common.apps.CommonConfig',
     'apps.users.apps.UsersConfig',
     'apps.courses.apps.CoursesConfig',
 ]
@@ -95,6 +99,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-LOGIN_URL = 'users:login'
-LOGIN_REDIRECT_URL = 'users:profile'
-LOGOUT_REDIRECT_URL = 'users:login'
+LOGIN_URL = reverse_lazy('users:login')
+LOGIN_REDIRECT_URL = reverse_lazy('users:profile')
+LOGOUT_REDIRECT_URL = reverse_lazy('users:login')

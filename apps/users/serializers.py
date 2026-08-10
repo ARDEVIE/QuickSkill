@@ -6,6 +6,7 @@ from apps.users.models import CustomUser
 
 class UserSerializer(serializers.ModelSerializer):
     telegram_url = serializers.SerializerMethodField()
+    is_author = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CustomUser
@@ -19,11 +20,13 @@ class UserSerializer(serializers.ModelSerializer):
             "telegram_url",
             "avatar",
             "bio",
+            "role",
+            "is_author",
             "date_joined",
         ]
-        read_only_fields = ["id", "email", "telegram_url", "date_joined"]
+        read_only_fields = ["id", "email", "role", "is_author", "telegram_url", "date_joined"]
 
-    def get_telegram_url(self, obj):
+    def get_telegram_url(self, obj) -> str | None:
         if not obj.telegram_username:
             return None
         username = obj.telegram_username.lstrip("@")
@@ -54,4 +57,3 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return CustomUser.objects.create_user(**validated_data)
-        

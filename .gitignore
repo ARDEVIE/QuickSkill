@@ -24,5 +24,3 @@ staticfiles/
 # Some files
 *.md
 !README.md
-api_urls.py
-api_views.py
