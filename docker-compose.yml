@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - ./settings/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    env_file:
+      - ./settings/.env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+    volumes:
+      - .:/app
+      - media_data:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # frontend:
+  #   Пока React-проекта нет в этом репозитории (см. QuickSkill.md — им занимается
+  #   Ерсултан). Когда появится `frontend/`, добавить сюда сервис со своим
+  #   Dockerfile/dev-сервером и портом 5173, и прописать его origin в
+  #   CORS_ALLOWED_ORIGINS / CSRF_TRUSTED_ORIGINS.
+
+volumes:
+  postgres_data:
+  media_data:

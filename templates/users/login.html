@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — QuickSkill{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h1>Вход</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            <button type="submit" class="btn">Войти</button>
+        </form>
+        <p>Нет аккаунта? <a href="{% url 'users:register' %}">Зарегистрироваться</a></p>
+    </div>
+{% endblock %}

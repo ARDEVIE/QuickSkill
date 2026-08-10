@@ -1,0 +1,39 @@
+[project]
+name = "quickskill"
+version = "0.1.0"
+description = "MVP-платформа для обмена мини-курсами между студентами."
+requires-python = ">=3.12"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+import_heading_stdlib = "Python modules"
+import_heading_django = "Django modules"
+import_heading_thirdparty = "Third-party modules"
+import_heading_firstparty = "Project modules"
+known_django = ["django"]
+known_first_party = ["apps", "settings"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip = [".venv", "migrations"]
+
+[tool.ruff]
+line-length = 100
+exclude = [".venv", "migrations"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "B", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"apps/*/tests.py" = ["S105", "S106"]  # test fixture passwords, not real secrets
+"settings/env/*.py" = ["F405", "S105"]  # `from settings.base import *` by design; insecure-default checks
+
+[tool.coverage.run]
+source = ["apps"]
+omit = ["*/migrations/*", "*/tests.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true

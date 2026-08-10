@@ -1,12 +1,17 @@
-from settings.base import *  #noqa
+# Django modules
+from django.core.exceptions import ImproperlyConfigured
 
+# Third-party modules
+from decouple import Csv, config
+
+# Project modules
+from settings.base import *  # noqa
 
 DEBUG = False
-ALLOWED_HOSTS = ['yourdomain.com']
+ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='', cast=Csv())
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
-    }
-}
+if SECRET_KEY == 'default-secret-key':
+    raise ImproperlyConfigured('PROJECT_SECRET_KEY must be set via environment in production.')
+
+if DATABASES['default']['PASSWORD'] == 'change-me':
+    raise ImproperlyConfigured('POSTGRES_PASSWORD must be set via environment in production.')
