@@ -24,3 +24,4 @@ staticfiles/
 # Some files
 *.md
 !README.md
+.ruff_cache

@@ -31,6 +31,8 @@ class MaterialSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"url": "PDF material must not have a URL."})
             if not file.name.lower().endswith(".pdf"):
                 raise serializers.ValidationError({"file": "Only PDF files are allowed."})
+            if getattr(file, "content_type", None) != "application/pdf":
+                raise serializers.ValidationError({"file": "Uploaded file must be a PDF (application/pdf)."})
             if file.size > MAX_PDF_SIZE_MB * 1024 * 1024:
                 raise serializers.ValidationError({"file": f"File must be smaller than {MAX_PDF_SIZE_MB}MB."})
         elif material_type == Material.MaterialType.VIDEO_LINK:

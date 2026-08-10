@@ -1,10 +1,13 @@
-from decouple import config
+from decouple import Csv, config
 from datetime import timedelta
 
 
 SECRET_KEY = config('PROJECT_SECRET_KEY', default='default-secret-key', cast=str)
 ENV_ID = config('PROJECT_ENV_ID', default='dev', cast=str)
 ALLOWED_ENV_ID = ('dev', 'prod')
+
+if ENV_ID not in ALLOWED_ENV_ID:
+    raise ValueError(f'Invalid ENV_ID: {ENV_ID}. Allowed values are {ALLOWED_ENV_ID}')
 
 
 REST_FRAMEWORK = {
@@ -32,6 +35,6 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-]
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS', default='http://localhost:5173', cast=Csv()
+)

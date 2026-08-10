@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 
 from decouple import config
 from django.urls import reverse_lazy
