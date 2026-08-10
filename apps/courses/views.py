@@ -38,6 +38,23 @@ def catalog_view(request):
     return render(request, 'courses/catalog.html', context)
 
 
+@login_required
+def my_learning_view(request):
+    '''Courses the current user has favorited — the student side of the cabinet.'''
+    favorites = Favorite.objects.filter(user=request.user).select_related(
+        'course', 'course__category', 'course__author'
+    )
+    context = {'courses': [favorite.course for favorite in favorites]}
+    return render(request, 'courses/my_learning.html', context)
+
+
+@login_required
+def teaching_view(request):
+    '''Courses the current user has authored — the teacher side of the cabinet.'''
+    courses = Course.objects.filter(author=request.user).select_related('category', 'author')
+    return render(request, 'courses/teaching.html', {'courses': courses})
+
+
 def course_detail_view(request, pk):
     course = get_object_or_404(
         Course.objects.select_related('category', 'author').prefetch_related('materials'),

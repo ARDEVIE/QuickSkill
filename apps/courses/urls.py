@@ -8,6 +8,8 @@ app_name = 'courses'
 
 urlpatterns = [
     path('', views.catalog_view, name='catalog'),
+    path('my-learning/', views.my_learning_view, name='my_learning'),
+    path('teaching/', views.teaching_view, name='teaching'),
     path('courses/create/', views.course_create_view, name='course_create'),
     path('courses/<int:pk>/', views.course_detail_view, name='course_detail'),
     path('courses/<int:pk>/edit/', views.course_edit_view, name='course_edit'),

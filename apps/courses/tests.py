@@ -527,3 +527,49 @@ class CourseWebViewTests(TestCase):
 
         self.assertRedirects(response, reverse('courses:course_detail', args=[self.published.pk]))
         self.assertFalse(Material.objects.filter(pk=material.pk).exists())
+
+
+class MyLearningAndTeachingViewTests(TestCase):
+    def setUp(self):
+        self.author = create_user(email='author@example.com', username='author')
+        self.fan = create_user(email='fan@example.com', username='fan')
+        self.course = Course.objects.create(
+            title='Django basics', author=self.author, is_published=True
+        )
+        self.draft = Course.objects.create(title='Draft course', author=self.author)
+
+    def test_my_learning_requires_login(self):
+        response = self.client.get(reverse('courses:my_learning'))
+        self.assertRedirects(
+            response, f"{reverse('users:login')}?next={reverse('courses:my_learning')}"
+        )
+
+    def test_my_learning_shows_only_favorited_courses(self):
+        Favorite.objects.create(user=self.fan, course=self.course)
+        self.client.force_login(self.fan)
+
+        response = self.client.get(reverse('courses:my_learning'))
+
+        self.assertContains(response, self.course.title)
+        self.assertNotContains(response, self.draft.title)
+
+    def test_teaching_requires_login(self):
+        response = self.client.get(reverse('courses:teaching'))
+        self.assertRedirects(
+            response, f"{reverse('users:login')}?next={reverse('courses:teaching')}"
+        )
+
+    def test_teaching_shows_own_courses_including_drafts(self):
+        self.client.force_login(self.author)
+
+        response = self.client.get(reverse('courses:teaching'))
+
+        self.assertContains(response, self.course.title)
+        self.assertContains(response, self.draft.title)
+
+    def test_teaching_does_not_show_other_authors_courses(self):
+        self.client.force_login(self.fan)
+
+        response = self.client.get(reverse('courses:teaching'))
+
+        self.assertNotContains(response, self.course.title)
