@@ -22,7 +22,7 @@ else
     info "settings/.env уже есть, не трогаю"
 fi
 
-info "Собираю и поднимаю db + backend (docker compose up --build)"
+info "Собираю и поднимаю quickskill-db + quickskill-backend (docker compose up --build)"
 docker compose up --build -d
 
 info "Жду, пока backend ответит на /api/docs/ (миграции применяются автоматически)"
@@ -36,7 +36,7 @@ for _ in $(seq 1 30); do
 done
 
 if [ "$ready" != true ]; then
-    warn "Backend не ответил за 60 секунд. Смотрите логи: docker compose logs backend"
+    warn "Backend не ответил за 60 секунд. Смотрите логи: docker compose logs quickskill-backend"
     exit 1
 fi
 
@@ -49,10 +49,10 @@ cat <<'EOF'
   Админка:                  http://localhost:8000/admin/
 
 Суперпользователя ещё нет, создать:
-  docker compose exec backend python manage.py createsuperuser
+  docker compose exec quickskill-backend python manage.py createsuperuser
 
 Прогнать тесты:
-  docker compose exec backend python manage.py test
+  docker compose exec quickskill-backend python manage.py test
 
 Остановить:
   docker compose down          # оставить данные БД
