@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+from decouple import config
 from django.urls import reverse_lazy
 
 from settings.conf import *  #noqa
@@ -11,6 +12,21 @@ ROOT_URLCONF = 'settings.urls'
 WSGI_APPLICATION = 'settings.wsgi.application'
 ASGI_APPLICATION = 'settings.asgi.application'
 AUTH_USER_MODEL = 'users.CustomUser'
+
+
+# Database (PostgreSQL everywhere — local run, Docker Compose, CI, prod;
+# only the values differ, via settings/.env or the environment).
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('POSTGRES_DB', default='quickskill'),
+        'USER': config('POSTGRES_USER', default='quickskill'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='change-me'),
+        'HOST': config('POSTGRES_HOST', default='localhost'),
+        'PORT': config('POSTGRES_PORT', default='5432'),
+    }
+}
 
 
 # Application definition

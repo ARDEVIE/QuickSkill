@@ -1,12 +1,7 @@
+from decouple import Csv, config
+
 from settings.base import *  #noqa
 
 
 DEBUG = False
-ALLOWED_HOSTS = ['yourdomain.com']
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
-    }
-}
+ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='', cast=Csv())
