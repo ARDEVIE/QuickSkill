@@ -133,7 +133,7 @@ class UsersAPITests(APITestCase):
 
     def test_register_creates_user_and_hashes_password(self):
         response = self.client.post(
-            reverse('auth_api:register'),
+            reverse('users_api:register'),
             {'email': 'new@example.com', 'username': 'new-user', 'password': self.password},
         )
 
@@ -147,7 +147,7 @@ class UsersAPITests(APITestCase):
         self.create_user()
 
         response = self.client.post(
-            reverse('auth_api:register'),
+            reverse('users_api:register'),
             {'email': 'user@example.com', 'username': 'another', 'password': self.password},
         )
 
@@ -157,7 +157,7 @@ class UsersAPITests(APITestCase):
         self.create_user()
 
         response = self.client.post(
-            reverse('auth_api:login'), {'email': 'user@example.com', 'password': self.password}
+            reverse('users_api:login'), {'email': 'user@example.com', 'password': self.password}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -168,7 +168,7 @@ class UsersAPITests(APITestCase):
         self.create_user()
 
         response = self.client.post(
-            reverse('auth_api:login'), {'email': 'user@example.com', 'password': 'wrong-password'}
+            reverse('users_api:login'), {'email': 'user@example.com', 'password': 'wrong-password'}
         )
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -213,17 +213,17 @@ class UsersAPITests(APITestCase):
     def test_logout_blacklists_refresh_token(self):
         self.create_user()
         login_response = self.client.post(
-            reverse('auth_api:login'), {'email': 'user@example.com', 'password': self.password}
+            reverse('users_api:login'), {'email': 'user@example.com', 'password': self.password}
         )
         access = login_response.data['access']
         refresh = login_response.data['refresh']
 
         response = self.client.post(
-            reverse('auth_api:logout'),
+            reverse('users_api:logout'),
             {'refresh': refresh},
             HTTP_AUTHORIZATION=f'Bearer {access}',
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        refresh_response = self.client.post(reverse('auth_api:refresh'), {'refresh': refresh})
+        refresh_response = self.client.post(reverse('users_api:refresh'), {'refresh': refresh})
         self.assertEqual(refresh_response.status_code, status.HTTP_401_UNAUTHORIZED)

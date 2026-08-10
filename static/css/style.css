@@ -343,19 +343,129 @@ dl.profile-info dd {
     margin-top: 24px;
 }
 
-.theme-toggle {
-    background: none;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    width: 38px;
-    height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--color-text);
+/* Account menu (avatar + dropdown) */
+
+.user-menu {
+    position: relative;
 }
 
-.theme-toggle:hover {
+.user-menu__trigger {
+    display: inline-flex;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background: none;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.user-menu__trigger:hover,
+.user-menu__trigger[aria-expanded="true"] {
+    border-color: var(--color-primary);
+}
+
+.user-menu__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
     background: var(--color-border);
+}
+
+.user-menu__dropdown {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 190px;
+    padding: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    z-index: 20;
+}
+
+.user-menu__dropdown.is-open {
+    display: flex;
+}
+
+.user-menu__dropdown form {
+    margin: 0;
+}
+
+.user-menu__dropdown a,
+.user-menu__dropdown button {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.user-menu__dropdown a:hover,
+.user-menu__dropdown button:hover {
+    background: var(--color-border);
+    text-decoration: none;
+}
+
+/* Course catalog */
+
+.catalog-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+}
+
+.catalog-filters p {
+    margin: 0;
+    min-width: 180px;
+    flex: 1;
+}
+
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.course-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+}
+
+.course-card:hover {
+    border-color: var(--color-primary);
+    text-decoration: none;
+}
+
+.course-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.course-card p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
 }
