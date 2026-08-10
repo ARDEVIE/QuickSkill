@@ -7,6 +7,14 @@ MVP веб-платформы для быстрого обмена знания�
 Требуется Docker Desktop.
 
 ```bash
+./setup.sh
+```
+
+Скрипт проверит, что Docker запущен, создаст `settings/.env` из примера (если его ещё нет), соберёт и поднимет `db` + `backend`, дождётся, пока backend ответит, и выведет ссылки.
+
+Вручную, теми же шагами:
+
+```bash
 cp settings/.env.example settings/.env   # если .env ещё нет
 docker compose up --build
 ```
