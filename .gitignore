@@ -25,3 +25,5 @@ staticfiles/
 *.md
 !README.md
 .ruff_cache
+.coverage
+htmlcov/

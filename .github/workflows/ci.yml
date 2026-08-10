@@ -41,10 +41,18 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Import order (isort)
+        run: isort . --check-only
 
       - name: Django system check
         run: python manage.py check
 
-      - name: Run tests
-        run: python manage.py test
+      - name: Run tests with coverage
+        run: |
+          coverage run manage.py test
+          coverage report
