@@ -1,0 +1,51 @@
+.test-page {
+    min-height: 500px;
+  
+    max-width: 1200px;
+  
+    margin: 0 auto;
+  
+    padding: 100px 24px;
+  
+    text-align: center;
+  }
+  
+  .test-page h1 {
+    margin: 0 0 15px;
+  
+    color: #4f8cff;
+  
+    font-size: 48px;
+    font-weight: 800;
+  }
+  
+  .test-page p {
+    margin-bottom: 30px;
+  
+    color: #667085;
+  
+    font-size: 16px;
+  }
+  
+  .test-page button {
+    padding: 14px 28px;
+  
+    border: none;
+    border-radius: 999px;
+  
+    background: #ff8a3d;
+  
+    color: white;
+  
+    font-size: 14px;
+    font-weight: 700;
+  
+    cursor: pointer;
+  
+    transition: 0.2s ease;
+  }
+  
+  .test-page button:hover {
+    background: #f27528;
+    transform: translateY(-2px);
+  }

@@ -1,0 +1,445 @@
+.auth-page {
+    min-height: 100vh;
+  
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  
+    background: #ffffff;
+  }
+  
+  
+  /* =========================
+     LEFT SIDE
+  ========================= */
+  
+  .auth-visual {
+    position: relative;
+  
+    overflow: hidden;
+  
+    padding: 45px 60px;
+  
+    background: var(--primary-light);
+  
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .auth-logo {
+    position: relative;
+    z-index: 5;
+  
+    display: flex;
+    align-items: center;
+  
+    gap: 9px;
+  
+    color: var(--primary);
+  
+    font-size: 22px;
+    font-weight: 800;
+  }
+  
+  .auth-logo span,
+  .mobile-logo span {
+    width: 32px;
+    height: 32px;
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    border-radius: 10px;
+  
+    background: var(--primary);
+  
+    color: white;
+  
+    font-size: 15px;
+  }
+  
+  
+  /* CONTENT */
+  
+  .visual-content {
+    position: relative;
+    z-index: 3;
+  
+    max-width: 500px;
+  
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+  
+  .visual-content h1 {
+    margin: 18px 0;
+  
+    font-size: 52px;
+  
+    line-height: 1.05;
+  
+    letter-spacing: -2px;
+  }
+  
+  .visual-content p {
+    max-width: 430px;
+  
+    color: var(--text-secondary);
+  
+    font-size: 14px;
+  
+    line-height: 1.7;
+  }
+  
+  
+  /* SHAPES */
+  
+  .visual-shapes {
+    position: absolute;
+  
+    inset: 0;
+  
+    pointer-events: none;
+  }
+  
+  .shape-blue {
+    position: absolute;
+  
+    width: 420px;
+    height: 420px;
+  
+    right: -150px;
+    bottom: -100px;
+  
+    border-radius: 50%;
+  
+    background: var(--primary);
+  }
+  
+  .shape-orange {
+    position: absolute;
+  
+    width: 230px;
+    height: 230px;
+  
+    right: 80px;
+    bottom: 80px;
+  
+    border-radius: 50%;
+  
+    background: var(--accent);
+  }
+  
+  .floating-note {
+    position: absolute;
+  
+    z-index: 4;
+  
+    right: 90px;
+    bottom: 170px;
+  
+    width: 190px;
+  
+    padding: 20px;
+  
+    background: #ffffff;
+  
+    border-radius: 18px;
+  
+    box-shadow:
+      0 15px 35px rgba(16, 24, 40, 0.12);
+  
+    display: flex;
+    flex-direction: column;
+  
+    gap: 20px;
+  }
+  
+  .floating-note span {
+    color: var(--accent);
+  
+    font-size: 18px;
+  }
+  
+  .floating-note strong {
+    font-size: 15px;
+  
+    line-height: 1.4;
+  }
+  
+  .copyright {
+    position: relative;
+    z-index: 5;
+  
+    color: #98a2b3;
+  
+    font-size: 10px;
+  }
+  
+  
+  /* =========================
+     RIGHT SIDE
+  ========================= */
+  
+  .auth-form-container {
+    display: flex;
+  
+    align-items: center;
+    justify-content: center;
+  
+    padding: 40px;
+  }
+  
+  .auth-form {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .mobile-logo {
+    display: none;
+  }
+  
+  
+  /* HEADER */
+  
+  .form-header {
+    margin-bottom: 35px;
+  }
+  
+  .form-header h2 {
+    margin: 0 0 10px;
+  
+    font-size: 32px;
+  
+    letter-spacing: -1px;
+  }
+  
+  .form-header p {
+    margin: 0;
+  
+    color: var(--text-secondary);
+  
+    font-size: 13px;
+  
+    line-height: 1.6;
+  }
+  
+  
+  /* FORM */
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+  
+    margin-bottom: 8px;
+  
+    color: var(--text);
+  
+    font-size: 12px;
+  
+    font-weight: 700;
+  }
+  
+  .label-row {
+    display: flex;
+  
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .label-row a {
+    color: var(--primary);
+  
+    font-size: 10px;
+  
+    font-weight: 700;
+  }
+  
+  .form-group input {
+    width: 100%;
+  
+    padding: 14px 15px;
+  
+    border: 1px solid var(--border);
+  
+    border-radius: 11px;
+  
+    outline: none;
+  
+    font-size: 13px;
+  
+    transition: 0.2s;
+  }
+  
+  .form-group input:focus {
+    border-color: var(--primary);
+  
+    box-shadow:
+      0 0 0 3px rgba(79, 140, 255, 0.1);
+  }
+  
+  .form-group input::placeholder {
+    color: #b0b7c3;
+  }
+  
+  
+  /* BUTTON */
+  
+  .login-button {
+    width: 100%;
+  
+    padding: 14px;
+  
+    margin-top: 5px;
+  
+    border: none;
+  
+    border-radius: 11px;
+  
+    background: var(--primary);
+  
+    color: white;
+  
+    font-size: 13px;
+  
+    font-weight: 700;
+  
+    transition: 0.2s;
+  }
+  
+  .login-button:hover {
+    background: var(--primary-dark);
+  
+    transform: translateY(-1px);
+  }
+  
+  
+  /* DIVIDER */
+  
+  .divider {
+    display: flex;
+  
+    align-items: center;
+  
+    gap: 15px;
+  
+    margin: 25px 0;
+  
+    color: #98a2b3;
+  
+    font-size: 11px;
+  }
+  
+  .divider::before,
+  .divider::after {
+    content: '';
+  
+    height: 1px;
+  
+    flex: 1;
+  
+    background: var(--border);
+  }
+  
+  
+  /* GOOGLE */
+  
+  .google-button {
+    width: 100%;
+  
+    padding: 13px;
+  
+    border: 1px solid var(--border);
+  
+    border-radius: 11px;
+  
+    background: #ffffff;
+  
+    color: var(--text);
+  
+    font-size: 12px;
+  
+    font-weight: 600;
+  
+    display: flex;
+  
+    align-items: center;
+    justify-content: center;
+  
+    gap: 10px;
+  
+    transition: 0.2s;
+  }
+  
+  .google-button:hover {
+    background: #f8fafc;
+  }
+  
+  .google-icon {
+    font-weight: 800;
+  
+    color: #4285f4;
+  }
+  
+  
+  /* REGISTER */
+  
+  .register-text {
+    margin-top: 25px;
+  
+    text-align: center;
+  
+    color: var(--text-secondary);
+  
+    font-size: 11px;
+  }
+  
+  .register-text a {
+    color: var(--primary);
+  
+    font-weight: 700;
+  }
+  
+  
+  /* =========================
+     MOBILE
+  ========================= */
+  
+  @media (max-width: 800px) {
+  
+    .auth-page {
+      grid-template-columns: 1fr;
+    }
+  
+    .auth-visual {
+      display: none;
+    }
+  
+    .auth-form-container {
+      min-height: 100vh;
+  
+      padding: 30px 22px;
+    }
+  
+    .mobile-logo {
+      display: flex;
+  
+      align-items: center;
+  
+      justify-content: center;
+  
+      gap: 8px;
+  
+      margin-bottom: 50px;
+  
+      color: var(--primary);
+  
+      font-size: 21px;
+  
+      font-weight: 800;
+    }
+  
+  }
