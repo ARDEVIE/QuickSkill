@@ -56,10 +56,19 @@
 
     <div class="card">
         <div class="section-title">
-            <h2>Мои курсы</h2>
+            <h2>Мои посты</h2>
         </div>
-        {% if authored_courses %}
+        {% if authored_courses or authored_articles %}
             <ul class="item-list">
+                {% for article in authored_articles %}
+                    <li>
+                        <span class="item-title"><a href="{% url 'articles_page:test_page' article.slug %}">{{ article.title }}</a></span>
+                        <span class="badge">
+                            {% if article.category %}{{ article.category.name }}{% else %}Без темы{% endif %}
+                        </span>
+                        <a href="{% url 'articles_page:edit_page' article.slug %}" style="margin-left: 10px; font-size: 0.8em;">Редактировать</a>
+                    </li>
+                {% endfor %}
                 {% for course in authored_courses %}
                     <li>
                         <span class="item-title">{{ course.title }}</span>
@@ -70,7 +79,7 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p class="empty-state">Вы пока не создали ни одного курса.</p>
+            <p class="empty-state">Вы пока не создали ни одного поста.</p>
         {% endif %}
     </div>
 
@@ -78,7 +87,7 @@
         <div class="section-title">
             <h2>Избранное</h2>
         </div>
-        {% if favorites %}
+        {% if favorites or favorite_articles %}
             <ul class="item-list">
                 {% for favorite in favorites %}
                     <li>
@@ -86,9 +95,17 @@
                         <span class="badge">{{ favorite.course.author.username }}</span>
                     </li>
                 {% endfor %}
+                {% for fav in favorite_articles %}
+                    <li>
+                        <span class="item-title"><a href="{% url 'articles_page:test_page' fav.article.slug %}">{{ fav.article.title }}</a></span>
+                        <span class="badge">
+                            Тема: {% if fav.article.category %}{{ fav.article.category.name }}{% else %}Без темы{% endif %}
+                        </span>
+                    </li>
+                {% endfor %}
             </ul>
         {% else %}
-            <p class="empty-state">Вы ещё не добавили курсы в избранное.</p>
+            <p class="empty-state">Вы ещё не добавили ничего в избранное.</p>
         {% endif %}
     </div>
 {% endblock %}
