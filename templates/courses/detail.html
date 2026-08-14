@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }} — QuickSkill{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="section-title">
+            <h1>{{ course.title }}</h1>
+            {% if not course.is_published %}<span class="badge">Черновик</span>{% endif %}
+        </div>
+
+        {% if course.category %}
+            <span class="badge badge--primary">{{ course.category.name }}</span>
+        {% endif %}
+
+        <p>{{ course.description|default:"Без описания"|linebreaksbr }}</p>
+
+        <dl class="profile-info">
+            <dt>Автор</dt>
+            <dd>{{ course.author.username }}</dd>
+
+            <dt>Telegram</dt>
+            <dd>
+                {% if course.author.telegram_username %}
+                    <a href="https://t.me/{{ course.author.telegram_username }}" target="_blank" rel="noopener">
+                        Написать в Telegram
+                    </a>
+                {% else %}
+                    Автор не указал Telegram
+                {% endif %}
+            </dd>
+        </dl>
+
+        <div class="actions-row">
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'courses:course_favorite' course.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn{% if not is_favorited %} btn--ghost{% endif %}">
+                        {% if is_favorited %}★ В избранном{% else %}☆ В избранное{% endif %}
+                    </button>
+                </form>
+            {% endif %}
+            {% if is_owner %}
+                <a href="{% url 'courses:course_edit' course.pk %}" class="btn btn--ghost">Редактировать</a>
+                <a href="{% url 'courses:course_delete' course.pk %}" class="btn btn--ghost">Удалить</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">
+            <h2>Материалы</h2>
+            {% if is_owner %}
+                <a href="{% url 'courses:material_add' course.pk %}" class="btn btn--ghost">Добавить материал</a>
+            {% endif %}
+        </div>
+
+        {% if course.materials.all %}
+            <ul class="item-list">
+                {% for material in course.materials.all %}
+                    <li>
+                        {% if material.type == 'pdf' %}
+                            <a href="{{ material.file.url }}" target="_blank" rel="noopener" class="item-title">
+                                📄 {{ material.title }}
+                            </a>
+                        {% else %}
+                            <a href="{{ material.url }}" target="_blank" rel="noopener" class="item-title">
+                                🎬 {{ material.title }}
+                            </a>
+                        {% endif %}
+                        {% if is_owner %}
+                            <form method="post" action="{% url 'courses:material_delete' material.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn--ghost btn--icon">✕</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-state">Материалов пока нет.</p>
+        {% endif %}
+    </div>
+
+    <p><a href="{% url 'courses:catalog' %}">← Ко всем курсам</a></p>
+{% endblock %}

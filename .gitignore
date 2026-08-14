@@ -13,7 +13,6 @@ __pycache__/
 db.sqlite3
 
 # Uploaded and collected static/media files
-media/
 staticfiles/
 
 # System files and IDE settings
@@ -23,6 +22,8 @@ staticfiles/
 
 # Some files
 *.md
+md/
+materials/
 !README.md
 .ruff_cache
 .coverage

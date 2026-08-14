@@ -36,8 +36,4 @@ class UserProfileForm(ModelForm):
 class UserSettingsForm(ModelForm):
     class Meta:
         model = UserSettings
-        fields = (
-            'theme',
-            'is_private',
-            'notifications_enabled',
-        )
+        fields = ('theme',)

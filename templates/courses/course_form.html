@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{% if course %}Редактирование курса{% else %}Новый курс{% endif %} — QuickSkill{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h1>{% if course %}Редактирование курса{% else %}Новый курс{% endif %}</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="actions-row">
+                <button type="submit" class="btn">Сохранить</button>
+                {% if course %}
+                    <a href="{% url 'courses:course_detail' course.pk %}" class="btn btn--ghost">Отмена</a>
+                {% else %}
+                    <a href="{% url 'courses:catalog' %}" class="btn btn--ghost">Отмена</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+{% endblock %}

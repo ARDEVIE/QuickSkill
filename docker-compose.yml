@@ -1,5 +1,5 @@
 services:
-  db:
+  quickskill-db:
     image: postgres:16-alpine
     env_file:
       - ./settings/.env
@@ -13,12 +13,12 @@ services:
       timeout: 5s
       retries: 10
 
-  backend:
+  quickskill-backend:
     build: .
     env_file:
       - ./settings/.env
     environment:
-      POSTGRES_HOST: db
+      POSTGRES_HOST: quickskill-db
       POSTGRES_PORT: "5432"
     volumes:
       - .:/app
@@ -26,7 +26,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
+      quickskill-db:
         condition: service_healthy
 
   # frontend:
