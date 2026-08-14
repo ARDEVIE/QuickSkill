@@ -1,96 +1,50 @@
-# Django modules
-from django.contrib import messages
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import redirect, render
-from django.views.decorators.http import require_POST
+# Third-party modules
+from rest_framework import generics, permissions, serializers, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Project modules
-from apps.users.forms import UserProfileForm, UserRegistrationForm, UserSettingsForm
-from apps.users.models import UserSettings
+from apps.users.serializers import RegisterSerializer, UserSerializer
 
 
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('users:profile')
-
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('users:profile')
-    else:
-        form = UserRegistrationForm()
-
-    return render(request, 'users/register.html', {'form': form})
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
 
 
-@login_required
-def profile_view(request):
-    user_settings, _ = UserSettings.objects.get_or_create(user=request.user)
-    authored_courses = request.user.authored_courses.select_related('category')
-    favorites = request.user.favorites.select_related('course')
-    
-    authored_articles = request.user.articles.select_related('category')
-    favorite_articles = request.user.favorite_articles.select_related('article__category')
-
-    context = {
-        'user_settings': user_settings,
-        'authored_courses': authored_courses,
-        'favorites': favorites,
-        'authored_articles': authored_articles,
-        'favorite_articles': favorite_articles,
-    }
-    return render(request, 'users/profile.html', context)
+class RegisterAPIView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
 
 
-@login_required
-def profile_edit_view(request):
-    if request.method == 'POST':
-        form = UserProfileForm(
-            request.POST,
-            request.FILES,
-            instance=request.user,
-        )
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Профиль обновлён.')
-            return redirect('users:profile')
-    else:
-        form = UserProfileForm(instance=request.user)
+class MeAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    return render(request, 'users/profile_edit.html', {'form': form})
+    def get_object(self):
+        return self.request.user
 
 
-@login_required
-def settings_view(request):
-    user_settings, _ = UserSettings.objects.get_or_create(user=request.user)
+class LogoutAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = LogoutSerializer
 
-    if request.method == 'POST':
-        form = UserSettingsForm(request.POST, instance=user_settings)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Настройки сохранены.')
-            return redirect('users:profile')
-    else:
-        form = UserSettingsForm(instance=user_settings)
+    def post(self, request):
+        '''Blacklist the given refresh token so it can no longer be used.'''
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response(
+                {'refresh': ['This field is required.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    return render(request, 'users/settings.html', {'form': form})
+        try:
+            RefreshToken(refresh_token).blacklist()
+        except TokenError:
+            return Response(
+                {'refresh': ['Invalid or expired token.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-
-@login_required
-@require_POST
-def set_theme_view(request):
-    '''AJAX endpoint used by the theme toggle button in the navbar.'''
-    theme = request.POST.get('theme')
-
-    if theme not in dict(UserSettings.ThemeChoices.choices):
-        return JsonResponse({'ok': False, 'error': 'Invalid theme.'}, status=400)
-
-    user_settings, _ = UserSettings.objects.get_or_create(user=request.user)
-    user_settings.theme = theme
-    user_settings.save(update_fields=['theme', 'updated_at'])
-
-    return JsonResponse({'ok': True, 'theme': theme})
+        return Response(status=status.HTTP_204_NO_CONTENT)
