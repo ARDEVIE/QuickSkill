@@ -20,8 +20,6 @@ from apps.articles.serializers import (
 
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.authentication import SessionAuthentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.select_related('author').all()
@@ -29,9 +27,6 @@ class ArticleViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['title', 'content']
     filterset_fields = ['category']
-    
-    # Add SessionAuthentication so the temporary HTML frontend works with Admin login
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -89,8 +84,7 @@ class CommentViewSet(
     queryset = Comment.objects.all()
     serializer_class = CommentCreateUpdateSerializer
     permission_classes = [IsAuthenticated, IsCommentOwnerOrAdminOrReadOnly]
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
-    
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -107,7 +101,6 @@ class ArticleBlockViewSet(viewsets.ModelViewSet):
     queryset = ArticleBlock.objects.all()
     serializer_class = ArticleBlockSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
 
     def perform_create(self, serializer):
         article_id = self.request.data.get('article')

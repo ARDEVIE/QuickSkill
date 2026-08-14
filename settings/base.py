@@ -1,9 +1,6 @@
 # Python modules
 import os
 
-# Django modules
-from django.urls import reverse_lazy
-
 # Third-party modules
 from decouple import config
 
@@ -75,7 +72,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'apps.common.context_processors.theme',
             ],
         },
     },
@@ -114,7 +110,3 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-LOGIN_URL = reverse_lazy('users:login')
-LOGIN_REDIRECT_URL = reverse_lazy('users:profile')
-LOGOUT_REDIRECT_URL = reverse_lazy('users:login')
