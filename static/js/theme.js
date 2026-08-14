@@ -5,7 +5,7 @@
     }
 
     function setToggleIcon(button, theme) {
-        button.textContent = theme === "dark" ? "☀️" : "🌙";
+        button.textContent = theme === "dark" ? "☀️ Светлая тема" : "🌙 Тёмная тема";
         button.setAttribute("aria-label", theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему");
     }
 

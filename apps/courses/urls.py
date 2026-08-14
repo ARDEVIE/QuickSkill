@@ -1,12 +1,20 @@
-# Third-party modules
-from rest_framework.routers import DefaultRouter
+# Django modules
+from django.urls import path
 
 # Project modules
-from apps.courses.views import CategoryViewSet, CourseViewSet, MaterialViewSet
+from apps.courses import views
 
-router = DefaultRouter()
-router.register('categories', CategoryViewSet, basename='category')
-router.register('courses', CourseViewSet, basename='course')
-router.register('materials', MaterialViewSet, basename='material')
+app_name = 'courses'
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', views.catalog_view, name='catalog'),
+    path('my-learning/', views.my_learning_view, name='my_learning'),
+    path('teaching/', views.teaching_view, name='teaching'),
+    path('courses/create/', views.course_create_view, name='course_create'),
+    path('courses/<int:pk>/', views.course_detail_view, name='course_detail'),
+    path('courses/<int:pk>/edit/', views.course_edit_view, name='course_edit'),
+    path('courses/<int:pk>/delete/', views.course_delete_view, name='course_delete'),
+    path('courses/<int:pk>/favorite/', views.course_favorite_view, name='course_favorite'),
+    path('courses/<int:pk>/materials/add/', views.material_add_view, name='material_add'),
+    path('materials/<int:pk>/delete/', views.material_delete_view, name='material_delete'),
+]

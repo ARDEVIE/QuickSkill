@@ -1,93 +1,169 @@
 # Django modules
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-
-# Third-party modules
-from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 # Project modules
-from apps.common.permissions import IsAuthorOrReadOnly
+from apps.courses.forms import CourseForm, MaterialForm
 from apps.courses.models import Category, Course, Favorite, Material
-from apps.courses.serializers import (
-    CategorySerializer,
-    CourseDetailSerializer,
-    CourseListSerializer,
-    CourseWriteSerializer,
-    MaterialSerializer,
-)
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [AllowAny]
+def catalog_view(request):
+    '''Public course catalog; authenticated users also see their own drafts.'''
+    courses = Course.objects.select_related('category', 'author')
+    user = request.user
+
+    if user.is_authenticated:
+        courses = courses.filter(Q(is_published=True) | Q(author=user))
+    else:
+        courses = courses.filter(is_published=True)
+
+    search = request.GET.get('search', '').strip()
+    if search:
+        courses = courses.filter(title__icontains=search)
+
+    category_slug = request.GET.get('category', '')
+    if category_slug:
+        courses = courses.filter(category__slug=category_slug)
+
+    context = {
+        'courses': courses.distinct(),
+        'categories': Category.objects.all(),
+        'search': search,
+        'selected_category': category_slug,
+    }
+    return render(request, 'courses/catalog.html', context)
 
 
-class CourseViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
-    filter_backends = [SearchFilter]
-    search_fields = ['title']
-
-    def get_queryset(self):
-        '''Anyone sees published courses; authenticated users also see their own drafts.'''
-        queryset = Course.objects.select_related('category', 'author')
-        user = self.request.user
-
-        if user.is_authenticated:
-            queryset = queryset.filter(Q(is_published=True) | Q(author=user))
-        else:
-            queryset = queryset.filter(is_published=True)
-
-        category = self.request.query_params.get('category')
-        if category:
-            if category.isdigit():
-                queryset = queryset.filter(category_id=category)
-            else:
-                queryset = queryset.filter(category__slug=category)
-
-        return queryset.distinct()
-
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return CourseListSerializer
-        if self.action in ('create', 'update', 'partial_update'):
-            return CourseWriteSerializer
-        return CourseDetailSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    @action(detail=True, methods=['post'])
-    def materials(self, request, pk=None):
-        '''Author-only: attach a PDF or video-link material to this course.'''
-        course = self.get_object()
-
-        serializer = MaterialSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(course=course)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def favorite(self, request, pk=None):
-        '''Toggle the current user's favorite on this course.'''
-        course = self.get_object()
-        favorite, created = Favorite.objects.get_or_create(user=request.user, course=course)
-        if not created:
-            favorite.delete()
-        return Response({'favorited': created})
+@login_required
+def my_learning_view(request):
+    '''Courses the current user has favorited — the student side of the cabinet.'''
+    favorites = Favorite.objects.filter(user=request.user).select_related(
+        'course', 'course__category', 'course__author'
+    )
+    context = {'courses': [favorite.course for favorite in favorites]}
+    return render(request, 'courses/my_learning.html', context)
 
 
-class MaterialViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
-    '''Retrieve/update/delete a single material; creation happens via CourseViewSet.materials().'''
+@login_required
+def teaching_view(request):
+    '''Courses the current user has authored — the teacher side of the cabinet.'''
+    courses = Course.objects.filter(author=request.user).select_related('category', 'author')
+    return render(request, 'courses/teaching.html', {'courses': courses})
 
-    queryset = Material.objects.select_related('course__author')
-    serializer_class = MaterialSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+def course_detail_view(request, pk):
+    course = get_object_or_404(
+        Course.objects.select_related('category', 'author').prefetch_related('materials'),
+        pk=pk,
+    )
+    user = request.user
+    is_owner = user.is_authenticated and course.author == user
+
+    if not course.is_published and not is_owner:
+        raise PermissionDenied('Курс ещё не опубликован.')
+
+    is_favorited = user.is_authenticated and Favorite.objects.filter(
+        user=user, course=course
+    ).exists()
+
+    context = {
+        'course': course,
+        'is_owner': is_owner,
+        'is_favorited': is_favorited,
+    }
+    return render(request, 'courses/detail.html', context)
+
+
+@login_required
+def course_create_view(request):
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            course = form.save(commit=False)
+            course.author = request.user
+            course.save()
+            messages.success(request, 'Курс создан.')
+            return redirect('courses:course_detail', pk=course.pk)
+    else:
+        form = CourseForm()
+
+    return render(request, 'courses/course_form.html', {'form': form})
+
+
+@login_required
+def course_edit_view(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if course.author != request.user:
+        raise PermissionDenied('Редактировать может только автор курса.')
+
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Курс обновлён.')
+            return redirect('courses:course_detail', pk=course.pk)
+    else:
+        form = CourseForm(instance=course)
+
+    return render(request, 'courses/course_form.html', {'form': form, 'course': course})
+
+
+@login_required
+def course_delete_view(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if course.author != request.user:
+        raise PermissionDenied('Удалить может только автор курса.')
+
+    if request.method == 'POST':
+        course.delete()
+        messages.success(request, 'Курс удалён.')
+        return redirect('courses:catalog')
+
+    return render(request, 'courses/course_confirm_delete.html', {'course': course})
+
+
+@login_required
+@require_POST
+def course_favorite_view(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, course=course)
+    if not created:
+        favorite.delete()
+    return redirect('courses:course_detail', pk=pk)
+
+
+@login_required
+def material_add_view(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if course.author != request.user:
+        raise PermissionDenied('Добавлять материалы может только автор курса.')
+
+    if request.method == 'POST':
+        form = MaterialForm(request.POST, request.FILES)
+        if form.is_valid():
+            material = form.save(commit=False)
+            material.course = course
+            material.save()
+            messages.success(request, 'Материал добавлен.')
+            return redirect('courses:course_detail', pk=course.pk)
+    else:
+        form = MaterialForm()
+
+    return render(request, 'courses/material_form.html', {'form': form, 'course': course})
+
+
+@login_required
+@require_POST
+def material_delete_view(request, pk):
+    material = get_object_or_404(Material.objects.select_related('course'), pk=pk)
+    if material.course.author != request.user:
+        raise PermissionDenied('Удалить материал может только автор курса.')
+
+    course_pk = material.course_id
+    material.delete()
+    messages.success(request, 'Материал удалён.')
+    return redirect('courses:course_detail', pk=course_pk)

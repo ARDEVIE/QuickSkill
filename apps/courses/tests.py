@@ -380,3 +380,196 @@ class CategoryAPITests(APITestCase):
     def test_categories_are_read_only(self):
         response = self.client.post(reverse('category-list'), {'name': 'New category'})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class CourseWebViewTests(TestCase):
+    def setUp(self):
+        self.author = create_user(email='author@example.com', username='author')
+        self.other = create_user(email='other@example.com', username='other')
+        self.category = Category.objects.create(name='Python')
+        self.published = Course.objects.create(
+            title='Django for beginners',
+            author=self.author,
+            category=self.category,
+            is_published=True,
+        )
+        self.draft = Course.objects.create(
+            title='Advanced Django',
+            author=self.author,
+            is_published=False,
+        )
+
+    def test_catalog_is_the_homepage(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'courses/catalog.html')
+
+    def test_anonymous_sees_only_published_courses_in_catalog(self):
+        response = self.client.get(reverse('courses:catalog'))
+
+        self.assertContains(response, self.published.title)
+        self.assertNotContains(response, self.draft.title)
+
+    def test_author_sees_own_draft_in_catalog(self):
+        self.client.force_login(self.author)
+        response = self.client.get(reverse('courses:catalog'))
+
+        self.assertContains(response, self.draft.title)
+
+    def test_catalog_search_filters_by_title(self):
+        response = self.client.get(reverse('courses:catalog'), {'search': 'beginners'})
+
+        self.assertContains(response, self.published.title)
+
+    def test_anonymous_cannot_view_someone_elses_draft(self):
+        response = self.client.get(reverse('courses:course_detail', args=[self.draft.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_can_view_own_draft(self):
+        self.client.force_login(self.author)
+        response = self.client.get(reverse('courses:course_detail', args=[self.draft.pk]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_create_course_requires_login(self):
+        response = self.client.get(reverse('courses:course_create'))
+        self.assertRedirects(
+            response, f"{reverse('users:login')}?next={reverse('courses:course_create')}"
+        )
+
+    def test_create_course_sets_author_from_request_user(self):
+        self.client.force_login(self.other)
+        response = self.client.post(
+            reverse('courses:course_create'),
+            {'title': 'New course', 'description': 'desc', 'is_published': True},
+        )
+
+        course = Course.objects.get(title='New course')
+        self.assertEqual(course.author, self.other)
+        self.assertRedirects(response, reverse('courses:course_detail', args=[course.pk]))
+
+    def test_non_author_cannot_edit_course(self):
+        self.client.force_login(self.other)
+        response = self.client.post(
+            reverse('courses:course_edit', args=[self.published.pk]), {'title': 'Hacked'}
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_author_can_edit_course(self):
+        self.client.force_login(self.author)
+        response = self.client.post(
+            reverse('courses:course_edit', args=[self.published.pk]),
+            {'title': 'Updated title', 'is_published': True},
+        )
+        self.published.refresh_from_db()
+        self.assertEqual(self.published.title, 'Updated title')
+        self.assertRedirects(response, reverse('courses:course_detail', args=[self.published.pk]))
+
+    def test_non_author_cannot_delete_course(self):
+        self.client.force_login(self.other)
+        response = self.client.post(reverse('courses:course_delete', args=[self.published.pk]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Course.objects.filter(pk=self.published.pk).exists())
+
+    def test_author_can_delete_course(self):
+        self.client.force_login(self.author)
+        response = self.client.post(reverse('courses:course_delete', args=[self.published.pk]))
+        self.assertRedirects(response, reverse('courses:catalog'))
+        self.assertFalse(Course.objects.filter(pk=self.published.pk).exists())
+
+    def test_favorite_toggle_requires_login(self):
+        response = self.client.post(reverse('courses:course_favorite', args=[self.published.pk]))
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_favorite_toggle_adds_then_removes(self):
+        self.client.force_login(self.other)
+        self.client.post(reverse('courses:course_favorite', args=[self.published.pk]))
+        self.assertTrue(Favorite.objects.filter(user=self.other, course=self.published).exists())
+
+        self.client.post(reverse('courses:course_favorite', args=[self.published.pk]))
+        self.assertFalse(Favorite.objects.filter(user=self.other, course=self.published).exists())
+
+    def test_non_author_cannot_add_material(self):
+        self.client.force_login(self.other)
+        response = self.client.post(
+            reverse('courses:material_add', args=[self.published.pk]),
+            {'title': 'Lecture', 'type': 'video_link', 'url': 'https://example.com/video', 'order': 0},
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_author_can_add_video_link_material(self):
+        self.client.force_login(self.author)
+        response = self.client.post(
+            reverse('courses:material_add', args=[self.published.pk]),
+            {'title': 'Lecture', 'type': 'video_link', 'url': 'https://example.com/video', 'order': 0},
+        )
+        self.assertRedirects(response, reverse('courses:course_detail', args=[self.published.pk]))
+        self.assertEqual(self.published.materials.count(), 1)
+
+    def test_material_form_rejects_pdf_type_without_file(self):
+        self.client.force_login(self.author)
+        response = self.client.post(
+            reverse('courses:material_add', args=[self.published.pk]),
+            {'title': 'Slides', 'type': 'pdf', 'url': '', 'order': 0},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.published.materials.count(), 0)
+
+    def test_author_can_delete_material(self):
+        material = Material.objects.create(
+            course=self.published,
+            title='Lecture',
+            type=Material.MaterialType.VIDEO_LINK,
+            url='https://example.com/video',
+        )
+        self.client.force_login(self.author)
+
+        response = self.client.post(reverse('courses:material_delete', args=[material.pk]))
+
+        self.assertRedirects(response, reverse('courses:course_detail', args=[self.published.pk]))
+        self.assertFalse(Material.objects.filter(pk=material.pk).exists())
+
+
+class MyLearningAndTeachingViewTests(TestCase):
+    def setUp(self):
+        self.author = create_user(email='author@example.com', username='author')
+        self.fan = create_user(email='fan@example.com', username='fan')
+        self.course = Course.objects.create(
+            title='Django basics', author=self.author, is_published=True
+        )
+        self.draft = Course.objects.create(title='Draft course', author=self.author)
+
+    def test_my_learning_requires_login(self):
+        response = self.client.get(reverse('courses:my_learning'))
+        self.assertRedirects(
+            response, f"{reverse('users:login')}?next={reverse('courses:my_learning')}"
+        )
+
+    def test_my_learning_shows_only_favorited_courses(self):
+        Favorite.objects.create(user=self.fan, course=self.course)
+        self.client.force_login(self.fan)
+
+        response = self.client.get(reverse('courses:my_learning'))
+
+        self.assertContains(response, self.course.title)
+        self.assertNotContains(response, self.draft.title)
+
+    def test_teaching_requires_login(self):
+        response = self.client.get(reverse('courses:teaching'))
+        self.assertRedirects(
+            response, f"{reverse('users:login')}?next={reverse('courses:teaching')}"
+        )
+
+    def test_teaching_shows_own_courses_including_drafts(self):
+        self.client.force_login(self.author)
+
+        response = self.client.get(reverse('courses:teaching'))
+
+        self.assertContains(response, self.course.title)
+        self.assertContains(response, self.draft.title)
+
+    def test_teaching_does_not_show_other_authors_courses(self):
+        self.client.force_login(self.fan)
+
+        response = self.client.get(reverse('courses:teaching'))
+
+        self.assertNotContains(response, self.course.title)

@@ -19,7 +19,7 @@ cp settings/.env.example settings/.env   # если .env ещё нет
 docker compose up --build
 ```
 
-Поднимутся два сервиса: `db` (PostgreSQL 16) и `backend` (Django, миграции применяются автоматически при старте). После старта:
+Поднимутся два сервиса: `quickskill-db` (PostgreSQL 16) и `quickskill-backend` (Django, миграции применяются автоматически при старте). После старта:
 
 - API + Swagger UI: http://localhost:8000/api/docs/
 - Обычные Django-страницы (login/register/profile): http://localhost:8000/auth/
@@ -28,13 +28,13 @@ docker compose up --build
 Создать суперюзера в уже запущенном контейнере:
 
 ```bash
-docker compose exec backend python manage.py createsuperuser
+docker compose exec quickskill-backend python manage.py createsuperuser
 ```
 
 Прогнать тесты внутри контейнера:
 
 ```bash
-docker compose exec backend python manage.py test
+docker compose exec quickskill-backend python manage.py test
 ```
 
 Остановить:
@@ -70,8 +70,26 @@ python manage.py runserver
 
 ```bash
 python manage.py test          # локально
-docker compose exec backend python manage.py test   # в контейнере
+docker compose exec quickskill-backend python manage.py test   # в контейнере
 ```
+
+## Деплой
+
+`docker-compose.prod.yml` — отдельный конфиг под требования общего сервера (`esg.kbtu.kz`):
+
+- сервисы названы с префиксом проекта (`quickskill-backend`, `quickskill-db`), а не общими именами;
+- порты не публикуются наружу (`expose`, не `ports`) — доступ только изнутри Docker-сети;
+- `quickskill-backend` дополнительно подключается к внешней сети `esg-network` (`external: true`), чтобы её видел общий Nginx;
+- backend стартует через Gunicorn (`gunicorn settings.wsgi:application`), а не `manage.py runserver`;
+- статика раздаётся Gunicorn'ом через WhiteNoise (`collectstatic` запускается автоматически при старте контейнера).
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Перед этим на сервере должна существовать сеть `esg-network` (создаётся один раз девопсами: `docker network create esg-network`) и `settings/.env` с реальными `PROJECT_SECRET_KEY`, `POSTGRES_PASSWORD` и `DJANGO_ALLOWED_HOSTS` — без них `settings/env/prod.py` откажется стартовать.
+
+**Пока не готово к реальному деплою:** в репозитории нет frontend (React — зона Ерсултана по паспорту проекта), без него подключать общий Nginx/путь `esg.kbtu.kz/quickskill` нет смысла.
 
 ## API
 
