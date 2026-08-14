@@ -9,10 +9,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Session-based Django templates (browser-rendered pages)
-    path('auth/', include('apps.users.urls')),
-    path('articles/', include('apps.articles.page_urls')),
-    # JWT API (consumed by the React frontend)
+    # JWT API (consumed by the Angular frontend)
     path('api/auth/', include('apps.users.auth_urls')),
     path('api/users/', include('apps.users.profile_urls')),
     path('api/', include('apps.courses.urls')),

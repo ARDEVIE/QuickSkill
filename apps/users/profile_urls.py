@@ -2,7 +2,7 @@
 from django.urls import path
 
 # Project modules
-from apps.users.api_views import MeAPIView
+from apps.users.views import MeAPIView
 
 app_name = 'users_api'
 
