@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Article Test Page{% endblock %}
+
+{% block content %}
+<div class="article-container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    {% if user.is_authenticated %}
+    <div style="text-align: right; margin-bottom: 15px;">
+        <button id="favorite-btn" onclick="toggleFavorite()" class="btn btn--ghost">В избранное</button>
+        <a href="{% url 'articles_page:edit_page' slug %}" class="btn">Редактировать пост</a>
+    </div>
+    {% endif %}
+
+    <div id="article-content">
+        <p>Loading article...</p>
+    </div>
+
+    <hr style="margin: 40px 0;">
+
+    <div id="comments-section">
+        <h3>Комментарии</h3>
+        
+        {% if user.is_authenticated %}
+        <div style="margin-bottom: 20px; position: relative;">
+            <div id="reply-badge" style="display: none; margin-bottom: 5px; font-size: 0.9em; color: #007bff; background: #eef7ff; padding: 5px 10px; border-radius: 4px; display: inline-block;">
+                Ответ для: <span id="reply-to-name"></span>
+                <button onclick="cancelReply()" style="background: none; border: none; cursor: pointer; color: red; margin-left: 10px;">&times;</button>
+            </div>
+            <textarea id="new-comment" style="width: 100%; height: 80px; margin-bottom: 10px;" placeholder="Написать комментарий..."></textarea>
+            <input type="file" id="new-comment-media" class="input" style="margin-bottom: 10px; width: 100%;">
+            <button onclick="postComment()" class="btn">Отправить</button>
+        </div>
+        {% else %}
+        <p><a href="{% url 'users:login' %}">Войдите</a>, чтобы оставить комментарий.</p>
+        {% endif %}
+
+        <div id="comments-list">
+            <p>Loading comments...</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const slug = "{{ slug }}";
+    const currentUser = "{{ current_user|default:'' }}";
+    const apiBase = `/api/articles/${slug}/`;
+    let replyParentId = null;
+    
+    // Helper to get CSRF token for authenticated requests
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function fetchArticle() {
+        try {
+            const response = await fetch(apiBase);
+            if (!response.ok) throw new Error('Article not found');
+            const data = await response.json();
+            
+            let blocksHtml = '';
+            if (data.blocks && data.blocks.length > 0) {
+                data.blocks.forEach(block => {
+                    if (block.block_type === 'text') {
+                        blocksHtml += `<div style="line-height: 1.6; margin-bottom: 20px;">${block.content.replace(/\n/g, '<br>')}</div>`;
+                    } else if (block.block_type === 'media' && block.media_file) {
+                        if (block.media_file.match(/\.(mp4|webm|ogg)$/i)) {
+                            blocksHtml += `<video controls src="${block.media_file}" style="max-width: 100%; margin-bottom: 20px;"></video><br>`;
+                        } else if (block.media_file.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                            blocksHtml += `<img src="${block.media_file}" style="max-width: 100%; margin-bottom: 20px;"><br>`;
+                        } else {
+                            blocksHtml += `<div style="margin-bottom: 20px;"><a href="${block.media_file}" target="_blank" class="btn btn--ghost">Скачать прикрепленный файл</a></div>`;
+                        }
+                    }
+                });
+            } else {
+                // Legacy fallback
+                let mediaHtml = '';
+                if (data.media_file) {
+                    if (data.media_file.match(/\.(mp4|webm|ogg)$/i)) {
+                        mediaHtml = `<video controls src="${data.media_file}" style="max-width: 100%; margin-bottom: 20px;"></video>`;
+                    } else if (data.media_file.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                        mediaHtml = `<img src="${data.media_file}" style="max-width: 50%; margin-bottom: 20px;">`;
+                    } else {
+                        mediaHtml = `<div style="margin-bottom: 20px;"><a href="${data.media_file}" target="_blank" class="btn btn--ghost">Скачать прикрепленный файл</a></div>`;
+                    }
+                }
+                blocksHtml = `${mediaHtml}<div style="line-height: 1.6; margin-bottom: 20px;">${(data.content || '').replace(/\n/g, '<br>')}</div>`;
+            }
+            
+            const authorName = data.author.display_name || data.author.username;
+            const date = new Date(data.published_at || data.created_at).toLocaleDateString();
+
+            document.getElementById('article-content').innerHTML = `
+                <h1>${data.title}</h1>
+                <div style="color: #666; margin-bottom: 20px;">
+                    Автор: <a href="javascript:void(0)" onclick="alert('Страница профиля еще не реализована на фронтенде')">${authorName}</a> | Дата: ${date}
+                </div>
+                <div style="font-size: 1.2em; font-style: italic; margin-bottom: 20px;">
+                    ${data.excerpt}
+                </div>
+                ${blocksHtml}
+            `;
+        } catch (error) {
+            document.getElementById('article-content').innerHTML = `<p style="color: red;">Failed to load article: ${error.message}</p>`;
+        }
+    }
+
+    async function fetchComments() {
+        try {
+            const response = await fetch(`${apiBase}comments/`);
+            if (!response.ok) throw new Error('Comments not found');
+            const data = await response.json();
+            
+            const comments = data.results || data;
+            
+            let html = '';
+            if (comments.length === 0) {
+                html = '<p>Нет комментариев. Будьте первым!</p>';
+            } else {
+                comments.forEach(comment => {
+                    const authorName = comment.user.display_name || comment.user.username;
+                    const date = new Date(comment.created_at).toLocaleString();
+                    
+                    let replyInfo = '';
+                    if (comment.reply_to_user) {
+                        replyInfo = `<div style="font-size: 0.85em; color: #007bff; margin-bottom: 5px;">В ответ ${comment.reply_to_user}</div>`;
+                    }
+
+                    let commentMedia = '';
+                    if (comment.media_file) {
+                        if (comment.media_file.match(/\.(mp4|webm|ogg)$/i)) {
+                            commentMedia = `<div style="margin-top:10px;"><video controls src="${comment.media_file}" style="max-width: 150px;"></video></div>`;
+                        } else if (comment.media_file.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                            commentMedia = `<div style="margin-top:10px;"><img src="${comment.media_file}" style="max-width: 150px; border-radius: 4px;"></div>`;
+                        } else {
+                            commentMedia = `<div style="margin-top:10px;"><a href="${comment.media_file}" target="_blank">Прикрепленный файл</a></div>`;
+                        }
+                    }
+
+                    let actionsHtml = '';
+                    if (currentUser) {
+                        actionsHtml += `<button onclick="setReply(${comment.id}, '${authorName}')" style="background: none; border: none; color: #007bff; cursor: pointer; padding: 0; margin-right: 15px; font-size: 0.9em;">Ответить</button>`;
+                        if (currentUser === comment.user.username) {
+                            actionsHtml += `<button onclick="deleteComment(${comment.id})" style="background: none; border: none; color: red; cursor: pointer; padding: 0; font-size: 0.9em;">Удалить</button>`;
+                        }
+                    }
+
+                    html += `
+                        <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+                            <div style="margin-bottom: 10px; font-size: 0.9em; color: #666; display: flex; justify-content: space-between;">
+                                <span><strong><a href="javascript:void(0)" onclick="alert('Страница профиля еще не реализована на фронтенде')">${authorName}</a></strong> &bull; ${date}</span>
+                                <div>${actionsHtml}</div>
+                            </div>
+                            <div>
+                                ${replyInfo}
+                                ${comment.content.replace(/\n/g, '<br>')}
+                                ${commentMedia}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('comments-list').innerHTML = html;
+            
+            // Make sure the reply badge is hidden by default if no active reply
+            if (!replyParentId) {
+                document.getElementById('reply-badge').style.display = 'none';
+            }
+        } catch (error) {
+            document.getElementById('comments-list').innerHTML = `<p style="color: red;">Failed to load comments</p>`;
+        }
+    }
+
+    function setReply(commentId, authorName) {
+        replyParentId = commentId;
+        const badge = document.getElementById('reply-badge');
+        if (badge) {
+            badge.style.display = 'inline-block';
+            document.getElementById('reply-to-name').textContent = authorName;
+        }
+        document.getElementById('new-comment').focus();
+    }
+
+    function cancelReply() {
+        replyParentId = null;
+        document.getElementById('reply-badge').style.display = 'none';
+    }
+
+    async function deleteComment(id) {
+        if (!confirm('Вы уверены, что хотите удалить комментарий?')) return;
+        
+        try {
+            const response = await fetch(`/api/comments/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            });
+            if (response.ok) {
+                fetchComments();
+            } else {
+                alert('Ошибка при удалении комментария.');
+            }
+        } catch (e) {
+            alert('Ошибка сети');
+        }
+    }
+
+    async function postComment() {
+        const content = document.getElementById('new-comment').value;
+        const mediaInput = document.getElementById('new-comment-media');
+        if (!content.trim() && mediaInput.files.length === 0) return;
+
+        const formData = new FormData();
+        formData.append('content', content);
+        if (mediaInput.files.length > 0) {
+            formData.append('media_file', mediaInput.files[0]);
+        }
+        if (replyParentId) {
+            formData.append('parent', replyParentId);
+        }
+
+        try {
+            const response = await fetch(`${apiBase}comments/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                document.getElementById('new-comment').value = '';
+                mediaInput.value = '';
+                cancelReply();
+                fetchComments(); // Reload comments
+            } else {
+                const data = await response.json();
+                alert('Ошибка: ' + JSON.stringify(data));
+            }
+        } catch (error) {
+            alert('Ошибка сети');
+        }
+    }
+
+    async function toggleFavorite() {
+        try {
+            const response = await fetch(`${apiBase}favorite/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                const btn = document.getElementById('favorite-btn');
+                if (data.favorited) {
+                    btn.textContent = 'Убрать из избранного';
+                    btn.classList.remove('btn--ghost');
+                } else {
+                    btn.textContent = 'В избранное';
+                    btn.classList.add('btn--ghost');
+                }
+            } else {
+                alert('Ошибка при добавлении в избранное');
+            }
+        } catch (e) {
+            alert('Ошибка сети');
+        }
+    }
+
+    // Load initial data
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchArticle();
+        fetchComments();
+    });
+</script>
+{% endblock %}
