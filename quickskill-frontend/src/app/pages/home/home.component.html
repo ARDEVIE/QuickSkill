@@ -1,0 +1,183 @@
+<app-header></app-header>
+
+<main class="home">
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <div class="hero-content">
+
+      <span class="eyebrow">QUICKSKILL</span>
+
+      <h1>
+        УЧИСЬ У СТУДЕНТОВ,
+        КОТОРЫЕ УЖЕ
+        РАЗОБРАЛИСЬ В ТЕМЕ.
+      </h1>
+
+      <p>
+        Делись знаниями. Находи полезные курсы.
+        Учись у тех, кто уже прошёл этот путь.
+      </p>
+
+      <div class="hero-search">
+
+        <span class="search-icon"></span>
+      
+        <input
+          type="text"
+          placeholder="Что хочешь изучить?"
+        />
+      
+        <button>
+          Найти
+        </button>
+      
+      </div>
+
+      <div class="hero-buttons">
+        <button class="primary-btn">
+          Начать обучение
+        </button>
+
+        <button class="secondary-btn">
+          Создать курс
+        </button>
+      </div>
+
+    </div>
+
+    <div class="hero-art">
+
+      <div class="blue-circle"></div>
+      <div class="orange-circle"></div>
+
+      <div class="floating-card">
+        <span>NEW</span>
+        <strong>
+          Learn something
+          new today.
+        </strong>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- CATEGORIES -->
+  <section class="section">
+
+    <div class="section-header">
+
+      <div>
+        <span class="eyebrow">EXPLORE</span>
+        <h2>Популярные категории</h2>
+      </div>
+
+      <a href="#">Смотреть все →</a>
+
+    </div>
+
+    <div class="categories-grid">
+
+      <div
+        class="category-card"
+        *ngFor="let category of categories">
+
+        <div class="category-icon">
+          {{ category.icon }}
+        </div>
+
+        <div>
+          <h3>{{ category.name }}</h3>
+          <p>{{ category.courses }} курсов</p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- COURSES -->
+  <section class="section">
+
+    <div class="section-header">
+
+      <div>
+        <span class="eyebrow">FRESH</span>
+        <h2>Новые курсы</h2>
+      </div>
+
+      <a href="#">Все курсы →</a>
+
+    </div>
+
+    <div class="courses-grid">
+
+        <div
+          class="course-card"
+          *ngFor="let course of courses">
+      
+          <div
+            class="course-cover"
+            [style.background]="course.color">
+      
+            <span>{{ course.category }}</span>
+      
+          </div>
+      
+          <div class="course-content">
+      
+            <h3>{{ course.title }}</h3>
+      
+            <p>{{ course.author }}</p>
+      
+            <div class="course-meta">
+      
+              <span>{{ course.level }}</span>
+      
+              <span class="rating">
+                ★ {{ course.rating }}
+              </span>
+      
+            </div>
+      
+          </div>
+      
+        </div>
+      
+      </div>
+
+  </section>
+
+
+  <!-- CTA -->
+  <section class="cta">
+
+    <div>
+
+      <span class="eyebrow">READY TO SHARE?</span>
+
+      <h2>
+        Знаешь тему лучше других?
+      </h2>
+
+      <p>
+        Создай свой курс и поделись знаниями
+        с другими студентами.
+      </p>
+
+    </div>
+
+    <button class="accent-btn">
+      Создать курс
+    </button>
+
+  </section>
+
+</main>
+
+<app-footer></app-footer>
