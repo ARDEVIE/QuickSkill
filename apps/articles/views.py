@@ -50,6 +50,17 @@ class ArticleViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # ArticleWriteSerializer has no author field — respond with the detail
+        # representation so callers get the nested author back.
+        response_serializer = ArticleDetailSerializer(serializer.instance, context=self.get_serializer_context())
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     @action(detail=True, methods=['get', 'post'], permission_classes=[IsAuthenticatedOrReadOnly])
     def comments(self, request, slug=None):
         article = self.get_object()

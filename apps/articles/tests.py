@@ -1,6 +1,3 @@
-# Python modules
-from io import BytesIO
-
 # Django modules
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -140,33 +137,30 @@ class CommentTests(APITestCase):
 
 
 class MediaUploadTests(APITestCase):
+    '''Article no longer has cover/media_file fields (removed in migrations 0006/0007) —
+    media now lives on ArticleBlock, uploaded via the article-blocks endpoint.'''
+
     def setUp(self):
         self.user = User.objects.create_user(email='user1@test.com', username='user1', password='password123')
-        self.list_url = reverse('article-list')
+        self.article = Article.objects.create(title='Media Article', content='Content', author=self.user)
+        self.block_list_url = reverse('article-block-list')
 
     def test_upload_media_success(self):
         self.client.force_authenticate(user=self.user)
-        
-        image_file = SimpleUploadedFile(
-            name='test_image.jpg',
-            content=b'file_content',
-            content_type='image/jpeg'
-        )
-        
+
         video_file = SimpleUploadedFile(
             name='test_video.mp4',
             content=b'video_content',
             content_type='video/mp4'
         )
-        
+
         data = {
-            'title': 'Media Article',
-            'content': 'Content',
-            'cover': image_file,
-            'media_file': video_file
+            'article': self.article.id,
+            'block_type': 'media',
+            'media_file': video_file,
+            'order': 0,
         }
-        
-        response = self.client.post(self.list_url, data, format='multipart')
+
+        response = self.client.post(self.block_list_url, data, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn('cover', response.data)
         self.assertIn('media_file', response.data)
