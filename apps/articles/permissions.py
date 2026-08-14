@@ -2,8 +2,8 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
-class IsArticleAuthorOrAdminOrReadOnly(BasePermission):
-    '''Allows write access only to the article's author or admin.'''
+class IsQuestionAuthorOrAdminOrReadOnly(BasePermission):
+    '''Allows write access only to the question's author or admin.'''
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:

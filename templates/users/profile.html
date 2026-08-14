@@ -55,15 +55,15 @@
         <div class="section-title">
             <h2>Мои посты</h2>
         </div>
-        {% if authored_courses or authored_articles %}
+        {% if authored_courses or authored_questions %}
             <ul class="item-list">
-                {% for article in authored_articles %}
+                {% for question in authored_questions %}
                     <li>
-                        <span class="item-title"><a href="{% url 'articles_page:test_page' article.slug %}">{{ article.title }}</a></span>
+                        <span class="item-title"><a href="{% url 'articles_page:test_page' question.slug %}">{{ question.title }}</a></span>
                         <span class="badge">
-                            {% if article.category %}{{ article.category.name }}{% else %}Без темы{% endif %}
+                            {% if question.category %}{{ question.category.name }}{% else %}Без темы{% endif %}
                         </span>
-                        <a href="{% url 'articles_page:edit_page' article.slug %}" style="margin-left: 10px; font-size: 0.8em;">Редактировать</a>
+                        <a href="{% url 'articles_page:edit_page' question.slug %}" style="margin-left: 10px; font-size: 0.8em;">Редактировать</a>
                     </li>
                 {% endfor %}
                 {% for course in authored_courses %}
@@ -84,7 +84,7 @@
         <div class="section-title">
             <h2>Избранное</h2>
         </div>
-        {% if favorites or favorite_articles %}
+        {% if favorites or favorite_questions %}
             <ul class="item-list">
                 {% for favorite in favorites %}
                     <li>
@@ -92,11 +92,11 @@
                         <span class="badge">{{ favorite.course.author.username }}</span>
                     </li>
                 {% endfor %}
-                {% for fav in favorite_articles %}
+                {% for fav in favorite_questions %}
                     <li>
-                        <span class="item-title"><a href="{% url 'articles_page:test_page' fav.article.slug %}">{{ fav.article.title }}</a></span>
+                        <span class="item-title"><a href="{% url 'articles_page:test_page' fav.question.slug %}">{{ fav.question.title }}</a></span>
                         <span class="badge">
-                            Тема: {% if fav.article.category %}{{ fav.article.category.name }}{% else %}Без темы{% endif %}
+                            Тема: {% if fav.question.category %}{{ fav.question.category.name }}{% else %}Без темы{% endif %}
                         </span>
                     </li>
                 {% endfor %}

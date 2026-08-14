@@ -46,35 +46,32 @@
     async function fetchArticles() {
         const search = document.getElementById('search-input').value;
         const category = document.getElementById('category-filter').value;
-        
-        let url = '/api/articles/?';
+
+        let url = '/api/questions/?';
         if (search) url += `search=${encodeURIComponent(search)}&`;
         if (category) url += `category=${category}&`;
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to load articles');
-            
+            if (!response.ok) throw new Error('Failed to load questions');
+
             const data = await response.json();
-            const articles = data.results || data;
+            const questions = data.results || data;
 
             let html = '';
-            if (articles.length === 0) {
-                html = '<p>Посты не найдены.</p>';
+            if (questions.length === 0) {
+                html = '<p>Вопросы не найдены.</p>';
             } else {
-                articles.forEach(article => {
-                    const authorName = article.author.display_name || article.author.username;
-                    const date = new Date(article.published_at || article.created_at || Date.now()).toLocaleDateString();
+                questions.forEach(question => {
+                    const authorName = question.author.display_name || question.author.username;
+                    const date = new Date(question.created_at || Date.now()).toLocaleDateString();
                     html += `
                         <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-                            ${article.cover ? `<img src="${article.cover}" style="max-width: 100px; float: left; margin-right: 15px; border-radius: 5px;">` : ''}
-                            <h3 style="margin-top: 0;"><a href="/articles/${article.slug}/">${article.title}</a></h3>
+                            <h3 style="margin-top: 0;"><a href="/articles/${question.slug}/">${question.title}</a></h3>
                             <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
-                                Автор: ${authorName} | Дата: ${date} 
-                                ${article.category ? `| Тема: ${article.category}` : ''}
+                                Автор: ${authorName} | Дата: ${date}
+                                ${question.category ? `| Тема: ${question.category}` : ''}
                             </div>
-                            <p>${article.excerpt}</p>
-                            <div style="clear: both;"></div>
                         </div>
                     `;
                 });

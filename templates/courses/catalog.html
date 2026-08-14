@@ -36,4 +36,24 @@
     {% else %}
         <p class="empty-state">Курсов пока нет{% if search or selected_category %} по этому запросу{% endif %}.</p>
     {% endif %}
+
+    {% if selected_category %}
+        <div class="card catalog-questions">
+            <div class="section-title">
+                <h2>Вопросы по этой теме</h2>
+            </div>
+            {% if questions %}
+                <ul class="item-list">
+                    {% for question in questions %}
+                        <li>
+                            <span class="item-title"><a href="{% url 'articles_page:test_page' question.slug %}">{{ question.title }}</a></span>
+                            <span class="helptext">{{ question.author.username }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-state">По этой теме пока нет вопросов. Задайте первый!</p>
+            {% endif %}
+        </div>
+    {% endif %}
 {% endblock %}

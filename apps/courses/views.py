@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 # Project modules
+from apps.articles.models import Question
 from apps.courses.forms import CourseForm, MaterialForm
 from apps.courses.models import Category, Course, Favorite, Material
 
@@ -29,11 +30,18 @@ def catalog_view(request):
     if category_slug:
         courses = courses.filter(category__slug=category_slug)
 
+    # Only look up questions once a category is picked — this is the "didn't
+    # understand the course → ask on the forum" hop, scoped to that topic.
+    questions = None
+    if category_slug:
+        questions = Question.objects.filter(category__slug=category_slug).select_related('author')
+
     context = {
         'courses': courses.distinct(),
         'categories': Category.objects.all(),
         'search': search,
         'selected_category': category_slug,
+        'questions': questions,
     }
     return render(request, 'courses/catalog.html', context)
 
