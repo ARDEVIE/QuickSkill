@@ -1,0 +1,54 @@
+services:
+  quickskill-db:
+    image: postgres:16-alpine
+    env_file:
+      - ./settings/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+
+  quickskill-backend:
+    build: .
+    env_file:
+      - ./settings/.env
+    environment:
+      PROJECT_ENV_ID: prod
+      POSTGRES_HOST: quickskill-db
+      POSTGRES_PORT: "5432"
+    command:
+      [
+        "sh", "-c",
+        "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn settings.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+      ]
+    volumes:
+      - media_data:/app/media
+    expose:
+      - "8000"
+    depends_on:
+      quickskill-db:
+        condition: service_healthy
+    networks:
+      - default
+      - esg-network
+
+  # frontend:
+  #   Как и в docker-compose.yml — добавить, когда появится собранный React
+  #   (свой Dockerfile с Nginx, раздающий SPA и проксирующий /api/ на
+  #   quickskill-backend:8000; сам он тоже цепляется к esg-network).
+
+networks:
+  default:
+  esg-network:
+    external: true
+
+volumes:
+  postgres_data:
+  media_data:

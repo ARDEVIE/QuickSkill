@@ -380,3 +380,4 @@ class CategoryAPITests(APITestCase):
     def test_categories_are_read_only(self):
         response = self.client.post(reverse('category-list'), {'name': 'New category'})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
