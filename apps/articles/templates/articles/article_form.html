@@ -17,21 +17,8 @@
         </div>
 
         <div style="margin-bottom: 15px;">
-            <label>Краткое описание</label>
-            <textarea id="excerpt" class="input" style="width: 100%; height: 60px;"></textarea>
-        </div>
-
-        <hr style="margin: 30px 0;">
-        <h3>Конструктор поста</h3>
-        <p style="color: #666; font-size: 0.9em;">Собирайте пост из блоков текста и медиа. Нажимайте кнопки ниже, чтобы добавить новый блок.</p>
-        
-        <div id="blocks-container" style="margin-bottom: 20px;">
-            <!-- Blocks will be injected here -->
-        </div>
-
-        <div style="margin-bottom: 30px; display: flex; gap: 10px;">
-            <button type="button" class="btn btn--ghost" onclick="addBlock('text')">+ Добавить текст</button>
-            <button type="button" class="btn btn--ghost" onclick="addBlock('media')">+ Добавить медиа</button>
+            <label>Текст вопроса</label>
+            <textarea id="content" class="input" style="width: 100%; height: 200px;" required></textarea>
         </div>
 
         <button type="submit" class="btn btn--primary" id="submit-btn">Сохранить пост</button>
@@ -44,8 +31,6 @@
 <script>
     const isEdit = {{ is_edit|yesno:"true,false" }};
     const slug = "{{ slug|default:'' }}";
-    let articleId = null;
-    let blocksData = []; // Array to hold block definitions { id, type, content, media_file }
 
     function getCookie(name) {
         let cookieValue = null;
@@ -62,119 +47,15 @@
         return cookieValue;
     }
 
-    function renderBlocks() {
-        const container = document.getElementById('blocks-container');
-        container.innerHTML = '';
-        blocksData.forEach((block, index) => {
-            const blockEl = document.createElement('div');
-            blockEl.style = "border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; position: relative;";
-            
-            const header = document.createElement('div');
-            header.style = "display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold;";
-            header.innerHTML = `<span>Блок ${index + 1}: ${block.type === 'text' ? 'Текст' : 'Медиа'}</span>
-                                <button type="button" class="btn btn--ghost" style="color: red; padding: 5px 10px; font-size: 0.8em;" onclick="removeBlock(${index})">Удалить блок</button>`;
-            blockEl.appendChild(header);
-
-            if (block.type === 'text') {
-                const textarea = document.createElement('textarea');
-                textarea.className = 'input';
-                textarea.style = "width: 100%; height: 100px;";
-                textarea.value = block.content || '';
-                textarea.onchange = (e) => block.content = e.target.value;
-                blockEl.appendChild(textarea);
-            } else if (block.type === 'media') {
-                if (block.media_url) {
-                    const mediaPreview = document.createElement('div');
-                    mediaPreview.innerHTML = `Текущий файл: <a href="${block.media_url}" target="_blank">Посмотреть</a><br>`;
-                    blockEl.appendChild(mediaPreview);
-                }
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.className = 'input';
-                fileInput.style = "width: 100%;";
-                fileInput.onchange = (e) => {
-                    if (e.target.files.length > 0) {
-                        block.new_file = e.target.files[0];
-                    }
-                };
-                blockEl.appendChild(fileInput);
-            }
-
-            // Controls to move up/down
-            const controls = document.createElement('div');
-            controls.style = "margin-top: 10px; text-align: right;";
-            controls.innerHTML = `
-                <button type="button" onclick="moveBlock(${index}, -1)" ${index === 0 ? 'disabled' : ''}>&uarr;</button>
-                <button type="button" onclick="moveBlock(${index}, 1)" ${index === blocksData.length - 1 ? 'disabled' : ''}>&darr;</button>
-            `;
-            blockEl.appendChild(controls);
-
-            container.appendChild(blockEl);
-        });
-    }
-
-    window.addBlock = function(type) {
-        blocksData.push({ type: type, content: '', media_url: null, id: null, new_file: null });
-        renderBlocks();
-    };
-
-    window.removeBlock = async function(index) {
-        const block = blocksData[index];
-        if (block.id) {
-            // Delete from server immediately or mark for deletion
-            if(confirm("Этот блок уже сохранен. Точно удалить?")) {
-                await fetch(`/api/article-blocks/${block.id}/`, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
-                });
-                blocksData.splice(index, 1);
-                renderBlocks();
-            }
-        } else {
-            blocksData.splice(index, 1);
-            renderBlocks();
-        }
-    };
-
-    window.moveBlock = function(index, dir) {
-        const target = index + dir;
-        if (target >= 0 && target < blocksData.length) {
-            const temp = blocksData[index];
-            blocksData[index] = blocksData[target];
-            blocksData[target] = temp;
-            renderBlocks();
-        }
-    };
-
     async function loadArticle() {
-        if (!isEdit) {
-            // Give one text block by default
-            addBlock('text');
-            return;
-        }
+        if (!isEdit) return;
         try {
-            const response = await fetch(`/api/articles/${slug}/`);
+            const response = await fetch(`/api/questions/${slug}/`);
             if (response.ok) {
                 const data = await response.json();
-                articleId = data.id;
                 document.getElementById('title').value = data.title;
-                document.getElementById('excerpt').value = data.excerpt;
+                document.getElementById('content').value = data.content;
                 document.getElementById('category').value = data.category || '';
-
-                if (data.blocks && data.blocks.length > 0) {
-                    blocksData = data.blocks.map(b => ({
-                        id: b.id,
-                        type: b.block_type,
-                        content: b.content,
-                        media_url: b.media_file,
-                        new_file: null
-                    }));
-                    renderBlocks();
-                } else if (data.content) {
-                    // Legacy migration: if it has content but no blocks, show it as a block
-                    blocksData.push({ type: 'text', content: data.content, id: null });
-                    renderBlocks();
-                }
             }
         } catch(e) {
             console.error('Failed to load article details.');
@@ -186,23 +67,21 @@
         const btn = document.getElementById('submit-btn');
         btn.disabled = true;
         btn.textContent = 'Сохранение...';
-        
+
         const title = document.getElementById('title').value;
-        const excerpt = document.getElementById('excerpt').value;
+        const content = document.getElementById('content').value;
         const category = document.getElementById('category').value;
-        
+
         const formData = new FormData();
         formData.append('title', title);
-        formData.append('excerpt', excerpt);
-        formData.append('content', ''); 
+        formData.append('content', content);
 
         if (category) formData.append('category', category);
-        
-        const url = isEdit ? `/api/articles/${slug}/` : '/api/articles/';
+
+        const url = isEdit ? `/api/questions/${slug}/` : '/api/questions/';
         const method = isEdit ? 'PATCH' : 'POST';
 
         try {
-            // Save Article
             const response = await fetch(url, {
                 method: method,
                 headers: { 'X-CSRFToken': getCookie('csrftoken') },
@@ -215,36 +94,8 @@
                 btn.disabled = false; btn.textContent = 'Сохранить пост';
                 return;
             }
-            
+
             const data = await response.json();
-            const createdArticleId = data.id;
-
-            // Now save all blocks sequentially
-            for (let i = 0; i < blocksData.length; i++) {
-                const block = blocksData[i];
-                const blockForm = new FormData();
-                blockForm.append('article', createdArticleId);
-                blockForm.append('block_type', block.type);
-                blockForm.append('order', i);
-                if (block.type === 'text') {
-                    blockForm.append('content', block.content);
-                } else if (block.type === 'media' && block.new_file) {
-                    blockForm.append('media_file', block.new_file);
-                }
-
-                const bMethod = block.id ? 'PATCH' : 'POST';
-                const bUrl = block.id ? `/api/article-blocks/${block.id}/` : '/api/article-blocks/';
-                
-                // Only send update if there's actually something to update
-                if (!block.id || block.type === 'text' || block.new_file || block.order !== i) {
-                    await fetch(bUrl, {
-                        method: bMethod,
-                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                        body: blockForm
-                    });
-                }
-            }
-
             window.location.href = `/articles/${data.slug}/`;
         } catch (error) {
             document.getElementById('error-message').textContent = 'Ошибка соединения.';

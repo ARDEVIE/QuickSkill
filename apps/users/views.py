@@ -33,15 +33,15 @@ def profile_view(request):
     authored_courses = request.user.authored_courses.select_related('category')
     favorites = request.user.favorites.select_related('course')
     
-    authored_articles = request.user.articles.select_related('category')
-    favorite_articles = request.user.favorite_articles.select_related('article__category')
+    authored_questions = request.user.questions.select_related('category')
+    favorite_questions = request.user.favorite_articles.select_related('question__category')
 
     context = {
         'user_settings': user_settings,
         'authored_courses': authored_courses,
         'favorites': favorites,
-        'authored_articles': authored_articles,
-        'favorite_articles': favorite_articles,
+        'authored_questions': authored_questions,
+        'favorite_questions': favorite_questions,
     }
     return render(request, 'users/profile.html', context)
 
