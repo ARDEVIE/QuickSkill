@@ -2,7 +2,7 @@ services:
   quickskill-db:
     image: postgres:16-alpine
     env_file:
-      - ./settings/.env
+      - ./backend/settings/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     expose:
@@ -16,9 +16,9 @@ services:
       - default
 
   quickskill-backend:
-    build: .
+    build: ./backend
     env_file:
-      - ./settings/.env
+      - ./backend/settings/.env
     environment:
       PROJECT_ENV_ID: prod
       POSTGRES_HOST: quickskill-db
@@ -40,9 +40,10 @@ services:
       - esg-network
 
   # frontend:
-  #   Как и в docker-compose.yml — добавить, когда появится собранный React
-  #   (свой Dockerfile с Nginx, раздающий SPA и проксирующий /api/ на
-  #   quickskill-backend:8000; сам он тоже цепляется к esg-network).
+  #   Как и в docker-compose.yml — frontend/ (Angular) есть, но сюда ещё не
+  #   подключён (свой Dockerfile с Nginx, раздающий собранный SPA и
+  #   проксирующий /api/ на quickskill-backend:8000; сам он тоже цепляется
+  #   к esg-network).
 
 networks:
   default:
