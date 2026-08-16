@@ -1,0 +1,193 @@
+<div class="courses-page">
+
+    <app-header></app-header>
+  
+    <main>
+  
+      <!-- HERO -->
+  
+      <section class="catalog-hero">
+  
+        <div>
+  
+          <span class="eyebrow">
+            EXPLORE COURSES
+          </span>
+  
+          <h1>
+            Найди знания,
+            которые тебе нужны.
+          </h1>
+  
+          <p>
+            Изучай новые навыки у людей,
+            которые уже прошли этот путь.
+          </p>
+  
+        </div>
+  
+      </section>
+  
+  
+      <!-- SEARCH -->
+  
+      <section class="catalog-controls">
+  
+        <div class="search-box">
+  
+          <span class="search-icon"></span>
+  
+          <input
+            type="text"
+            placeholder="Поиск курсов..."
+          />
+  
+        </div>
+  
+  
+        <button class="filter-button">
+          Фильтры
+          <span>☰</span>
+        </button>
+  
+      </section>
+  
+  
+      <!-- CATEGORIES -->
+  
+      <div class="categories">
+  
+        <button class="category active">
+          Все курсы
+        </button>
+  
+        <button class="category">
+          Программирование
+        </button>
+  
+        <button class="category">
+          Дизайн
+        </button>
+  
+        <button class="category">
+          Маркетинг
+        </button>
+  
+        <button class="category">
+          Языки
+        </button>
+  
+        <button class="category">
+          Бизнес
+        </button>
+  
+      </div>
+  
+  
+      <!-- HEADER -->
+  
+      <div class="catalog-header">
+  
+        <div>
+  
+          <span class="eyebrow">
+            COURSES
+          </span>
+  
+          <h2>
+            Все курсы
+          </h2>
+  
+        </div>
+  
+        <span class="course-count">
+          24 курса
+        </span>
+  
+      </div>
+  
+  
+      <!-- COURSES -->
+  
+      <div class="catalog-grid">
+  
+        <article
+        class="catalog-card"
+        *ngFor="let course of courses"
+        [routerLink]="['/courses', course.id]"
+>
+  
+          <div
+            class="course-cover"
+            [style.background]="course.color">
+  
+            <span class="course-category">
+              {{ course.category }}
+            </span>
+  
+            <div class="course-symbol">
+              {{ course.icon }}
+            </div>
+  
+            <span class="course-level">
+              {{ course.level }}
+            </span>
+  
+          </div>
+  
+  
+          <div class="course-body">
+  
+            <h3>
+              {{ course.title }}
+            </h3>
+  
+            <p class="author">
+              {{ course.author }}
+            </p>
+  
+  
+            <div class="course-details">
+  
+              <span>
+                {{ course.lessons }}
+              </span>
+  
+              <span>
+                {{ course.students }} студентов
+              </span>
+  
+            </div>
+  
+  
+            <div class="course-footer">
+  
+              <span class="rating">
+                ★ {{ course.rating }}
+              </span>
+  
+              <div class="course-footer">
+
+                <span class="rating">
+                  ★ {{ course.rating }}
+                </span>
+              
+                <span class="details-link">
+                  Подробнее →
+                </span>
+              
+              </div>
+  
+            </div>
+  
+          </div>
+  
+        </article>
+  
+      </div>
+  
+    </main>
+  
+    <app-footer></app-footer>
+  
+  </div>

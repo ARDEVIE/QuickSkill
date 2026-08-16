@@ -2,6 +2,7 @@
     min-height: 100vh;
   
     display: grid;
+  
     grid-template-columns: 1fr 1fr;
   
     background: #ffffff;
@@ -22,14 +23,17 @@
     background: var(--primary-light);
   
     display: flex;
+  
     flex-direction: column;
   }
   
   .auth-logo {
     position: relative;
+  
     z-index: 5;
   
     display: flex;
+  
     align-items: center;
   
     gap: 9px;
@@ -37,16 +41,20 @@
     color: var(--primary);
   
     font-size: 22px;
+  
     font-weight: 800;
   }
   
   .auth-logo span,
   .mobile-logo span {
     width: 32px;
+  
     height: 32px;
   
     display: flex;
+  
     align-items: center;
+  
     justify-content: center;
   
     border-radius: 10px;
@@ -63,12 +71,24 @@
   
   .visual-content {
     position: relative;
+  
     z-index: 3;
   
     max-width: 500px;
   
     margin-top: auto;
+  
     margin-bottom: auto;
+  }
+  
+  .eyebrow {
+    color: var(--accent);
+  
+    font-size: 11px;
+  
+    font-weight: 800;
+  
+    letter-spacing: 2px;
   }
   
   .visual-content h1 {
@@ -106,9 +126,11 @@
     position: absolute;
   
     width: 420px;
+  
     height: 420px;
   
     right: -150px;
+  
     bottom: -100px;
   
     border-radius: 50%;
@@ -120,9 +142,11 @@
     position: absolute;
   
     width: 230px;
+  
     height: 230px;
   
     right: 80px;
+  
     bottom: 80px;
   
     border-radius: 50%;
@@ -136,6 +160,7 @@
     z-index: 4;
   
     right: 90px;
+  
     bottom: 170px;
   
     width: 190px;
@@ -150,6 +175,7 @@
       0 15px 35px rgba(16, 24, 40, 0.12);
   
     display: flex;
+  
     flex-direction: column;
   
     gap: 20px;
@@ -169,6 +195,7 @@
   
   .copyright {
     position: relative;
+  
     z-index: 5;
   
     color: #98a2b3;
@@ -185,6 +212,7 @@
     display: flex;
   
     align-items: center;
+  
     justify-content: center;
   
     padding: 40px;
@@ -192,6 +220,7 @@
   
   .auth-form {
     width: 100%;
+  
     max-width: 400px;
   }
   
@@ -203,7 +232,7 @@
   /* HEADER */
   
   .form-header {
-    margin-bottom: 35px;
+    margin-bottom: 28px;
   }
   
   .form-header h2 {
@@ -228,7 +257,7 @@
   /* FORM */
   
   .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 17px;
   }
   
   .form-group label {
@@ -243,25 +272,12 @@
     font-weight: 700;
   }
   
-  .label-row {
-    display: flex;
-  
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .label-row a {
-    color: var(--primary);
-  
-    font-size: 10px;
-  
-    font-weight: 700;
-  }
-  
   .form-group input {
     width: 100%;
   
-    padding: 14px 15px;
+    box-sizing: border-box;
+  
+    padding: 13px 15px;
   
     border: 1px solid var(--border);
   
@@ -286,14 +302,51 @@
   }
   
   
+  /* TERMS */
+  
+  .terms {
+    display: flex;
+  
+    align-items: flex-start;
+  
+    gap: 9px;
+  
+    margin: 4px 0 20px;
+  
+    color: var(--text-secondary);
+  
+    font-size: 10px;
+  
+    line-height: 1.5;
+  
+    cursor: pointer;
+  }
+  
+  .terms input {
+    width: 14px;
+  
+    height: 14px;
+  
+    margin: 1px 0 0;
+  
+    accent-color: var(--primary);
+  
+    cursor: pointer;
+  }
+  
+  .terms a {
+    color: var(--primary);
+  
+    font-weight: 700;
+  }
+  
+  
   /* BUTTON */
   
   .login-button {
     width: 100%;
   
     padding: 14px;
-  
-    margin-top: 5px;
   
     border: none;
   
@@ -307,6 +360,8 @@
   
     font-weight: 700;
   
+    cursor: pointer;
+  
     transition: 0.2s;
   }
   
@@ -317,9 +372,7 @@
   }
   
   
-  
-  
-  /* REGISTER */
+  /* LOGIN LINK */
   
   .register-text {
     margin-top: 25px;
@@ -367,7 +420,7 @@
   
       gap: 8px;
   
-      margin-bottom: 50px;
+      margin-bottom: 45px;
   
       color: var(--primary);
   

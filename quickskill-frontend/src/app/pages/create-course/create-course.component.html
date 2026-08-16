@@ -1,0 +1,545 @@
+<div class="create-course-page">
+
+    <app-header></app-header>
+  
+    <main class="create-container">
+  
+      <!-- PAGE HEADER -->
+  
+      <div class="page-header">
+  
+        <div>
+          <span class="eyebrow">CREATE COURSE</span>
+  
+          <h1>Создай свой курс</h1>
+  
+          <p>
+            Поделись своими знаниями и помоги другим
+            освоить новый навык.
+          </p>
+        </div>
+  
+        <a routerLink="/courses" class="back-link">
+          ← Вернуться к курсам
+        </a>
+  
+      </div>
+  
+  
+      <!-- MAIN CONTENT -->
+  
+      <div class="create-layout">
+  
+  
+        <!-- LEFT: FORM -->
+  
+        <section class="course-form">
+  
+  
+          <!-- BASIC INFORMATION -->
+  
+          <div class="form-section">
+  
+            <div class="section-heading">
+  
+              <div class="section-number">
+                01
+              </div>
+  
+              <div>
+                <h2>Основная информация</h2>
+  
+                <p>
+                  Расскажи пользователям о своём курсе.
+                </p>
+              </div>
+  
+            </div>
+  
+  
+            <div class="form-group">
+  
+              <label>
+                Название курса
+              </label>
+  
+              <input
+                type="text"
+                placeholder="Например: Основы веб-дизайна"
+              />
+  
+              <span class="input-hint">
+                Придумай короткое и понятное название.
+              </span>
+  
+            </div>
+  
+  
+            <div class="form-group">
+  
+              <label>
+                Описание курса
+              </label>
+  
+              <textarea
+                rows="5"
+                placeholder="Расскажи, чему научится студент после прохождения курса..."
+              ></textarea>
+  
+              <span class="input-hint">
+                Хорошее описание помогает студентам понять,
+                подходит ли им курс.
+              </span>
+  
+            </div>
+  
+  
+            <div class="form-row">
+  
+              <div class="form-group">
+  
+                <label>Категория</label>
+  
+                <select>
+  
+                  <option selected disabled>
+                    Выберите категорию
+                  </option>
+  
+                  <option>Программирование</option>
+                  <option>Дизайн</option>
+                  <option>Маркетинг</option>
+                  <option>Языки</option>
+                  <option>Бизнес</option>
+  
+                </select>
+  
+              </div>
+  
+  
+              <div class="form-group">
+  
+                <label>Уровень</label>
+  
+                <select>
+  
+                  <option>Начальный</option>
+                  <option>Средний</option>
+                  <option>Продвинутый</option>
+  
+                </select>
+  
+              </div>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- COVER -->
+  
+          <div class="form-section">
+  
+            <div class="section-heading">
+  
+              <div class="section-number">
+                02
+              </div>
+  
+              <div>
+                <h2>Обложка курса</h2>
+  
+                <p>
+                  Добавь изображение, которое будет
+                  отображаться в каталоге.
+                </p>
+              </div>
+  
+            </div>
+  
+  
+            <div class="cover-upload">
+  
+              <div class="upload-icon">
+                ↑
+              </div>
+  
+              <strong>
+                Загрузить изображение
+              </strong>
+  
+              <span>
+                Перетащи файл сюда или нажми,
+                чтобы выбрать его
+              </span>
+  
+              <small>
+                PNG, JPG или WEBP · до 5 MB
+              </small>
+  
+              <button type="button">
+                Выбрать файл
+              </button>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- WHAT STUDENTS LEARN -->
+  
+          <div class="form-section">
+  
+            <div class="section-heading">
+  
+              <div class="section-number">
+                03
+              </div>
+  
+              <div>
+                <h2>Чему научится студент?</h2>
+  
+                <p>
+                  Добавь основные результаты обучения.
+                </p>
+              </div>
+  
+            </div>
+  
+  
+            <div class="learning-list">
+  
+              <div class="learning-item">
+  
+                <span>✓</span>
+  
+                <input
+                  type="text"
+                  placeholder="Например: Создавать современные сайты"
+                />
+  
+              </div>
+  
+  
+              <div class="learning-item">
+  
+                <span>✓</span>
+  
+                <input
+                  type="text"
+                  placeholder="Например: Работать с Figma"
+                />
+  
+              </div>
+  
+  
+              <div class="learning-item">
+  
+                <span>✓</span>
+  
+                <input
+                  type="text"
+                  placeholder="Добавить ещё результат обучения"
+                />
+  
+              </div>
+  
+            </div>
+  
+  
+            <button
+              type="button"
+              class="add-learning">
+  
+              + Добавить пункт
+  
+            </button>
+  
+          </div>
+  
+  
+          <!-- LESSONS -->
+  
+          <div class="form-section">
+  
+            <div class="section-heading lesson-heading">
+  
+              <div class="section-number">
+                04
+              </div>
+  
+              <div>
+                <h2>Содержание курса</h2>
+  
+                <p>
+                  Создай структуру своего курса.
+                </p>
+              </div>
+  
+              <button
+                type="button"
+                class="add-lesson">
+  
+                + Добавить урок
+  
+              </button>
+  
+            </div>
+  
+  
+            <div class="lessons-list">
+  
+  
+              <div class="lesson">
+  
+                <div class="lesson-number">
+                  01
+                </div>
+  
+                <div class="lesson-info">
+  
+                  <strong>
+                    Введение в курс
+                  </strong>
+  
+                  <span>
+                    Первый шаг к изучению темы
+                  </span>
+  
+                </div>
+  
+                <span class="lesson-duration">
+                  12:30
+                </span>
+  
+                <button class="lesson-menu">
+                  ⋮
+                </button>
+  
+              </div>
+  
+  
+              <div class="lesson">
+  
+                <div class="lesson-number">
+                  02
+                </div>
+  
+                <div class="lesson-info">
+  
+                  <strong>
+                    Основные понятия
+                  </strong>
+  
+                  <span>
+                    Базовые знания
+                  </span>
+  
+                </div>
+  
+                <span class="lesson-duration">
+                  18:20
+                </span>
+  
+                <button class="lesson-menu">
+                  ⋮
+                </button>
+  
+              </div>
+  
+  
+              <div class="lesson">
+  
+                <div class="lesson-number">
+                  03
+                </div>
+  
+                <div class="lesson-info">
+  
+                  <strong>
+                    Практическое задание
+                  </strong>
+  
+                  <span>
+                    Закрепляем полученные знания
+                  </span>
+  
+                </div>
+  
+                <span class="lesson-duration">
+                  24:10
+                </span>
+  
+                <button class="lesson-menu">
+                  ⋮
+                </button>
+  
+              </div>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- ACTIONS -->
+  
+          <div class="form-actions">
+  
+            <button
+              type="button"
+              class="cancel-button">
+  
+              Сохранить как черновик
+  
+            </button>
+  
+            <button
+              type="button"
+              class="create-button">
+  
+              Создать курс
+              <span>→</span>
+  
+            </button>
+  
+          </div>
+  
+        </section>
+  
+  
+        <!-- RIGHT: PREVIEW -->
+  
+        <aside class="course-preview">
+  
+          <div class="preview-header">
+  
+            <span class="eyebrow">
+              LIVE PREVIEW
+            </span>
+  
+            <span class="preview-status">
+              Черновик
+            </span>
+  
+          </div>
+  
+  
+          <h2>
+            Предпросмотр
+          </h2>
+  
+  
+          <!-- COURSE CARD -->
+  
+          <div class="preview-card">
+  
+            <div class="preview-cover">
+  
+              <span class="preview-category">
+                Программирование
+              </span>
+  
+              <div class="preview-symbol">
+                &lt;/&gt;
+              </div>
+  
+              <span class="preview-level">
+                Начальный
+              </span>
+  
+            </div>
+  
+  
+            <div class="preview-content">
+  
+              <h3>
+                Название твоего курса
+              </h3>
+  
+              <p>
+                Твоё имя
+              </p>
+  
+  
+              <div class="preview-rating">
+  
+                <span>
+                  ★ 0.0
+                </span>
+  
+                <span>
+                  Новый курс
+                </span>
+  
+              </div>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- PREVIEW INFO -->
+  
+          <div class="preview-info">
+  
+            <div>
+  
+              <span>Уроки</span>
+  
+              <strong>3</strong>
+  
+            </div>
+  
+            <div>
+  
+              <span>Уровень</span>
+  
+              <strong>Начальный</strong>
+  
+            </div>
+  
+            <div>
+  
+              <span>Студенты</span>
+  
+              <strong>0</strong>
+  
+            </div>
+  
+          </div>
+  
+  
+          <!-- TIP -->
+  
+          <div class="creator-tip">
+  
+            <div class="tip-icon">
+              ✦
+            </div>
+  
+            <div>
+  
+              <strong>
+                Совет для автора
+              </strong>
+  
+              <p>
+                Добавь понятное описание и
+                качественную обложку — так
+                студентам будет проще выбрать
+                твой курс.
+              </p>
+  
+            </div>
+  
+          </div>
+  
+        </aside>
+  
+      </div>
+  
+    </main>
+  
+    <app-footer></app-footer>
+  
+  </div>
