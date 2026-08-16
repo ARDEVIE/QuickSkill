@@ -10,19 +10,18 @@ MVP веб-платформы для быстрого обмена знания�
 ./setup.sh
 ```
 
-Скрипт проверит, что Docker запущен, создаст `settings/.env` из примера (если его ещё нет), соберёт и поднимет `db` + `backend`, дождётся, пока backend ответит, и выведет ссылки.
+Скрипт проверит, что Docker запущен, создаст `backend/settings/.env` из примера (если его ещё нет), соберёт и поднимет `db` + `backend`, дождётся, пока backend ответит, и выведет ссылки.
 
 Вручную, теми же шагами:
 
 ```bash
-cp settings/.env.example settings/.env   # если .env ещё нет
+cp backend/settings/.env.example backend/settings/.env   # если .env ещё нет
 docker compose up --build
 ```
 
 Поднимутся два сервиса: `quickskill-db` (PostgreSQL 16) и `quickskill-backend` (Django, миграции применяются автоматически при старте). После старта:
 
 - API + Swagger UI: http://localhost:8000/api/docs/
-- Обычные Django-страницы (login/register/profile): http://localhost:8000/auth/
 - Админка: http://localhost:8000/admin/ (суперюзера нужно создать вручную, см. ниже)
 
 Создать суперюзера в уже запущенном контейнере:
@@ -49,6 +48,7 @@ docker compose down -v    # удалить и volume с данными БД/ме
 Нужен установленный и запущенный PostgreSQL (либо просто `docker compose up db` для одной базы, а Django гонять локально).
 
 ```bash
+cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -60,17 +60,17 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-По умолчанию `PROJECT_ENV_ID=dev` (см. `settings/.env`), это переключает `settings/env/dev.py`. Для продакшн-конфигурации используется `settings/env/prod.py` — `ALLOWED_HOSTS` там берётся из `DJANGO_ALLOWED_HOSTS` в `.env` (не хардкожен).
+По умолчанию `PROJECT_ENV_ID=dev` (см. `backend/settings/.env`), это переключает `settings/env/dev.py`. Для продакшн-конфигурации используется `settings/env/prod.py` — `ALLOWED_HOSTS` там берётся из `DJANGO_ALLOWED_HOSTS` в `.env` (не хардкожен).
 
 ## Переменные окружения
 
-Смотри `settings/.env.example` — там весь список с комментариями по смыслу. Настоящий `.env` в git не попадает.
+Смотри `backend/settings/.env.example` — там весь список с комментариями по смыслу. Настоящий `.env` в git не попадает.
 
 ## Тесты
 
 ```bash
-python manage.py test          # локально
-docker compose exec quickskill-backend python manage.py test   # в контейнере
+cd backend && python manage.py test                            # локально
+docker compose exec quickskill-backend python manage.py test    # в контейнере
 ```
 
 ## Деплой
@@ -87,9 +87,9 @@ docker compose exec quickskill-backend python manage.py test   # в контей
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Перед этим на сервере должна существовать сеть `esg-network` (создаётся один раз девопсами: `docker network create esg-network`) и `settings/.env` с реальными `PROJECT_SECRET_KEY`, `POSTGRES_PASSWORD` и `DJANGO_ALLOWED_HOSTS` — без них `settings/env/prod.py` откажется стартовать.
+Перед этим на сервере должна существовать сеть `esg-network` (создаётся один раз девопсами: `docker network create esg-network`) и `backend/settings/.env` с реальными `PROJECT_SECRET_KEY`, `POSTGRES_PASSWORD` и `DJANGO_ALLOWED_HOSTS` — без них `settings/env/prod.py` откажется стартовать.
 
-**Пока не готово к реальному деплою:** в репозитории нет frontend (React — зона Ерсултана по паспорту проекта), без него подключать общий Nginx/путь `esg.kbtu.kz/quickskill` нет смысла.
+**Пока не готово к реальному деплою:** `frontend/` (Angular) в репозитории есть, но ещё не собирается и не подключён ни к `docker-compose.prod.yml`, ни к общему Nginx — без этого подключать путь `esg.kbtu.kz/quickskill` нет смысла.
 
 ## API
 

@@ -15,11 +15,11 @@ command -v docker >/dev/null 2>&1 || die "Docker не найден. Устано
 docker compose version >/dev/null 2>&1 || die "Плагин 'docker compose' не найден (нужен Docker Desktop свежей версии)."
 docker info >/dev/null 2>&1 || die "Docker демон не запущен. Откройте Docker Desktop и повторите запуск."
 
-if [ ! -f settings/.env ]; then
-    info "settings/.env не найден, создаю из settings/.env.example"
-    cp settings/.env.example settings/.env
+if [ ! -f backend/settings/.env ]; then
+    info "backend/settings/.env не найден, создаю из backend/settings/.env.example"
+    cp backend/settings/.env.example backend/settings/.env
 else
-    info "settings/.env уже есть, не трогаю"
+    info "backend/settings/.env уже есть, не трогаю"
 fi
 
 info "Собираю и поднимаю quickskill-db + quickskill-backend (docker compose up --build)"
@@ -45,7 +45,6 @@ cat <<'EOF'
 Готово! QuickSkill поднят локально:
 
   Swagger UI (JWT API):     http://localhost:8000/api/docs/
-  Django-страницы (сессия): http://localhost:8000/auth/
   Админка:                  http://localhost:8000/admin/
 
 Суперпользователя ещё нет, создать:
