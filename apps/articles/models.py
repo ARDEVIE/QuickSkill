@@ -6,13 +6,10 @@ from django.db.models import (
     DateTimeField,
     FileField,
     ForeignKey,
-    ImageField,
     Model,
     SET_NULL,
     SlugField,
-    TextChoices,
     TextField,
-    PositiveIntegerField,
     UniqueConstraint,
 )
 from django.utils.text import slugify
@@ -22,32 +19,30 @@ from apps.common.models import TimeStampedModel
 from apps.courses.models import Category
 
 
-class Article(TimeStampedModel):
-    '''An article published by a user.'''
+class Question(TimeStampedModel):
+    '''A question asked by a user on the forum, scoped to a course category.'''
 
     title = CharField(max_length=255)
     slug = SlugField(max_length=255, unique=True, blank=True)
     content = TextField(blank=True)
-    excerpt = TextField(blank=True)
     category = ForeignKey(
         Category,
         on_delete=SET_NULL,
         null=True,
         blank=True,
-        related_name='articles'
+        related_name='questions'
     )
-    
+
     author = ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
-        related_name='articles',
+        related_name='questions',
     )
-    published_at = DateTimeField(blank=True, null=True)
 
     class Meta:
-        ordering = ['-published_at', '-created_at']
-        verbose_name = 'Article'
-        verbose_name_plural = 'Articles'
+        ordering = ['-created_at']
+        verbose_name = 'Question'
+        verbose_name_plural = 'Questions'
 
     def __str__(self):
         return self.title
@@ -58,31 +53,11 @@ class Article(TimeStampedModel):
         super().save(*args, **kwargs)
 
 
-class ArticleBlock(Model):
-    class BlockType(TextChoices):
-        TEXT = 'text', 'Text'
-        MEDIA = 'media', 'Media'
-
-    article = ForeignKey(Article, on_delete=CASCADE, related_name='blocks')
-    block_type = CharField(max_length=10, choices=BlockType.choices)
-    content = TextField(blank=True)
-    media_file = FileField(upload_to='articles/blocks/', blank=True, null=True)
-    order = PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ['order', 'id']
-        verbose_name = 'Article Block'
-        verbose_name_plural = 'Article Blocks'
-
-    def __str__(self):
-        return f'{self.article.title} - Block {self.order} ({self.get_block_type_display()})'
-
-
 class Comment(TimeStampedModel):
-    '''A comment on an article by a registered user.'''
+    '''A comment (answer) on a question by a registered user.'''
 
-    article = ForeignKey(
-        Article,
+    question = ForeignKey(
+        Question,
         on_delete=CASCADE,
         related_name='comments',
     )
@@ -107,7 +82,7 @@ class Comment(TimeStampedModel):
         verbose_name_plural = 'Comments'
 
     def __str__(self):
-        return f'Comment by {self.user.username} on {self.article.title}'
+        return f'Comment by {self.user.username} on {self.question.title}'
 
 
 class FavoriteArticle(Model):
@@ -116,14 +91,14 @@ class FavoriteArticle(Model):
         on_delete=CASCADE,
         related_name='favorite_articles',
     )
-    article = ForeignKey(Article, on_delete=CASCADE, related_name='favorited_by')
+    question = ForeignKey(Question, on_delete=CASCADE, related_name='favorited_by')
     created_at = DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
         constraints = [
-            UniqueConstraint(fields=['user', 'article'], name='unique_user_article_favorite'),
+            UniqueConstraint(fields=['user', 'question'], name='unique_user_question_favorite'),
         ]
 
     def __str__(self):
-        return f'{self.user} -> {self.article}'
+        return f'{self.user} -> {self.question}'
