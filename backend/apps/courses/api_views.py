@@ -4,19 +4,22 @@ from django.db.models import Q
 # Third-party modules
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 # Project modules
 from apps.common.permissions import IsAuthorOrReadOnly
-from apps.courses.models import Category, Course, Favorite, Material
+from apps.courses.models import Category, Course, Favorite, Material, Rating
+from apps.courses.permissions import IsRatingOwnerOrAdminOrReadOnly
 from apps.courses.serializers import (
     CategorySerializer,
     CourseDetailSerializer,
     CourseListSerializer,
     CourseWriteSerializer,
     MaterialSerializer,
+    RatingSerializer,
 )
 
 
@@ -79,6 +82,34 @@ class CourseViewSet(viewsets.ModelViewSet):
             favorite.delete()
         return Response({'favorited': created})
 
+    @action(detail=True, methods=['get', 'post'], permission_classes=[IsAuthenticatedOrReadOnly])
+    def ratings(self, request, pk=None):
+        '''List a course's reviews, or leave/update your own (one per user per course).'''
+        course = self.get_object()
+
+        if request.method == 'GET':
+            ratings = course.ratings.select_related('user')
+            page = self.paginate_queryset(ratings)
+            if page is not None:
+                serializer = RatingSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = RatingSerializer(ratings, many=True)
+            return Response(serializer.data)
+
+        if course.author == request.user:
+            raise PermissionDenied("You can't rate your own course.")
+
+        serializer = RatingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        rating, _ = Rating.objects.update_or_create(
+            course=course,
+            user=request.user,
+            defaults=serializer.validated_data,
+        )
+        response_serializer = RatingSerializer(rating)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
 
 class MaterialViewSet(
     mixins.RetrieveModelMixin,
@@ -91,3 +122,16 @@ class MaterialViewSet(
     queryset = Material.objects.select_related('course__author')
     serializer_class = MaterialSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+
+class RatingViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    '''Retrieve/update/delete a single rating; creation happens via CourseViewSet.ratings().'''
+
+    queryset = Rating.objects.select_related('course', 'user')
+    serializer_class = RatingSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsRatingOwnerOrAdminOrReadOnly]
