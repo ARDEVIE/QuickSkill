@@ -4,6 +4,7 @@ from rest_framework import serializers
 # Project modules
 from apps.users.models import CustomUser
 from apps.articles.models import Comment, Question
+from apps.courses.serializers import CategorySerializer
 
 
 class QuestionAuthorSerializer(serializers.ModelSerializer):
@@ -61,6 +62,7 @@ class CommentCreateUpdateSerializer(serializers.ModelSerializer):
 
 class QuestionListSerializer(serializers.ModelSerializer):
     author = QuestionAuthorSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Question
@@ -69,6 +71,7 @@ class QuestionListSerializer(serializers.ModelSerializer):
 
 class QuestionDetailSerializer(serializers.ModelSerializer):
     author = QuestionAuthorSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Question

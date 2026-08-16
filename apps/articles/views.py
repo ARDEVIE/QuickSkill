@@ -17,14 +17,22 @@ from apps.articles.serializers import (
 )
 
 
-from django_filters.rest_framework import DjangoFilterBackend
-
 class QuestionViewSet(viewsets.ModelViewSet):
-    queryset = Question.objects.select_related('author').all()
     lookup_field = 'slug'
-    filter_backends = [SearchFilter, DjangoFilterBackend]
+    filter_backends = [SearchFilter]
     search_fields = ['title', 'content']
-    filterset_fields = ['category']
+
+    def get_queryset(self):
+        queryset = Question.objects.select_related('author', 'category')
+
+        category = self.request.query_params.get('category')
+        if category:
+            if category.isdigit():
+                queryset = queryset.filter(category_id=category)
+            else:
+                queryset = queryset.filter(category__slug=category)
+
+        return queryset
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
