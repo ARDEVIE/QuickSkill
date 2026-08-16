@@ -1,3 +1,6 @@
+# Python modules
+import base64
+
 # Django modules
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -11,9 +14,14 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 # Project modules
-from apps.courses.models import Category, Course, Favorite, Material
+from apps.courses.models import Category, Course, Favorite, Material, Rating
 
 User = get_user_model()
+
+# 1x1 transparent PNG — the smallest valid image Pillow will accept for an ImageField.
+TINY_PNG = base64.b64decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
+)
 
 
 def create_user(**extra_fields):
@@ -99,6 +107,18 @@ class FavoriteModelTests(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 Favorite.objects.create(user=fan, course=course)
+
+
+class RatingModelTests(TestCase):
+    def test_same_user_cannot_rate_same_course_twice(self):
+        author = create_user()
+        fan = create_user(email='fan@example.com', username='fan')
+        course = Course.objects.create(title='Django basics', author=author)
+
+        Rating.objects.create(user=fan, course=course, score=5)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Rating.objects.create(user=fan, course=course, score=3)
 
 
 class CourseCatalogAPITests(APITestCase):
@@ -384,4 +404,129 @@ class CategoryAPITests(APITestCase):
     def test_categories_are_read_only(self):
         response = self.client.post(reverse('category-list'), {'name': 'New category'})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class CourseCoverAPITests(APITestCase):
+    def setUp(self):
+        self.author = create_user(email='author@example.com', username='author')
+
+    def test_create_course_with_cover(self):
+        self.client.force_authenticate(self.author)
+        cover = SimpleUploadedFile('cover.png', TINY_PNG, content_type='image/png')
+
+        response = self.client.post(
+            reverse('course-list'),
+            {'title': 'Django basics', 'cover': cover},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        course = Course.objects.get(id=response.data['id'])
+        self.assertTrue(course.cover.name.startswith('courses/covers/cover'))
+
+    def test_cover_is_optional(self):
+        self.client.force_authenticate(self.author)
+        response = self.client.post(reverse('course-list'), {'title': 'Django basics'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_oversized_cover_is_rejected(self):
+        self.client.force_authenticate(self.author)
+        big_file = SimpleUploadedFile('cover.png', TINY_PNG + b'\0' * (6 * 1024 * 1024), content_type='image/png')
+
+        response = self.client.post(
+            reverse('course-list'),
+            {'title': 'Django basics', 'cover': big_file},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('cover', response.data)
+
+
+class RatingAPITests(APITestCase):
+    def setUp(self):
+        self.author = create_user(email='author@example.com', username='author')
+        self.fan = create_user(email='fan@example.com', username='fan')
+        self.other_fan = create_user(email='other_fan@example.com', username='other_fan')
+        self.course = Course.objects.create(
+            title='Django basics', author=self.author, is_published=True
+        )
+        self.ratings_url = reverse('course-ratings', args=[self.course.id])
+
+    def test_rating_requires_authentication(self):
+        response = self.client.post(self.ratings_url, {'score': 5})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_author_cannot_rate_own_course(self):
+        self.client.force_authenticate(self.author)
+        response = self.client.post(self.ratings_url, {'score': 5})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_rating(self):
+        self.client.force_authenticate(self.fan)
+        response = self.client.post(self.ratings_url, {'score': 4, 'comment': 'Solid intro course.'})
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['user']['username'], 'fan')
+        self.assertTrue(Rating.objects.filter(user=self.fan, course=self.course, score=4).exists())
+
+    def test_rating_again_updates_instead_of_duplicating(self):
+        self.client.force_authenticate(self.fan)
+        self.client.post(self.ratings_url, {'score': 2, 'comment': 'Meh.'})
+
+        response = self.client.post(self.ratings_url, {'score': 5, 'comment': 'Actually great.'})
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Rating.objects.filter(user=self.fan, course=self.course).count(), 1)
+        self.assertEqual(Rating.objects.get(user=self.fan, course=self.course).score, 5)
+
+    def test_list_ratings_is_public(self):
+        Rating.objects.create(user=self.fan, course=self.course, score=4)
+        Rating.objects.create(user=self.other_fan, course=self.course, score=2)
+
+        response = self.client.get(self.ratings_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 2)
+
+    def test_course_detail_exposes_average_and_count(self):
+        Rating.objects.create(user=self.fan, course=self.course, score=4)
+        Rating.objects.create(user=self.other_fan, course=self.course, score=2)
+
+        response = self.client.get(reverse('course-detail', args=[self.course.id]))
+
+        self.assertEqual(response.data['average_rating'], 3.0)
+        self.assertEqual(response.data['ratings_count'], 2)
+
+    def test_course_detail_average_is_none_without_ratings(self):
+        response = self.client.get(reverse('course-detail', args=[self.course.id]))
+        self.assertIsNone(response.data['average_rating'])
+        self.assertEqual(response.data['ratings_count'], 0)
+
+    def test_owner_can_update_own_rating(self):
+        rating = Rating.objects.create(user=self.fan, course=self.course, score=3)
+        self.client.force_authenticate(self.fan)
+
+        response = self.client.patch(reverse('rating-detail', args=[rating.id]), {'score': 5})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rating.refresh_from_db()
+        self.assertEqual(rating.score, 5)
+
+    def test_other_user_cannot_update_someone_elses_rating(self):
+        rating = Rating.objects.create(user=self.fan, course=self.course, score=3)
+        self.client.force_authenticate(self.other_fan)
+
+        response = self.client.patch(reverse('rating-detail', args=[rating.id]), {'score': 1})
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_owner_can_delete_own_rating(self):
+        rating = Rating.objects.create(user=self.fan, course=self.course, score=3)
+        self.client.force_authenticate(self.fan)
+
+        response = self.client.delete(reverse('rating-detail', args=[rating.id]))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Rating.objects.filter(id=rating.id).exists())
 
