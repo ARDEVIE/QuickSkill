@@ -1,6 +1,7 @@
 # Django modules
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import (
     CASCADE,
     SET_NULL,
@@ -9,8 +10,10 @@ from django.db.models import (
     DateTimeField,
     FileField,
     ForeignKey,
+    ImageField,
     Model,
     PositiveIntegerField,
+    PositiveSmallIntegerField,
     SlugField,
     TextChoices,
     TextField,
@@ -48,6 +51,7 @@ class Course(TimeStampedModel):
 
     title = CharField(max_length=200)
     description = TextField(blank=True)
+    cover = ImageField(upload_to='courses/covers/', blank=True, null=True)
     category = ForeignKey(
         Category,
         on_delete=SET_NULL,
@@ -100,6 +104,28 @@ class Material(TimeStampedModel):
                 raise ValidationError({'url': 'Video link material must have a URL.'})
             if self.file:
                 raise ValidationError({'file': 'Video link material must not have a file.'})
+
+
+class Rating(TimeStampedModel):
+    '''A 1-5 review a user leaves on a course; one per user per course.'''
+
+    course = ForeignKey(Course, on_delete=CASCADE, related_name='ratings')
+    user = ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+        related_name='course_ratings',
+    )
+    score = PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comment = TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            UniqueConstraint(fields=['user', 'course'], name='unique_user_course_rating'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} rated {self.course} {self.score}/5'
 
 
 class Favorite(Model):

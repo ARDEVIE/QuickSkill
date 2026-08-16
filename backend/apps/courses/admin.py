@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Project modules
-from apps.courses.models import Category, Course, Favorite, Material
+from apps.courses.models import Category, Course, Favorite, Material, Rating
 
 
 class MaterialInline(admin.TabularInline):
@@ -36,3 +36,10 @@ class MaterialAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'course', 'created_at')
     search_fields = ('user__username', 'course__title')
+
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('course', 'user', 'score', 'created_at')
+    list_filter = ('score',)
+    search_fields = ('course__title', 'user__username')
