@@ -1,5 +1,6 @@
 # Django modules
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.urls import reverse
 
 # Third-party modules
@@ -8,8 +9,25 @@ from rest_framework.test import APITestCase
 
 # Project modules
 from apps.articles.models import Comment, Question
+from apps.courses.models import Category
 
 User = get_user_model()
+
+
+class QuestionModelTests(TestCase):
+    def setUp(self):
+        self.author = User.objects.create_user(email='author@test.com', username='author', password='password123')
+
+    def test_slug_keeps_cyrillic_instead_of_going_blank(self):
+        question = Question.objects.create(title='Почему падает миграция?', author=self.author)
+        self.assertEqual(question.slug, 'почему-падает-миграция')
+
+    def test_duplicate_title_gets_a_suffixed_slug(self):
+        first = Question.objects.create(title='Как дебажить N+1?', author=self.author)
+        second = Question.objects.create(title='Как дебажить N+1?', author=self.author)
+
+        self.assertEqual(first.slug, 'как-дебажить-n1')
+        self.assertEqual(second.slug, 'как-дебажить-n1-2')
 
 
 class QuestionTests(APITestCase):
@@ -36,6 +54,36 @@ class QuestionTests(APITestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
+
+    def test_filter_by_category_slug(self):
+        category = Category.objects.create(name='Python')
+        self.question1.category = category
+        self.question1.save(update_fields=['category'])
+
+        response = self.client.get(self.list_url, {'category': category.slug})
+
+        ids = [item['id'] for item in response.data['results']]
+        self.assertEqual(ids, [self.question1.id])
+
+    def test_filter_by_category_id(self):
+        category = Category.objects.create(name='Python')
+        self.question1.category = category
+        self.question1.save(update_fields=['category'])
+
+        response = self.client.get(self.list_url, {'category': category.id})
+
+        ids = [item['id'] for item in response.data['results']]
+        self.assertEqual(ids, [self.question1.id])
+
+    def test_list_response_includes_nested_category(self):
+        category = Category.objects.create(name='Python')
+        self.question1.category = category
+        self.question1.save(update_fields=['category'])
+
+        response = self.client.get(self.list_url, {'category': category.slug})
+
+        self.assertEqual(response.data['results'][0]['category']['slug'], category.slug)
+        self.assertEqual(response.data['results'][0]['category']['name'], category.name)
 
     def test_retrieve_question(self):
         response = self.client.get(self.detail_url)

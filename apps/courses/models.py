@@ -17,10 +17,10 @@ from django.db.models import (
     UniqueConstraint,
     URLField,
 )
-from django.utils.text import slugify
 
 # Project modules
 from apps.common.models import TimeStampedModel
+from apps.common.utils import unique_slugify
 
 
 class Category(Model):
@@ -39,7 +39,7 @@ class Category(Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = unique_slugify(self, self.name)
         super().save(*args, **kwargs)
 
 
