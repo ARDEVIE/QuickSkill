@@ -12,10 +12,10 @@ from django.db.models import (
     TextField,
     UniqueConstraint,
 )
-from django.utils.text import slugify
 
 # Project modules
 from apps.common.models import TimeStampedModel
+from apps.common.utils import unique_slugify
 from apps.courses.models import Category
 
 
@@ -49,7 +49,7 @@ class Question(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = unique_slugify(self, self.title)
         super().save(*args, **kwargs)
 
 

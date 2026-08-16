@@ -35,6 +35,10 @@ class CategoryModelTests(TestCase):
         category = Category.objects.create(name='Python', slug='custom-slug')
         self.assertEqual(category.slug, 'custom-slug')
 
+    def test_slug_keeps_cyrillic_instead_of_going_blank(self):
+        category = Category.objects.create(name='Вёрстка')
+        self.assertEqual(category.slug, 'вёрстка')
+
 
 class MaterialModelTests(TestCase):
     def setUp(self):
