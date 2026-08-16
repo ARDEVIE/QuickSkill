@@ -1,6 +1,5 @@
 # Django modules
 from django.contrib.auth import get_user_model
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 # Third-party modules
@@ -8,92 +7,92 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 # Project modules
-from apps.articles.models import Article, Comment
+from apps.articles.models import Comment, Question
 
 User = get_user_model()
 
 
-class ArticleTests(APITestCase):
+class QuestionTests(APITestCase):
     def setUp(self):
         self.user1 = User.objects.create_user(email='user1@test.com', username='user1', password='password123')
         self.user2 = User.objects.create_user(email='user2@test.com', username='user2', password='password123')
         self.admin = User.objects.create_superuser(email='admin@test.com', username='admin', password='password123')
 
-        self.article1 = Article.objects.create(
-            title='First Article',
-            content='Content for first article',
+        self.question1 = Question.objects.create(
+            title='First Question',
+            content='Content for first question',
             author=self.user1
         )
-        self.article2 = Article.objects.create(
-            title='Second Article',
-            content='Content for second article',
+        self.question2 = Question.objects.create(
+            title='Second Question',
+            content='Content for second question',
             author=self.user2
         )
 
-        self.list_url = reverse('article-list')
-        self.detail_url = reverse('article-detail', kwargs={'slug': self.article1.slug})
+        self.list_url = reverse('question-list')
+        self.detail_url = reverse('question-detail', kwargs={'slug': self.question1.slug})
 
-    def test_list_articles(self):
+    def test_list_questions(self):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
 
-    def test_retrieve_article(self):
+    def test_retrieve_question(self):
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['title'], 'First Article')
+        self.assertEqual(response.data['title'], 'First Question')
         self.assertEqual(response.data['author']['username'], 'user1')
 
-    def test_create_article_unauthorized(self):
-        data = {'title': 'New Article', 'content': 'New Content'}
+    def test_create_question_unauthorized(self):
+        data = {'title': 'New Question', 'content': 'New Content'}
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_create_article_authorized(self):
+    def test_create_question_authorized(self):
         self.client.force_authenticate(user=self.user1)
-        data = {'title': 'New Article', 'content': 'New Content'}
+        data = {'title': 'New Question', 'content': 'New Content'}
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Article.objects.count(), 3)
+        self.assertEqual(Question.objects.count(), 3)
         self.assertEqual(response.data['author']['username'], 'user1')
 
-    def test_update_article_owner(self):
+    def test_update_question_owner(self):
         self.client.force_authenticate(user=self.user1)
         data = {'title': 'Updated Title', 'content': 'Updated Content'}
         response = self.client.patch(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.article1.refresh_from_db()
-        self.assertEqual(self.article1.title, 'Updated Title')
+        self.question1.refresh_from_db()
+        self.assertEqual(self.question1.title, 'Updated Title')
 
-    def test_update_article_not_owner(self):
+    def test_update_question_not_owner(self):
         self.client.force_authenticate(user=self.user2)
         data = {'title': 'Updated Title', 'content': 'Updated Content'}
         response = self.client.patch(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
-    def test_update_article_admin(self):
+
+    def test_update_question_admin(self):
         self.client.force_authenticate(user=self.admin)
         data = {'title': 'Admin Updated Title', 'content': 'Admin Updated Content'}
         response = self.client.patch(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_delete_article(self):
+    def test_delete_question(self):
         self.client.force_authenticate(user=self.user1)
         response = self.client.delete(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Article.objects.count(), 1)
+        self.assertEqual(Question.objects.count(), 1)
 
 
 class CommentTests(APITestCase):
     def setUp(self):
         self.user1 = User.objects.create_user(email='user1@test.com', username='user1', password='password123')
         self.user2 = User.objects.create_user(email='user2@test.com', username='user2', password='password123')
-        self.article = Article.objects.create(title='Test Article', content='Content', author=self.user1)
-        
-        self.comment1 = Comment.objects.create(article=self.article, user=self.user1, content='Comment 1')
-        self.comment2 = Comment.objects.create(article=self.article, user=self.user2, content='Comment 2')
+        self.question = Question.objects.create(title='Test Question', content='Content', author=self.user1)
 
-        self.comments_url = reverse('article-comments', kwargs={'slug': self.article.slug})
+        self.comment1 = Comment.objects.create(question=self.question, user=self.user1, content='Comment 1')
+        self.comment2 = Comment.objects.create(question=self.question, user=self.user2, content='Comment 2')
+
+        self.comments_url = reverse('question-comments', kwargs={'slug': self.question.slug})
         self.comment1_url = reverse('comment-detail', kwargs={'pk': self.comment1.id})
 
     def test_list_comments(self):
@@ -134,33 +133,3 @@ class CommentTests(APITestCase):
         response = self.client.delete(self.comment1_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Comment.objects.count(), 1)
-
-
-class MediaUploadTests(APITestCase):
-    '''Article no longer has cover/media_file fields (removed in migrations 0006/0007) —
-    media now lives on ArticleBlock, uploaded via the article-blocks endpoint.'''
-
-    def setUp(self):
-        self.user = User.objects.create_user(email='user1@test.com', username='user1', password='password123')
-        self.article = Article.objects.create(title='Media Article', content='Content', author=self.user)
-        self.block_list_url = reverse('article-block-list')
-
-    def test_upload_media_success(self):
-        self.client.force_authenticate(user=self.user)
-
-        video_file = SimpleUploadedFile(
-            name='test_video.mp4',
-            content=b'video_content',
-            content_type='video/mp4'
-        )
-
-        data = {
-            'article': self.article.id,
-            'block_type': 'media',
-            'media_file': video_file,
-            'order': 0,
-        }
-
-        response = self.client.post(self.block_list_url, data, format='multipart')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn('media_file', response.data)
