@@ -1,65 +1,48 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CourseService, Course, Category } from 'src/app/core/services/course.service';
+
+interface UICourse extends Course {
+  level: string;
+  rating: string;
+  students: string;
+  lessons: string;
+  color: string;
+  icon: string;
+  authorName: string;
+}
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  categories: Category[] = [];
+  courses: UICourse[] = [];
 
-  categories = [
-    { name: 'Программирование', icon: '</>', courses: 42 },
-    { name: 'Дизайн', icon: '✦', courses: 27 },
-    { name: 'Маркетинг', icon: '↗', courses: 18 },
-    { name: 'Языки', icon: 'Aa', courses: 31 },
-    { name: 'Бизнес', icon: '◈', courses: 15 },
-    { name: 'Другое', icon: '+', courses: 24 }
-  ];
+  private colors = ['#DCEAFF', '#FFF0E4', '#E5F7F1', '#EAE7FF', '#E8F0FF', '#FFF4D9', '#E7F5FF', '#F2E9FF'];
+  private icons = ['</>', '✦', 'Py', '↗', 'A', 'F', '{ }', '★'];
 
-  courses = [
-    {
-      title: 'Основы веб-разработки',
-      author: 'Алексей Иванов',
-      category: 'Программирование',
-      level: 'Начальный',
-      rating: '4.9',
-      students: '128',
-      lessons: '12 уроков',
-      color: '#DCEAFF',
-      icon: '</>'
-    },
-    {
-      title: 'UI/UX дизайн с нуля',
-      author: 'Мария Ким',
-      category: 'Дизайн',
-      level: 'Начальный',
-      rating: '4.8',
-      students: '96',
-      lessons: '18 уроков',
-      color: '#FFF0E4',
-      icon: '✦'
-    },
-    {
-      title: 'Python для начинающих',
-      author: 'Данияр С.',
-      category: 'Программирование',
-      level: 'Начальный',
-      rating: '4.9',
-      students: '214',
-      lessons: '24 урока',
-      color: '#E5F7F1',
-      icon: 'Py'
-    },
-    {
-      title: 'Продвижение в социальных сетях',
-      author: 'Алина Б.',
-      category: 'Маркетинг',
-      level: 'Средний',
-      rating: '4.7',
-      students: '73',
-      lessons: '15 уроков',
-      color: '#EAE7FF',
-      icon: '↗'
-    }
-  ];
+  constructor(private courseService: CourseService) {}
+
+  ngOnInit(): void {
+    this.courseService.getCategories().subscribe(res => {
+      const cats = (res as any).results || res;
+      this.categories = cats.slice(0, 6); // Just show top 6
+    });
+
+    this.courseService.getCourses().subscribe(res => {
+      const crs = res.results || [];
+      this.courses = crs.slice(0, 4).map((c: Course, i: number) => ({
+        ...c,
+        authorName: c.author ? (c.author.first_name || c.author.username) : 'Неизвестно',
+        level: 'Начальный',
+        rating: '4.8',
+        students: '100',
+        lessons: '10 уроков',
+        color: this.colors[i % this.colors.length],
+        icon: this.icons[i % this.icons.length]
+      }));
+    });
+  }
 }

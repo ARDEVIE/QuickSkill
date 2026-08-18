@@ -31,8 +31,6 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CourseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
-    filter_backends = [SearchFilter]
-    search_fields = ['title']
 
     def get_queryset(self):
         '''Anyone sees published courses; authenticated users also see their own drafts.'''
@@ -50,6 +48,18 @@ class CourseViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(category_id=category)
             else:
                 queryset = queryset.filter(category__slug=category)
+
+        # Full-Text Search replacement
+        search_query = self.request.query_params.get('search')
+        if search_query:
+            from django.contrib.postgres.search import SearchVector, TrigramSimilarity
+            # Using TrigramSimilarity for better partial matches and SearchVector for FTS
+            queryset = queryset.annotate(
+                search=SearchVector('title', 'description'),
+                similarity=TrigramSimilarity('title', search_query)
+            ).filter(
+                Q(search=search_query) | Q(similarity__gt=0.1)
+            ).order_by('-similarity')
 
         return queryset.distinct()
 

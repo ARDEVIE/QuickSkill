@@ -7,11 +7,13 @@
       </a>
   
       <nav class="navigation">
-        <a routerLink="/catalog">
+        <a routerLink="/courses" routerLinkActive="active">
           Каталог
         </a>
-  
-        <a routerLink="/create-course">
+        <a routerLink="/forum" routerLinkActive="active">
+          Форум
+        </a>
+        <a routerLink="/create-course" routerLinkActive="active">
           Создать курс
         </a>
       </nav>
@@ -22,10 +24,23 @@
           <span class="search-icon"></span>
         </button>
   
-        <a routerLink="/login" class="login-link">
-          <span class="avatar"></span>
-          <span>Вход / Регистрация</span>
-        </a>
+        <ng-container *ngIf="currentUser$ | async as user; else loginLink">
+          <div class="user-menu" style="display: flex; align-items: center; gap: 10px;">
+            <a routerLink="/profile" class="login-link">
+              <span class="avatar"></span>
+              <span>{{ user.first_name || user.username }}</span>
+            </a>
+            <button (click)="logout()" style="background: none; border: none; cursor: pointer; color: #666; font-size: 0.9rem;">
+              Выйти
+            </button>
+          </div>
+        </ng-container>
+        <ng-template #loginLink>
+          <a routerLink="/login" class="login-link">
+            <span class="avatar"></span>
+            <span>Вход / Регистрация</span>
+          </a>
+        </ng-template>
   
       </div>
   

@@ -1,0 +1,85 @@
+<div class="courses-page">
+    <app-header></app-header>
+  
+    <main>
+      <section class="catalog-hero">
+        <div>
+          <span class="eyebrow">FORUM</span>
+          <h1>Обсуждения и вопросы</h1>
+          <p>Задавай вопросы и делись опытом с другими участниками.</p>
+        </div>
+      </section>
+  
+      <section class="catalog-controls" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="search-box">
+          <span class="search-icon"></span>
+          <input
+            type="text"
+            placeholder="Поиск вопросов..."
+            [value]="searchQuery"
+            (input)="onSearch($event)"
+          />
+        </div>
+        
+        <button class="accent-btn" routerLink="/forum/ask">Задать вопрос</button>
+      </section>
+  
+      <div class="categories">
+        <button class="category"
+                [class.active]="activeCategory === null"
+                (click)="setCategory(null)">
+          Все темы
+        </button>
+        <button class="category"
+                *ngFor="let cat of categories"
+                [class.active]="activeCategory === cat.id"
+                (click)="setCategory(cat.id)">
+          {{ cat.name }}
+        </button>
+      </div>
+  
+      <div class="catalog-header">
+        <div>
+          <span class="eyebrow">DISCUSSIONS</span>
+          <h2>Последние вопросы</h2>
+        </div>
+        <span class="course-count">
+          {{ totalQuestions }} {{ totalQuestions === 1 ? 'вопрос' : (totalQuestions > 1 && totalQuestions < 5 ? 'вопроса' : 'вопросов') }}
+        </span>
+      </div>
+  
+      <div class="catalog-grid" style="display: flex; flex-direction: column; gap: 1rem;">
+        <article
+          class="catalog-card"
+          *ngFor="let q of questions"
+          [routerLink]="['/forum', q.slug]"
+          style="display: flex; flex-direction: row; gap: 1rem; align-items: center; padding: 1.5rem; width: 100%; border: 1px solid var(--border); border-radius: 12px; background: #fff;"
+        >
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 12px;">
+            <strong style="font-size: 1.2rem;">{{ q.comments_count }}</strong>
+            <span style="font-size: 0.7rem;">ответ</span>
+          </div>
+  
+          <div class="course-body" style="flex: 1; margin: 0;">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem; color: var(--text);">
+              {{ q.title }}
+              <span *ngIf="q.accepted_comment" style="color: var(--green-color); font-size: 0.8rem; margin-left: 0.5rem;">✓ Решено</span>
+            </h3>
+            
+            <p class="author" style="font-size: 0.8rem; color: var(--text-secondary);">
+              Автор: {{ q.author.first_name || q.author.username }} в 
+              <span style="color: var(--accent);">{{ q.category.name }}</span> 
+              • {{ q.created_at | date }}
+            </p>
+          </div>
+  
+          <div style="color: var(--text-muted); font-size: 0.9rem;">
+             Просмотров: {{ q.views }}
+          </div>
+        </article>
+      </div>
+  
+    </main>
+  
+    <app-footer></app-footer>
+  </div>

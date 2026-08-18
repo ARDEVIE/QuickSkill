@@ -72,12 +72,13 @@ class QuestionListSerializer(serializers.ModelSerializer):
 class QuestionDetailSerializer(serializers.ModelSerializer):
     author = QuestionAuthorSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
+    accepted_comment = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Question
         fields = [
             'id', 'title', 'slug', 'content',
-            'author', 'category', 'created_at', 'updated_at'
+            'author', 'category', 'accepted_comment', 'created_at', 'updated_at'
         ]
 
 class QuestionWriteSerializer(serializers.ModelSerializer):

@@ -40,6 +40,8 @@
           <input
             type="text"
             placeholder="Поиск курсов..."
+            [value]="searchQuery"
+            (input)="onSearch($event)"
           />
   
         </div>
@@ -57,28 +59,17 @@
   
       <div class="categories">
   
-        <button class="category active">
+        <button class="category"
+                [class.active]="activeCategory === null"
+                (click)="setCategory(null)">
           Все курсы
         </button>
   
-        <button class="category">
-          Программирование
-        </button>
-  
-        <button class="category">
-          Дизайн
-        </button>
-  
-        <button class="category">
-          Маркетинг
-        </button>
-  
-        <button class="category">
-          Языки
-        </button>
-  
-        <button class="category">
-          Бизнес
+        <button class="category"
+                *ngFor="let cat of categories"
+                [class.active]="activeCategory === cat.id"
+                (click)="setCategory(cat.id)">
+          {{ cat.name }}
         </button>
   
       </div>
@@ -101,7 +92,7 @@
         </div>
   
         <span class="course-count">
-          24 курса
+          {{ totalCourses }} {{ totalCourses === 1 ? 'курс' : (totalCourses > 1 && totalCourses < 5 ? 'курса' : 'курсов') }}
         </span>
   
       </div>
@@ -122,7 +113,7 @@
             [style.background]="course.color">
   
             <span class="course-category">
-              {{ course.category }}
+              {{ course.category.name }}
             </span>
   
             <div class="course-symbol">
@@ -143,7 +134,7 @@
             </h3>
   
             <p class="author">
-              {{ course.author }}
+              {{ course.authorName }}
             </p>
   
   
