@@ -33,7 +33,11 @@
   
         <!-- LEFT: FORM -->
   
-        <section class="course-form">
+        <section class="course-form" [formGroup]="courseForm">
+  
+          <div *ngIf="errorMessage" class="error-message" style="color: #dc3545; margin-bottom: 1rem; font-size: 0.9rem;">
+            {{ errorMessage }}
+          </div>
   
   
           <!-- BASIC INFORMATION -->
@@ -65,6 +69,7 @@
   
               <input
                 type="text"
+                formControlName="title"
                 placeholder="Например: Основы веб-дизайна"
               />
   
@@ -83,6 +88,7 @@
   
               <textarea
                 rows="5"
+                formControlName="description"
                 placeholder="Расскажи, чему научится студент после прохождения курса..."
               ></textarea>
   
@@ -100,17 +106,13 @@
   
                 <label>Категория</label>
   
-                <select>
+                <select formControlName="category">
   
-                  <option selected disabled>
+                  <option selected disabled value="">
                     Выберите категорию
                   </option>
   
-                  <option>Программирование</option>
-                  <option>Дизайн</option>
-                  <option>Маркетинг</option>
-                  <option>Языки</option>
-                  <option>Бизнес</option>
+                  <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
   
                 </select>
   
@@ -177,9 +179,13 @@
                 PNG, JPG или WEBP · до 5 MB
               </small>
   
-              <button type="button">
+              <button type="button" (click)="fileInput.click()">
                 Выбрать файл
               </button>
+              <input type="file" #fileInput (change)="onFileSelected($event)" accept=".png,.jpg,.jpeg,.webp" style="display: none;" />
+              <div *ngIf="selectedFile" style="margin-top: 10px; font-size: 0.9rem; color: #4CAF50;">
+                Выбран файл: {{ selectedFile.name }}
+              </div>
   
             </div>
   
@@ -387,15 +393,19 @@
   
             <button
               type="button"
-              class="cancel-button">
+              class="cancel-button"
+              (click)="onSubmit(false)"
+              [disabled]="isLoading || courseForm.invalid">
   
-              Сохранить как черновик
+              {{ isLoading ? 'Сохранение...' : 'Сохранить как черновик' }}
   
             </button>
   
             <button
               type="button"
-              class="create-button">
+              class="create-button"
+              (click)="onSubmit(true)"
+              [disabled]="isLoading || courseForm.invalid">
   
               Создать курс
               <span>→</span>

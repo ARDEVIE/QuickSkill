@@ -89,7 +89,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 Перед этим на сервере должна существовать сеть `esg-network` (создаётся один раз девопсами: `docker network create esg-network`) и `backend/settings/.env` с реальными `PROJECT_SECRET_KEY`, `POSTGRES_PASSWORD` и `DJANGO_ALLOWED_HOSTS` — без них `settings/env/prod.py` откажется стартовать.
 
-**Пока не готово к реальному деплою:** `frontend/` (Angular) в репозитории есть, но ещё не собирается и не подключён ни к `docker-compose.prod.yml`, ни к общему Nginx — без этого подключать путь `esg.kbtu.kz/quickskill` нет смысла.
+**Фронтенд готов:** `frontend/` (Angular) подключён в локальный `docker-compose.yml`. Команда `npm run start -- --host 0.0.0.0` стартует Angular Dev Server.
 
 ## API
 

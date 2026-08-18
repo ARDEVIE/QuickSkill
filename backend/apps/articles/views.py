@@ -92,6 +92,27 @@ class QuestionViewSet(viewsets.ModelViewSet):
             favorite.delete()
         return Response({'favorited': created})
 
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def accept_answer(self, request, slug=None):
+        question = self.get_object()
+        
+        # Only author can accept answers
+        if question.author != request.user and not request.user.is_staff:
+            return Response({"detail": "Only author can accept answers."}, status=status.HTTP_403_FORBIDDEN)
+            
+        comment_id = request.data.get('comment_id')
+        if not comment_id:
+            return Response({"detail": "comment_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            comment = question.comments.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        question.accepted_comment = comment
+        question.save()
+        return Response({"detail": "Answer accepted."})
+
 
 class CommentViewSet(
     mixins.UpdateModelMixin,

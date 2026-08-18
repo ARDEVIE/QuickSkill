@@ -1,0 +1,74 @@
+<div class="course-details-page">
+    <app-header></app-header>
+  
+    <main class="details-container">
+      <a routerLink="/forum" class="back-link">← Вернуться на форум</a>
+  
+      <section class="course-hero" *ngIf="question" style="background: var(--primary-light);">
+        <div class="course-intro" style="max-width: 800px; padding: 2rem;">
+          <span class="eyebrow" style="color: var(--primary);">{{ question.category.name }}</span>
+          <h1 style="font-size: 2rem; color: var(--text);">
+            {{ question.title }}
+          </h1>
+          <p class="description" style="white-space: pre-wrap; font-size: 1.1rem; color: var(--text-secondary); margin-top: 1rem;">
+            {{ question.content }}
+          </p>
+  
+          <div class="author" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+            <div class="author-avatar">{{ question.author.first_name?.charAt(0) || question.author.username.charAt(0) }}</div>
+            <div>
+              <span>Автор вопроса</span>
+              <strong>{{ question.author.first_name || question.author.username }}</strong>
+            </div>
+            <div style="margin-left: auto; color: var(--text-muted); font-size: 0.9rem;">
+              {{ question.created_at | date:'medium' }}
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <div class="details-layout" style="grid-template-columns: 1fr; max-width: 800px; margin-top: 2rem;" *ngIf="question">
+        
+        <section class="content-section">
+          <h2>Ответы ({{ comments.length }})</h2>
+  
+          <div class="lessons-list" style="margin-top: 1.5rem;">
+            <div *ngFor="let comment of comments" class="lesson" [style.border-color]="question.accepted_comment === comment.id ? 'var(--green-color)' : 'var(--border)'" style="flex-direction: column; align-items: flex-start;">
+              
+              <div style="display: flex; justify-content: space-between; width: 100%;">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                  <strong style="font-size: 1rem;">{{ comment.user.first_name || comment.user.username }}</strong>
+                  <span style="font-size: 0.8rem; color: #999;">{{ comment.created_at | date:'short' }}</span>
+                  <span *ngIf="question.accepted_comment === comment.id" style="color: var(--green-color); font-weight: bold; font-size: 0.9rem;">✓ Решение</span>
+                </div>
+                
+                <button *ngIf="isAuthor && question.accepted_comment !== comment.id" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="acceptAnswer(comment.id)">
+                  Отметить решением
+                </button>
+              </div>
+  
+              <p style="margin-top: 1rem; white-space: pre-wrap; line-height: 1.5; color: var(--text-secondary);">
+                {{ comment.content }}
+              </p>
+            </div>
+          </div>
+  
+          <div class="rating-form" *ngIf="isLoggedIn" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee;">
+             <h3 style="margin-bottom: 1rem;">Написать ответ</h3>
+             <form [formGroup]="commentForm" (ngSubmit)="onAddComment()">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                  <textarea formControlName="content" rows="4" style="width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid #ccc;" placeholder="Опишите ваше решение подробно..."></textarea>
+                </div>
+                <button type="submit" class="accent-btn" [disabled]="commentForm.invalid || isSubmitting">Отправить ответ</button>
+             </form>
+          </div>
+          <div *ngIf="!isLoggedIn" style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: 12px; text-align: center;">
+            <p>Пожалуйста, <a routerLink="/login" style="color: var(--primary);">войдите</a>, чтобы оставить ответ.</p>
+          </div>
+  
+        </section>
+  
+      </div>
+    </main>
+    <app-footer></app-footer>
+  </div>

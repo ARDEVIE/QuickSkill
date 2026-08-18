@@ -1,0 +1,39 @@
+<app-header></app-header>
+
+<main class="profile-container">
+  <div class="profile-header">
+    <div class="avatar-placeholder">
+      {{ user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U' }}
+    </div>
+    <div class="profile-info">
+      <h1>{{ user?.first_name }} {{ user?.last_name }}</h1>
+      <p class="username">@{{ user?.username }}</p>
+      <span class="role-badge" *ngIf="user?.role === 'admin'">Администратор</span>
+    </div>
+  </div>
+
+  <section class="profile-details">
+    <h2>Информация</h2>
+    
+    <div class="info-group">
+      <label>Email</label>
+      <p>{{ user?.email }}</p>
+    </div>
+
+    <div class="info-group">
+      <label>О себе</label>
+      <p>{{ user?.bio || 'Пока нет информации' }}</p>
+    </div>
+
+    <div class="info-group" *ngIf="user?.telegram_username">
+      <label>Telegram</label>
+      <a [href]="user?.telegram_url" target="_blank">@{{ user?.telegram_username }}</a>
+    </div>
+
+    <div class="actions">
+      <button class="secondary-btn" (click)="logout()">Выйти</button>
+    </div>
+  </section>
+</main>
+
+<app-footer></app-footer>

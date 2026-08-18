@@ -29,10 +29,18 @@ services:
       quickskill-db:
         condition: service_healthy
 
-  # frontend:
-  #   frontend/ (Angular) существует, но ещё не подключён сюда — своя задача
-  #   (свой Dockerfile/dev-сервер, порт по умолчанию у `ng serve` — 4200, не
-  #   5173, плюс прописать origin в CORS_ALLOWED_ORIGINS / CSRF_TRUSTED_ORIGINS).
+  quickskill-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "4200:4200"
+    command: npm run start -- --host 0.0.0.0 --poll 2000
+    depends_on:
+      - quickskill-backend
 
 volumes:
   postgres_data:

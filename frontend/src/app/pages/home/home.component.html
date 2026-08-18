@@ -86,12 +86,12 @@
         *ngFor="let category of categories">
 
         <div class="category-icon">
-          {{ category.icon }}
+          {{ category.name?.charAt(0) }}
         </div>
 
         <div>
           <h3>{{ category.name }}</h3>
-          <p>{{ category.courses }} курсов</p>
+          <p>{{ category.id }} курсов</p>
         </div>
 
       </div>
@@ -125,7 +125,7 @@
             class="course-cover"
             [style.background]="course.color">
       
-            <span>{{ course.category }}</span>
+            <span>{{ course.category.name }}</span>
       
           </div>
       
@@ -133,7 +133,7 @@
       
             <h3>{{ course.title }}</h3>
       
-            <p>{{ course.author }}</p>
+            <p>{{ course.authorName }}</p>
       
             <div class="course-meta">
       
@@ -147,6 +147,10 @@
       
           </div>
       
+        </div>
+        
+        <div *ngIf="courses.length === 0" style="text-align: center; color: #888; padding: 2rem;">
+          Курсы пока не добавлены
         </div>
       
       </div>

@@ -7,6 +7,13 @@ import { RegisterComponent } from './pages/register/register.component';
 import { CoursesComponent } from './pages/courses/courses.component';
 import { CreateCourseComponent } from './pages/create-course/create-course.component';
 import { CourseDetailsComponent } from './pages/course-details/course-details.component';
+import { EditCourseComponent } from './pages/edit-course/edit-course.component';
+import { ProfileComponent } from './pages/profile/profile.component';
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { ForumListComponent } from './pages/forum-list/forum-list.component';
+import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
+import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 const routes: Routes = [
   {
     path: '',
@@ -32,9 +39,37 @@ const routes: Routes = [
   },
 
   {
+    path: 'forum',
+    component: ForumListComponent
+  },
+  {
+    path: 'forum/ask',
+    component: CreateQuestionComponent
+  },
+  {
+    path: 'forum/:slug',
+    component: QuestionDetailsComponent
+  },
+  {
+    path: 'courses/:id/edit',
+    component: EditCourseComponent
+  },
+  {
     path: 'courses/:id',
     component: CourseDetailsComponent
   },
+  {
+    path: 'profile',
+    component: ProfileComponent
+  },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent
+  },
+  {
+    path: 'reset-password/:uid/:token',
+    component: ResetPasswordComponent
+  }
 ];
 
 @NgModule({

@@ -38,6 +38,13 @@ class Question(TimeStampedModel):
         on_delete=CASCADE,
         related_name='questions',
     )
+    accepted_comment = ForeignKey(
+        'Comment',
+        on_delete=SET_NULL,
+        null=True,
+        blank=True,
+        related_name='accepted_for',
+    )
 
     class Meta:
         ordering = ['-created_at']
