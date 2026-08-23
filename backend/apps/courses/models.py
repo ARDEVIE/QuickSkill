@@ -1,6 +1,5 @@
 # Django modules
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import (
     CASCADE,
@@ -18,7 +17,6 @@ from django.db.models import (
     TextChoices,
     TextField,
     UniqueConstraint,
-    URLField,
 )
 
 # Project modules
@@ -73,37 +71,37 @@ class Course(TimeStampedModel):
         return self.title
 
 
-class Material(TimeStampedModel):
-    '''A single PDF file or video link attached to a course.'''
-
-    class MaterialType(TextChoices):
-        PDF = 'pdf', 'PDF'
-        VIDEO_LINK = 'video_link', 'Video link'
-
-    course = ForeignKey(Course, on_delete=CASCADE, related_name='materials')
+class Section(TimeStampedModel):
+    '''A structural subsection of a course.'''
+    course = ForeignKey(Course, on_delete=CASCADE, related_name='sections')
     title = CharField(max_length=200)
-    type = CharField(max_length=20, choices=MaterialType.choices)
-    file = FileField(upload_to='materials/', blank=True, null=True)
-    url = URLField(blank=True)
     order = PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['order', 'created_at']
 
     def __str__(self):
-        return self.title
+        return f"{self.course.title} - {self.title}"
 
-    def clean(self):
-        if self.type == self.MaterialType.PDF:
-            if not self.file:
-                raise ValidationError({'file': 'PDF material must have a file attached.'})
-            if self.url:
-                raise ValidationError({'url': 'PDF material must not have a URL.'})
-        elif self.type == self.MaterialType.VIDEO_LINK:
-            if not self.url:
-                raise ValidationError({'url': 'Video link material must have a URL.'})
-            if self.file:
-                raise ValidationError({'file': 'Video link material must not have a file.'})
+
+class ContentBlock(TimeStampedModel):
+    '''A block of content inside a section. Can be text or media (image/video link/pdf).'''
+
+    class BlockType(TextChoices):
+        TEXT = 'text', 'Text'
+        MEDIA = 'media', 'Media'
+
+    section = ForeignKey(Section, on_delete=CASCADE, related_name='blocks')
+    type = CharField(max_length=20, choices=BlockType.choices, default=BlockType.TEXT)
+    content = TextField(blank=True)  # Used for text content or URL
+    file = FileField(upload_to='blocks/media/', blank=True, null=True)
+    order = PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"Block {self.id} ({self.type}) in {self.section.title}"
 
 
 class Rating(TimeStampedModel):

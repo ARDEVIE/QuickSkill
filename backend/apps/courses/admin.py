@@ -2,11 +2,11 @@
 from django.contrib import admin
 
 # Project modules
-from apps.courses.models import Category, Course, Favorite, Material, Rating
+from apps.courses.models import Category, ContentBlock, Course, Favorite, Rating, Section
 
 
-class MaterialInline(admin.TabularInline):
-    model = Material
+class SectionInline(admin.TabularInline):
+    model = Section
     extra = 0
 
 
@@ -22,14 +22,20 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'category', 'is_published', 'created_at')
     list_filter = ('is_published', 'category')
     search_fields = ('title', 'author__username', 'author__email')
-    inlines = [MaterialInline]
+    inlines = [SectionInline]
 
 
-@admin.register(Material)
-class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('title', 'course', 'type', 'order')
-    list_filter = ('type',)
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'course', 'order')
     search_fields = ('title', 'course__title')
+
+
+@admin.register(ContentBlock)
+class ContentBlockAdmin(admin.ModelAdmin):
+    list_display = ('id', 'section', 'type', 'order')
+    list_filter = ('type',)
+    search_fields = ('section__title',)
 
 
 @admin.register(Favorite)

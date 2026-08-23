@@ -20,15 +20,7 @@
           <span class="category">
             {{ course.category.name }}
           </span>
-  
-          <div class="cover-icon">
-            &lt;/&gt;
-          </div>
-  
-          <span class="level">
-            Начальный уровень
-          </span>
-  
+
         </div>
   
   
@@ -42,6 +34,9 @@
             {{ course.title }}
             <button class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()" *ngIf="isLoggedIn">
               {{ isFavorited ? '♥ В избранном' : '♡ В избранное' }}
+            </button>
+            <button class="favorite-btn" style="margin-left: 10px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color);" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
+              ✎ Редактировать
             </button>
           </h1>
   
@@ -63,29 +58,28 @@
             </div>
   
             <div>
-              <strong>{{ course.materials.length }}</strong>
-              <span>Материалов</span>
-            </div>
-  
-            <div>
-              <strong>4 ч</strong>
-              <span>Длительность</span>
+              <strong>{{ course.sections.length || 0 }}</strong>
+              <span>Модулей</span>
             </div>
   
           </div>
   
   
           <div class="author">
-  
-            <div class="author-avatar">
-              {{ authorInitials }}
-            </div>
-  
-            <div>
-              <span>Автор курса</span>
-              <strong>{{ authorName }}</strong>
-            </div>
-  
+            <a [routerLink]="['/public-profile', course.author.username]" style="display: flex; gap: 1rem; align-items: center; text-decoration: none; color: inherit;">
+              <div class="author-avatar" *ngIf="!course.author?.avatar">
+                {{ authorInitials }}
+              </div>
+              
+              <div *ngIf="course.author?.avatar" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden;">
+                <img [src]="course.author.avatar" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+    
+              <div>
+                <span>Автор курса</span>
+                <strong>{{ authorName }}</strong>
+              </div>
+            </a>
           </div>
   
         </div>
@@ -120,151 +114,48 @@
   
           <!-- LEARNING -->
   
-          <section class="content-section">
-  
-            <h2>
-              Чему ты научишься
-            </h2>
-  
-            <div class="learning-grid">
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Создавать структуру веб-страницы
-                  с помощью HTML
-                </p>
-  
-              </div>
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Стилизовать сайты с помощью CSS
-                </p>
-  
-              </div>
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Понимать основы JavaScript
-                </p>
-  
-              </div>
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Создать свой первый веб-проект
-                </p>
-  
-              </div>
-  
-            </div>
-  
-          </section>
-  
-  
-          <!-- CURRICULUM -->
-  
           <section class="content-section" *ngIf="course">
-  
             <div class="curriculum-header">
-  
               <div>
-  
                 <h2>
-                  Содержание курса
+                  Программа курса
                 </h2>
-  
                 <p>
-                  {{ course.materials.length }} материалов
+                  {{ course.sections.length || 0 }} модулей
                 </p>
-  
               </div>
-              
-              <button class="secondary-btn" *ngIf="isAuthor" (click)="showAddMaterial = true">
-                + Добавить материал
-              </button>
-  
             </div>
-  
-  
+
             <div class="lessons">
-  
-  
-              <div class="lesson" *ngFor="let material of course.materials; let i = index">
-  
-                <div class="lesson-number">
-                  {{ (i + 1).toString().padStart(2, '0') }}
-                </div>
-  
-                <div class="lesson-info">
-  
-                  <strong>
-                    {{ material.title }}
-                  </strong>
-  
-                  <span>
-                    {{ material.type === 'pdf' ? 'PDF Документ' : 'Видео' }}
+              <div *ngFor="let section of course.sections; let i = index" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                  Модуль {{ i + 1 }}: {{ section.title }}
+                </h3>
+                
+                <div class="lesson" *ngFor="let block of section.blocks; let j = index" style="margin-bottom: 0.5rem; padding-left: 1rem;">
+                  <div class="lesson-info">
+                    <strong>Урок {{ i + 1 }}.{{ j + 1 }}</strong>
+                    <span style="color: #666; margin-left: 10px;">
+                      {{ block.type === 'video_link' ? 'Видео' : (block.type === 'media' ? 'Медиа файл' : 'Текст') }}
+                    </span>
+                  </div>
+                  
+                  <span class="duration">
+                    <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Смотреть</a>
+                    <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Скачать / Открыть медиа</a>
                   </span>
-  
                 </div>
-  
-                <span class="duration">
-                  <a *ngIf="material.type === 'video_link' && material.url" [href]="material.url" target="_blank" style="color: inherit; text-decoration: underline;">Смотреть</a>
-                  <a *ngIf="material.type === 'pdf' && material.file" [href]="material.file" target="_blank" style="color: inherit; text-decoration: underline;">Скачать</a>
-                </span>
-  
+                <div *ngIf="!section.blocks || section.blocks.length === 0" style="padding-left: 1rem; color: #999;">
+                  В этом модуле пока нет уроков.
+                </div>
               </div>
-  
-  
+              <div *ngIf="!course.sections || course.sections.length === 0" style="color: #888;">
+                 Материалы пока не добавлены.
+              </div>
             </div>
-  
           </section>
 
-          <!-- ADD MATERIAL FORM (Only for Author) -->
-          <section class="content-section" *ngIf="isAuthor && showAddMaterial">
-            <h2>Добавить материал</h2>
-            <form [formGroup]="materialForm" (ngSubmit)="onAddMaterial()">
-              <div class="form-group" style="margin-bottom: 1rem;">
-                <label>Название материала</label>
-                <input type="text" formControlName="title" placeholder="Например: Урок 1" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
-              </div>
-              
-              <div class="form-group" style="margin-bottom: 1rem;">
-                <label>Тип</label>
-                <select formControlName="type" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;" (change)="onMaterialTypeChange()">
-                  <option value="video_link">Видео-ссылка</option>
-                  <option value="pdf">PDF документ</option>
-                </select>
-              </div>
 
-              <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'video_link'">
-                <label>Ссылка (URL)</label>
-                <input type="text" formControlName="url" placeholder="https://youtube.com/..." style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
-              </div>
-
-              <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'pdf'">
-                <label>Файл (PDF)</label>
-                <input type="file" (change)="onFileSelect($event)" accept=".pdf" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
-              </div>
-
-              <div style="display: flex; gap: 1rem;">
-                <button type="submit" class="accent-btn" [disabled]="materialForm.invalid || isSubmitting">Сохранить</button>
-                <button type="button" class="secondary-btn" (click)="showAddMaterial = false">Отмена</button>
-              </div>
-            </form>
-          </section>
           
           <!-- RATINGS SECTION -->
           <section class="content-section" *ngIf="course">
@@ -294,7 +185,7 @@
             <div class="ratings-list" style="margin-top: 2rem;">
               <div class="rating-item" *ngFor="let rating of course.ratings" style="padding: 1rem; border-bottom: 1px solid #eee;">
                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                   <strong>{{ rating.user?.first_name || rating.user?.username }}</strong>
+                   <strong>{{ rating.user.first_name || rating.user.username }}</strong>
                    <span style="color: var(--orange-color)">★ {{ rating.score }}</span>
                  </div>
                  <p style="margin: 0; color: #555;">{{ rating.comment }}</p>
@@ -305,105 +196,10 @@
           </section>
 
         </div>
-  
-  
-        <!-- RIGHT SIDEBAR -->
-  
-        <aside class="course-sidebar">
-  
-          <div class="enroll-card">
-  
-            <div class="sidebar-icon">
-              &lt;/&gt;
-            </div>
-  
-            <h3>
-              Готов начать?
-            </h3>
-  
-            <p>
-              Присоединяйся к другим студентам
-              и начни обучение прямо сейчас.
-            </p>
-  
-            <button class="start-button" *ngIf="!isAuthor">
-              Начать обучение
-              <span>→</span>
-            </button>
-            <button class="secondary-btn" *ngIf="isAuthor" [routerLink]="['/courses', course?.id, 'edit']" style="width: 100%; margin-top: 1rem;">
-              Редактировать курс
-            </button>
-  
-            <div class="included">
-  
-              <strong>
-                В курс входит:
-              </strong>
-  
-              <div>
-                ✓ 12 видеоуроков
-              </div>
-  
-              <div>
-                ✓ Практические задания
-              </div>
-  
-              <div>
-                ✓ Доступ к материалам
-              </div>
-  
-              <div>
-                ✓ Сертификат о прохождении
-              </div>
-  
-            </div>
-  
-          </div>
-  
-  
-          <!-- AUTHOR -->
-  
-          <div class="author-card" *ngIf="course">
-  
-            <span class="small-label">
-              ОБ АВТОРЕ
-            </span>
-  
-            <div class="author-profile">
-  
-              <div class="author-avatar">
-                {{ authorInitials }}
-              </div>
-  
-              <div>
-  
-                <strong>
-                  {{ authorName }}
-                </strong>
-  
-                <span>
-                  {{ course.author.username ? '@' + course.author.username : 'Преподаватель' }}
-                </span>
-  
-              </div>
-  
-            </div>
-  
-            <p>
-              Автор курса {{ course.title }}.
-            </p>
-
-            <button *ngIf="course.author.telegram_url" class="start-button" style="margin-top: 1rem; width: 100%;" (click)="openTelegram()">
-              Связаться в Telegram
-            </button>
-  
-          </div>
-  
-        </aside>
-  
       </div>
-  
     </main>
+  
+
   
     <app-footer></app-footer>
   

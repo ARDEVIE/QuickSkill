@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ForumService, Question, Comment } from 'src/app/core/services/forum.service';
 import { AuthService, User } from 'src/app/core/services/auth.service';
@@ -20,12 +20,14 @@ export class QuestionDetailsComponent implements OnInit {
 
   commentForm: FormGroup;
   isSubmitting = false;
+  selectedFile: File | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private forumService: ForumService,
     private authService: AuthService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router
   ) {
     this.commentForm = this.fb.group({
       content: ['', Validators.required]
@@ -66,15 +68,31 @@ export class QuestionDetailsComponent implements OnInit {
     }
   }
 
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+    }
+  }
+
   onAddComment(): void {
     if (this.commentForm.invalid) return;
 
     this.isSubmitting = true;
-    this.forumService.addComment(this.slug, this.commentForm.value).subscribe({
+    
+    const formData = new FormData();
+    formData.append('content', this.commentForm.get('content')?.value);
+    
+    if (this.selectedFile) {
+      formData.append('media_file', this.selectedFile);
+    }
+
+    this.forumService.addComment(this.slug, formData).subscribe({
       next: (comment) => {
         this.comments.push(comment);
         if (this.question) this.question.comments_count++;
         this.commentForm.reset();
+        this.selectedFile = null;
         this.isSubmitting = false;
       },
       error: () => {
@@ -88,13 +106,20 @@ export class QuestionDetailsComponent implements OnInit {
     if (!this.question) return;
     this.forumService.acceptAnswer(this.slug, commentId).subscribe({
       next: () => {
-        if (this.question) {
-          this.question.accepted_comment = commentId;
-        }
+        if (this.question) this.question.accepted_comment = commentId;
       },
-      error: () => {
-        alert('Ошибка при отметке решения');
-      }
+      error: () => alert('Ошибка при принятии решения')
     });
+  }
+
+  deleteQuestion(): void {
+    if (confirm('Вы уверены, что хотите удалить этот вопрос?')) {
+      this.forumService.deleteQuestion(this.slug).subscribe({
+        next: () => {
+          this.router.navigate(['/forum']);
+        },
+        error: () => alert('Ошибка при удалении вопроса')
+      });
+    }
   }
 }

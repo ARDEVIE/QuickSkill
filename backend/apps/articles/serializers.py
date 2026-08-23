@@ -66,7 +66,7 @@ class QuestionListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['id', 'title', 'slug', 'author', 'category', 'created_at']
+        fields = ['id', 'title', 'slug', 'author', 'category', 'media_file', 'created_at']
 
 
 class QuestionDetailSerializer(serializers.ModelSerializer):
@@ -77,14 +77,14 @@ class QuestionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = [
-            'id', 'title', 'slug', 'content',
+            'id', 'title', 'slug', 'content', 'media_file',
             'author', 'category', 'accepted_comment', 'created_at', 'updated_at'
         ]
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ['id', 'title', 'slug', 'content', 'category']
+        fields = ['id', 'title', 'slug', 'content', 'media_file', 'category']
         read_only_fields = ['id', 'slug']
 
     def validate_title(self, value):

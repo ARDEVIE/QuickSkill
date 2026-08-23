@@ -7,6 +7,7 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
+  course_count?: number;
 }
 
 export interface Author {
@@ -29,15 +30,22 @@ export interface Course {
   created_at: string;
 }
 
-export interface Material {
+export interface ContentBlock {
+  id: number;
+  section: number;
+  type: 'text' | 'video_link' | 'media';
+  content: string | null;
+  file: string | null;
+  order: number;
+  created_at: string;
+}
+
+export interface Section {
   id: number;
   course: number;
   title: string;
-  type: 'pdf' | 'video_link';
-  file: string | null;
-  url: string | null;
   order: number;
-  created_at: string;
+  blocks: ContentBlock[];
 }
 
 export interface Rating {
@@ -51,7 +59,7 @@ export interface Rating {
 
 export interface CourseDetail extends Course {
   updated_at: string;
-  materials: Material[];
+  sections: Section[];
   ratings: Rating[];
   average_rating: number | null;
   ratings_count: number;
@@ -94,6 +102,10 @@ export class CourseService {
     return this.http.get<CourseDetail>(`${this.apiUrl}/courses/${id}/`);
   }
 
+  deleteCourse(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/courses/${id}/`);
+  }
+
   createCourse(courseData: FormData): Observable<Course> {
     return this.http.post<Course>(`${this.apiUrl}/courses/`, courseData);
   }
@@ -106,8 +118,12 @@ export class CourseService {
     return this.http.post<{ favorited: boolean }>(`${this.apiUrl}/courses/${id}/favorite/`, {});
   }
 
-  addMaterial(courseId: number, materialData: FormData | any): Observable<Material> {
-    return this.http.post<Material>(`${this.apiUrl}/courses/${courseId}/materials/`, materialData);
+  addSection(courseId: number, sectionData: any): Observable<Section> {
+    return this.http.post<Section>(`${this.apiUrl}/courses/${courseId}/sections/`, sectionData);
+  }
+
+  addBlock(sectionId: number, blockData: FormData | any): Observable<ContentBlock> {
+    return this.http.post<ContentBlock>(`${this.apiUrl}/sections/${sectionId}/blocks/`, blockData);
   }
 
   rateCourse(courseId: number, ratingData: { score: number, comment: string }): Observable<Rating> {

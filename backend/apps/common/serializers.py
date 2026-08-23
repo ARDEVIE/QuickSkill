@@ -7,6 +7,7 @@ class AuthorSerializer(serializers.Serializer):
 
     id = serializers.IntegerField(read_only=True)
     username = serializers.CharField(read_only=True)
+    avatar = serializers.ImageField(read_only=True)
     telegram_url = serializers.SerializerMethodField()
 
     def get_telegram_url(self, obj) -> str | None:

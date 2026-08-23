@@ -20,13 +20,8 @@ export class CourseDetailsComponent implements OnInit {
   isFavorited = false;
   currentUser: User | null = null;
 
-  // Material Form
-  showAddMaterial = false;
-  materialForm: FormGroup;
-  selectedFile: File | null = null;
-  isSubmitting = false;
-
   // Rating Form
+  isSubmitting = false;
   ratingForm: FormGroup;
 
   constructor(
@@ -35,13 +30,6 @@ export class CourseDetailsComponent implements OnInit {
     private authService: AuthService,
     private fb: FormBuilder
   ) {
-    this.materialForm = this.fb.group({
-      title: ['', Validators.required],
-      type: ['video_link', Validators.required],
-      url: [''],
-      file: [null]
-    });
-
     this.ratingForm = this.fb.group({
       score: ['5', Validators.required],
       comment: ['', Validators.required]
@@ -106,54 +94,6 @@ export class CourseDetailsComponent implements OnInit {
     });
   }
 
-  onMaterialTypeChange(): void {
-    const type = this.materialForm.get('type')?.value;
-    if (type === 'video_link') {
-      this.materialForm.get('url')?.setValidators([Validators.required]);
-      this.materialForm.get('file')?.clearValidators();
-    } else {
-      this.materialForm.get('url')?.clearValidators();
-      // file validator is custom handled via onFileSelect
-    }
-    this.materialForm.get('url')?.updateValueAndValidity();
-    this.materialForm.get('file')?.updateValueAndValidity();
-  }
-
-  onFileSelect(event: any): void {
-    if (event.target.files.length > 0) {
-      this.selectedFile = event.target.files[0];
-    }
-  }
-
-  onAddMaterial(): void {
-    if (this.materialForm.invalid || !this.course) return;
-
-    this.isSubmitting = true;
-    const formData = new FormData();
-    formData.append('title', this.materialForm.get('title')?.value);
-    formData.append('type', this.materialForm.get('type')?.value);
-    
-    if (this.materialForm.get('type')?.value === 'video_link') {
-      formData.append('url', this.materialForm.get('url')?.value);
-    } else if (this.selectedFile) {
-      formData.append('file', this.selectedFile);
-    }
-
-    this.courseService.addMaterial(this.course.id, formData).subscribe({
-      next: (material) => {
-        this.course?.materials.push(material);
-        this.showAddMaterial = false;
-        this.materialForm.reset({ type: 'video_link' });
-        this.selectedFile = null;
-        this.isSubmitting = false;
-      },
-      error: () => {
-        this.isSubmitting = false;
-        alert('Ошибка при добавлении материала');
-      }
-    });
-  }
-
   onRateCourse(): void {
     if (this.ratingForm.invalid || !this.course) return;
 
@@ -168,10 +108,8 @@ export class CourseDetailsComponent implements OnInit {
         this.course?.ratings.push(rating);
         this.ratingForm.reset({ score: '5' });
         this.isSubmitting = false;
-        // Optionally update ratings_count and average_rating here
         if (this.course) {
            this.course.ratings_count++;
-           // recalculate average_rating...
         }
       },
       error: () => {

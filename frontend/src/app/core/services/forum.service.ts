@@ -15,6 +15,7 @@ export interface Question {
   views: number;
   comments_count: number;
   accepted_comment: number | null;
+  media_file?: string | null;
 }
 
 export interface QuestionDetail extends Question {
@@ -28,7 +29,7 @@ export interface Comment {
   content: string;
   created_at: string;
   updated_at: string;
-  file?: string | null;
+  media_file?: string | null;
 }
 
 @Injectable({
@@ -53,8 +54,16 @@ export class ForumService {
     return this.http.get<Question>(`${this.apiUrl}/questions/${slug}/`);
   }
 
-  createQuestion(data: { title: string, content: string, category: number }): Observable<Question> {
+  createQuestion(data: FormData | any): Observable<Question> {
     return this.http.post<Question>(`${this.apiUrl}/questions/`, data);
+  }
+
+  updateQuestion(slug: string, data: FormData | any): Observable<Question> {
+    return this.http.patch<Question>(`${this.apiUrl}/questions/${slug}/`, data);
+  }
+
+  deleteQuestion(slug: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/questions/${slug}/`);
   }
 
   getComments(slug: string): Observable<Comment[]> {

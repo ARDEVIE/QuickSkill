@@ -92,6 +92,20 @@ export class AuthService {
     );
   }
 
+  updateProfile(data: FormData | Partial<User>): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/users/me/`, data).pipe(
+      tap(user => this.currentUserSubject.next(user))
+    );
+  }
+
+  getFavorites(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/users/me/favorites/`);
+  }
+
+  getPublicProfile(username: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/users/${username}/`);
+  }
+
   private storeTokens(tokens: AuthTokens): void {
     if (tokens.access) localStorage.setItem('access_token', tokens.access);
     if (tokens.refresh) localStorage.setItem('refresh_token', tokens.refresh);
