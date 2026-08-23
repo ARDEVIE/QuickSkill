@@ -47,10 +47,7 @@
         </div>
   
   
-        <button class="filter-button">
-          Фильтры
-          <span>☰</span>
-        </button>
+
   
       </section>
   
@@ -60,20 +57,36 @@
       <div class="categories">
   
         <button class="category"
-                [class.active]="activeCategory === null"
-                (click)="setCategory(null)">
+                [class.active]="activeCategories.length === 0"
+                (click)="activeCategories = []; fetchCourses()">
           Все курсы
         </button>
   
         <button class="category"
                 *ngFor="let cat of categories"
-                [class.active]="activeCategory === cat.id"
-                (click)="setCategory(cat.id)">
+                [class.active]="activeCategories.includes(cat.slug) || activeCategories.includes(cat.id) || activeCategories.includes(cat.id.toString())"
+                (click)="toggleCategory(cat.id)">
           {{ cat.name }}
         </button>
   
       </div>
+
+      <!-- RATING FILTER -->
+      <div class="categories" style="margin-top: 1rem;">
+        <span style="font-size: 0.9rem; color: #888; margin-right: 1rem; align-self: center;">Минимальный рейтинг:</span>
+        <button class="category" [class.active]="minRating === null" (click)="setRatingFilter(null)">Любой</button>
+        <button class="category" [class.active]="minRating === 3" (click)="setRatingFilter(3)">3.0+</button>
+        <button class="category" [class.active]="minRating === 4" (click)="setRatingFilter(4)">4.0+</button>
+        <button class="category" [class.active]="minRating === 4.5" (click)="setRatingFilter(4.5)">4.5+</button>
+      </div>
   
+      <!-- SORT FILTER -->
+      <div class="categories" style="margin-top: 1rem;">
+        <span style="font-size: 0.9rem; color: #888; margin-right: 1rem; align-self: center;">Сортировка:</span>
+        <button class="category" [class.active]="currentSort === null" (click)="setSort(null)">По умолчанию</button>
+        <button class="category" [class.active]="currentSort === 'rating_desc'" (click)="setSort('rating_desc')">Сначала с высоким рейтингом</button>
+        <button class="category" [class.active]="currentSort === 'rating_asc'" (click)="setSort('rating_asc')">Сначала с низким рейтингом</button>
+      </div>
   
       <!-- HEADER -->
   
@@ -110,18 +123,10 @@
   
           <div
             class="course-cover"
-            [style.background]="course.color">
+            [style.background]="course.cover ? 'url(' + course.cover + ') center/cover' : course.color">
   
             <span class="course-category">
               {{ course.category.name }}
-            </span>
-  
-            <div class="course-symbol">
-              {{ course.icon }}
-            </div>
-  
-            <span class="course-level">
-              {{ course.level }}
             </span>
   
           </div>
@@ -133,41 +138,19 @@
               {{ course.title }}
             </h3>
   
-            <p class="author">
-              {{ course.authorName }}
-            </p>
-  
-  
-            <div class="course-details">
-  
-              <span>
-                {{ course.lessons }}
-              </span>
-  
-              <span>
-                {{ course.students }} студентов
-              </span>
-  
+            <div class="author" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
+              <img *ngIf="course.author?.avatar" [src]="course.author.avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+              <div *ngIf="!course.author?.avatar" style="width: 24px; height: 24px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #666;">
+                {{ course.authorName.charAt(0) }}
+              </div>
+              <p style="margin: 0;">{{ course.authorName }}</p>
             </div>
   
-  
             <div class="course-footer">
-  
+
               <span class="rating">
                 ★ {{ course.rating }}
               </span>
-  
-              <div class="course-footer">
-
-                <span class="rating">
-                  ★ {{ course.rating }}
-                </span>
-              
-                <span class="details-link">
-                  Подробнее →
-                </span>
-              
-              </div>
   
             </div>
   

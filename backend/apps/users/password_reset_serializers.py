@@ -27,7 +27,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             uid = force_str(urlsafe_base64_decode(attrs['uidb64']))
             user = CustomUser.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-            raise serializers.ValidationError('Invalid link.')
+            raise serializers.ValidationError('Invalid link.') from None
 
         if not default_token_generator.check_token(user, attrs['token']):
             raise serializers.ValidationError('Invalid or expired link.')

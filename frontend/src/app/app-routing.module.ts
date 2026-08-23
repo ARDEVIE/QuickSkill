@@ -14,6 +14,8 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
 import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
+import { PublicProfileComponent } from './pages/public-profile/public-profile.component';
+
 const routes: Routes = [
   {
     path: '',
@@ -61,6 +63,10 @@ const routes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent
+  },
+  {
+    path: 'public-profile/:username',
+    component: PublicProfileComponent
   },
   {
     path: 'forgot-password',

@@ -27,21 +27,19 @@
         <input
           type="text"
           placeholder="Что хочешь изучить?"
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
         />
       
-        <button>
+        <button (click)="onSearch()">
           Найти
         </button>
       
       </div>
 
       <div class="hero-buttons">
-        <button class="primary-btn">
+        <button class="primary-btn" routerLink="/courses">
           Начать обучение
-        </button>
-
-        <button class="secondary-btn">
-          Создать курс
         </button>
       </div>
 
@@ -75,23 +73,23 @@
         <h2>Популярные категории</h2>
       </div>
 
-      <a href="#">Смотреть все →</a>
-
     </div>
 
     <div class="categories-grid">
 
       <div
         class="category-card"
-        *ngFor="let category of categories">
+        *ngFor="let category of categories"
+        (click)="goToCategory(category.slug)"
+        style="cursor: pointer;">
 
         <div class="category-icon">
-          {{ category.name?.charAt(0) }}
+          {{ category.name.charAt(0) }}
         </div>
 
         <div>
           <h3>{{ category.name }}</h3>
-          <p>{{ category.id }} курсов</p>
+          <p>{{ category.course_count || 0 }} курсов</p>
         </div>
 
       </div>
@@ -111,7 +109,7 @@
         <h2>Новые курсы</h2>
       </div>
 
-      <a href="#">Все курсы →</a>
+      <a routerLink="/courses">Все курсы →</a>
 
     </div>
 
@@ -119,13 +117,15 @@
 
         <div
           class="course-card"
-          *ngFor="let course of courses">
+          *ngFor="let course of courses"
+          (click)="goToCourse(course.id)"
+          style="cursor: pointer;">
       
           <div
             class="course-cover"
-            [style.background]="course.color">
+            [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
       
-            <span>{{ course.category.name }}</span>
+            <span *ngIf="!course.cover">{{ course.category.name }}</span>
       
           </div>
       
@@ -133,12 +133,17 @@
       
             <h3>{{ course.title }}</h3>
       
-            <p>{{ course.authorName }}</p>
+            <div class="author" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
+              <img *ngIf="course.author?.avatar" [src]="course.author.avatar" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
+              <div *ngIf="!course.author?.avatar" style="width: 20px; height: 20px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #666;">
+                {{ course.authorName.charAt(0) }}
+              </div>
+              <p style="margin: 0; font-size: 0.9rem;">{{ course.authorName }}</p>
+            </div>
       
             <div class="course-meta">
       
-              <span>{{ course.level }}</span>
-      
+
               <span class="rating">
                 ★ {{ course.rating }}
               </span>

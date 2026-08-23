@@ -25,6 +25,7 @@ class Question(TimeStampedModel):
     title = CharField(max_length=255)
     slug = SlugField(max_length=255, unique=True, blank=True)
     content = TextField(blank=True)
+    media_file = FileField(upload_to='forum/questions/', blank=True, null=True)
     category = ForeignKey(
         Category,
         on_delete=SET_NULL,

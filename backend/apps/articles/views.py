@@ -25,6 +25,10 @@ class QuestionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Question.objects.select_related('author', 'category')
 
+        author_id = self.request.query_params.get('author')
+        if author_id:
+            queryset = queryset.filter(author_id=author_id)
+            
         category = self.request.query_params.get('category')
         if category:
             if category.isdigit():

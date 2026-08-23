@@ -1,0 +1,59 @@
+<app-header></app-header>
+
+<main class="profile-container" *ngIf="user && !isLoading">
+  <div class="profile-header">
+    <div class="avatar-placeholder" *ngIf="!user.avatar">
+      {{ (user.first_name || user.username).charAt(0) }}
+    </div>
+    <div class="avatar-image" *ngIf="user.avatar">
+      <img [src]="user.avatar" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+    </div>
+    <div class="profile-info">
+      <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+      <p class="username">@{{ user.username }}</p>
+      <span class="role-badge" *ngIf="user.role === 'admin'">Администратор</span>
+    </div>
+  </div>
+
+  <section class="profile-details">
+    <h2>О себе</h2>
+    <p>{{ user.bio || 'Пользователь не добавил информацию о себе' }}</p>
+
+    <div class="info-group" *ngIf="user.telegram_username" style="margin-top: 1rem;">
+      <a [href]="user.telegram_url" target="_blank" class="accent-btn" style="text-decoration: none; display: inline-block;">Связаться в Telegram</a>
+    </div>
+  </section>
+
+  <section class="profile-favorites" style="margin-top: 2rem;">
+    <h2>Курсы автора ({{ courses.length }})</h2>
+    
+    <div class="catalog-grid" *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+      <article
+        class="catalog-card"
+        *ngFor="let course of courses"
+        [routerLink]="['/courses', course.id]"
+        style="display: flex; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; cursor: pointer; align-items: center;"
+      >
+        <div class="course-cover-mini" *ngIf="course.cover" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden;">
+          <img [src]="course.cover" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div class="course-cover-mini-placeholder" *ngIf="!course.cover" style="width: 100px; height: 60px; border-radius: 8px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold;">
+          &lt;/&gt;
+        </div>
+        <div>
+          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--text);">{{ course.title }}</h3>
+          <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary);">Рейтинг: {{ $any(course).average_rating || 'Нет оценок' }}</p>
+        </div>
+      </article>
+    </div>
+    
+    <p *ngIf="courses.length === 0" style="color: #888;">Этот автор пока не добавил ни одного курса.</p>
+  </section>
+
+</main>
+
+<div *ngIf="isLoading" style="display: flex; justify-content: center; padding: 4rem;">
+  Загрузка профиля...
+</div>
+
+<app-footer></app-footer>

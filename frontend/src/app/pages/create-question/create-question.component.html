@@ -4,9 +4,9 @@
     <main class="create-container">
       <div class="page-header">
         <div>
-          <span class="eyebrow">ASK QUESTION</span>
-          <h1>Задать вопрос</h1>
-          <p>Опишите вашу проблему максимально подробно.</p>
+          <span class="eyebrow">{{ editSlug ? 'EDIT QUESTION' : 'ASK QUESTION' }}</span>
+          <h1>{{ editSlug ? 'Редактировать вопрос' : 'Задать вопрос' }}</h1>
+          <p>{{ editSlug ? 'Внесите необходимые изменения.' : 'Опишите вашу проблему максимально подробно.' }}</p>
         </div>
         <a routerLink="/forum" class="back-link">← Вернуться на форум</a>
       </div>
@@ -35,11 +35,17 @@
                 <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
               </select>
             </div>
+            
+            <div class="form-group">
+              <label>Прикрепить медиафайл</label>
+              <input type="file" (change)="onFileSelected($event)" accept="image/*,video/*" />
+              <div *ngIf="selectedFile" style="margin-top: 5px; font-size: 0.9rem; color: #4CAF50;">Выбран файл: {{ selectedFile.name }}</div>
+            </div>
           </div>
   
           <div class="form-actions">
             <button type="button" class="create-button" (click)="onSubmit()" [disabled]="isLoading || questionForm.invalid">
-              Опубликовать вопрос <span>→</span>
+              {{ editSlug ? 'Сохранить изменения' : 'Опубликовать вопрос' }} <span>→</span>
             </button>
           </div>
         </section>

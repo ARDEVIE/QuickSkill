@@ -26,6 +26,28 @@ class MeAPIView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+class MeFavoritesAPIView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        from apps.courses.serializers import CourseListSerializer
+        return CourseListSerializer
+
+    def get_queryset(self):
+        # returns the actual Course objects the user has favorited
+        user = self.request.user
+        from apps.courses.models import Course
+        return Course.objects.filter(favorited_by__user=user).select_related('author', 'category').distinct()
+
+
+class UserPublicProfileAPIView(generics.RetrieveAPIView):
+    from apps.users.models import CustomUser
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'username'
+
+
 class LogoutAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = LogoutSerializer
