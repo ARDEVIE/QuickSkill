@@ -45,13 +45,7 @@
           />
   
         </div>
-  
-  
-        <button class="filter-button">
-          Фильтры
-          <span>☰</span>
-        </button>
-  
+
       </section>
   
   
@@ -110,73 +104,49 @@
   
           <div
             class="course-cover"
-            [style.background]="course.color">
-  
+            [style.background]="course.cover ? 'none' : course.color">
+
+            <img *ngIf="course.cover" [src]="course.cover" [alt]="course.title" />
+
             <span class="course-category">
               {{ course.category.name }}
             </span>
-  
-            <div class="course-symbol">
+
+            <div class="course-symbol" *ngIf="!course.cover">
               {{ course.icon }}
             </div>
-  
-            <span class="course-level">
-              {{ course.level }}
-            </span>
-  
+
           </div>
-  
-  
+
+
           <div class="course-body">
-  
+
             <h3>
               {{ course.title }}
             </h3>
-  
+
             <p class="author">
               {{ course.authorName }}
             </p>
-  
-  
-            <div class="course-details">
-  
-              <span>
-                {{ course.lessons }}
-              </span>
-  
-              <span>
-                {{ course.students }} студентов
-              </span>
-  
-            </div>
-  
-  
-            <div class="course-footer">
-  
-              <span class="rating">
-                ★ {{ course.rating }}
-              </span>
-  
-              <div class="course-footer">
 
-                <span class="rating">
-                  ★ {{ course.rating }}
-                </span>
-              
-                <span class="details-link">
-                  Подробнее →
-                </span>
-              
-              </div>
-  
+            <div class="course-footer">
+
+              <span class="details-link">
+                Подробнее →
+              </span>
+
             </div>
-  
+
           </div>
   
         </article>
-  
+
+        <p *ngIf="courses.length === 0" class="empty-state">
+          Курсы не найдены. Попробуйте изменить поиск или категорию.
+        </p>
+
       </div>
-  
+
     </main>
   
     <app-footer></app-footer>

@@ -11,24 +11,32 @@
       </a>
   
   
+      <!-- LOADING -->
+
+      <div class="loading-state" *ngIf="isLoading">
+        Загрузка курса...
+      </div>
+
+      <div class="loading-state" *ngIf="!isLoading && !course">
+        Курс не найден.
+      </div>
+
       <!-- COURSE HERO -->
-  
+
       <section class="course-hero" *ngIf="course">
-  
-        <div class="course-cover">
-  
+
+        <div class="course-cover" [class.has-image]="course.cover">
+
+          <img *ngIf="course.cover" [src]="course.cover" [alt]="course.title" class="cover-image" />
+
           <span class="category">
             {{ course.category.name }}
           </span>
-  
-          <div class="cover-icon">
+
+          <div class="cover-icon" *ngIf="!course.cover">
             &lt;/&gt;
           </div>
-  
-          <span class="level">
-            Начальный уровень
-          </span>
-  
+
         </div>
   
   
@@ -66,12 +74,7 @@
               <strong>{{ course.materials.length }}</strong>
               <span>Материалов</span>
             </div>
-  
-            <div>
-              <strong>4 ч</strong>
-              <span>Длительность</span>
-            </div>
-  
+
           </div>
   
   
@@ -118,65 +121,9 @@
           </section>
   
   
-          <!-- LEARNING -->
-  
-          <section class="content-section">
-  
-            <h2>
-              Чему ты научишься
-            </h2>
-  
-            <div class="learning-grid">
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Создавать структуру веб-страницы
-                  с помощью HTML
-                </p>
-  
-              </div>
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Стилизовать сайты с помощью CSS
-                </p>
-  
-              </div>
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Понимать основы JavaScript
-                </p>
-  
-              </div>
-  
-              <div class="learning-card">
-  
-                <span>✓</span>
-  
-                <p>
-                  Создать свой первый веб-проект
-                </p>
-  
-              </div>
-  
-            </div>
-  
-          </section>
-  
-  
           <!-- CURRICULUM -->
-  
-          <section class="content-section" *ngIf="course">
+
+          <section class="content-section" id="curriculum" *ngIf="course">
   
             <div class="curriculum-header">
   
@@ -221,61 +168,70 @@
                 </div>
   
                 <span class="duration">
-                  <a *ngIf="material.type === 'video_link' && material.url" [href]="material.url" target="_blank" style="color: inherit; text-decoration: underline;">Смотреть</a>
-                  <a *ngIf="material.type === 'pdf' && material.file" [href]="material.file" target="_blank" style="color: inherit; text-decoration: underline;">Скачать</a>
+                  <a *ngIf="material.type === 'video_link' && material.url" [href]="material.url" target="_blank" class="material-link">Смотреть</a>
+                  <a *ngIf="material.type === 'pdf' && material.file" [href]="material.file" target="_blank" class="material-link">Скачать</a>
                 </span>
-  
+
               </div>
-  
-  
+
+              <p *ngIf="course.materials.length === 0" class="empty-state">
+                Материалы пока не добавлены{{ isAuthor ? ' — добавьте первый ниже.' : '.' }}
+              </p>
+
             </div>
-  
+
           </section>
 
           <!-- ADD MATERIAL FORM (Only for Author) -->
           <section class="content-section" *ngIf="isAuthor && showAddMaterial">
             <h2>Добавить материал</h2>
+
+            <div *ngIf="materialError" class="error-message">{{ materialError }}</div>
+
             <form [formGroup]="materialForm" (ngSubmit)="onAddMaterial()">
-              <div class="form-group" style="margin-bottom: 1rem;">
+              <div class="form-group">
                 <label>Название материала</label>
-                <input type="text" formControlName="title" placeholder="Например: Урок 1" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
+                <input type="text" formControlName="title" placeholder="Например: Урок 1">
               </div>
-              
-              <div class="form-group" style="margin-bottom: 1rem;">
+
+              <div class="form-group">
                 <label>Тип</label>
-                <select formControlName="type" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;" (change)="onMaterialTypeChange()">
+                <select formControlName="type" (change)="onMaterialTypeChange()">
                   <option value="video_link">Видео-ссылка</option>
                   <option value="pdf">PDF документ</option>
                 </select>
               </div>
 
-              <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'video_link'">
+              <div class="form-group" *ngIf="materialForm.get('type')?.value === 'video_link'">
                 <label>Ссылка (URL)</label>
-                <input type="text" formControlName="url" placeholder="https://youtube.com/..." style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
+                <input type="text" formControlName="url" placeholder="https://youtube.com/...">
               </div>
 
-              <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'pdf'">
+              <div class="form-group" *ngIf="materialForm.get('type')?.value === 'pdf'">
                 <label>Файл (PDF)</label>
-                <input type="file" (change)="onFileSelect($event)" accept=".pdf" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
+                <input type="file" (change)="onFileSelect($event)" accept=".pdf">
               </div>
 
-              <div style="display: flex; gap: 1rem;">
+              <div class="form-actions-row">
                 <button type="submit" class="accent-btn" [disabled]="materialForm.invalid || isSubmitting">Сохранить</button>
                 <button type="button" class="secondary-btn" (click)="showAddMaterial = false">Отмена</button>
               </div>
             </form>
           </section>
-          
+
           <!-- RATINGS SECTION -->
           <section class="content-section" *ngIf="course">
             <h2>Отзывы и оценки</h2>
-            
+
             <div class="rating-form" *ngIf="isLoggedIn && !isAuthor">
-               <h3 style="margin-bottom: 1rem; font-size: 1.2rem;">Оставить отзыв</h3>
+               <h3>Оставить отзыв</h3>
+
+               <div *ngIf="ratingError" class="error-message">{{ ratingError }}</div>
+
                <form [formGroup]="ratingForm" (ngSubmit)="onRateCourse()">
-                  <div class="form-group" style="margin-bottom: 1rem;">
+                  <div class="form-group">
                     <label>Оценка (1-5)</label>
-                    <select formControlName="score" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
+                    <select formControlName="score">
                       <option value="5">5 - Отлично</option>
                       <option value="4">4 - Хорошо</option>
                       <option value="3">3 - Нормально</option>
@@ -283,24 +239,24 @@
                       <option value="1">1 - Ужасно</option>
                     </select>
                   </div>
-                  <div class="form-group" style="margin-bottom: 1rem;">
+                  <div class="form-group">
                     <label>Комментарий</label>
-                    <textarea formControlName="comment" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;" placeholder="Напишите ваш отзыв"></textarea>
+                    <textarea formControlName="comment" rows="3" placeholder="Напишите ваш отзыв"></textarea>
                   </div>
                   <button type="submit" class="accent-btn" [disabled]="ratingForm.invalid || isSubmitting">Отправить отзыв</button>
                </form>
             </div>
 
-            <div class="ratings-list" style="margin-top: 2rem;">
-              <div class="rating-item" *ngFor="let rating of course.ratings" style="padding: 1rem; border-bottom: 1px solid #eee;">
-                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                   <strong>{{ rating.user?.first_name || rating.user?.username }}</strong>
-                   <span style="color: var(--orange-color)">★ {{ rating.score }}</span>
+            <div class="ratings-list">
+              <div class="rating-item" *ngFor="let rating of course.ratings">
+                 <div class="rating-item-header">
+                   <strong>{{ rating.user.first_name || rating.user.username }}</strong>
+                   <span class="rating-score">★ {{ rating.score }}</span>
                  </div>
-                 <p style="margin: 0; color: #555;">{{ rating.comment }}</p>
-                 <small style="color: #999;">{{ rating.created_at | date }}</small>
+                 <p class="rating-comment">{{ rating.comment }}</p>
+                 <small class="rating-date">{{ rating.created_at | date }}</small>
               </div>
-              <p *ngIf="!course.ratings || course.ratings.length === 0" style="color: #888;">Пока нет отзывов.</p>
+              <p *ngIf="!course.ratings || course.ratings.length === 0" class="empty-state">Пока нет отзывов.</p>
             </div>
           </section>
 
@@ -311,53 +267,49 @@
   
         <aside class="course-sidebar">
   
-          <div class="enroll-card">
-  
+          <div class="enroll-card" *ngIf="course">
+
             <div class="sidebar-icon">
               &lt;/&gt;
             </div>
-  
+
             <h3>
               Готов начать?
             </h3>
-  
+
             <p>
               Присоединяйся к другим студентам
               и начни обучение прямо сейчас.
             </p>
-  
-            <button class="start-button" *ngIf="!isAuthor">
+
+            <a class="start-button" *ngIf="!isAuthor" href="#curriculum">
               Начать обучение
               <span>→</span>
-            </button>
-            <button class="secondary-btn" *ngIf="isAuthor" [routerLink]="['/courses', course?.id, 'edit']" style="width: 100%; margin-top: 1rem;">
+            </a>
+            <button class="secondary-btn edit-course-btn" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
               Редактировать курс
             </button>
-  
+
             <div class="included">
-  
+
               <strong>
                 В курс входит:
               </strong>
-  
+
               <div>
-                ✓ 12 видеоуроков
+                ✓ {{ course.materials.length }} {{ course.materials.length === 1 ? 'материал' : 'материалов' }}
               </div>
-  
+
               <div>
-                ✓ Практические задания
+                ✓ Доступ к материалам без оплаты
               </div>
-  
-              <div>
-                ✓ Доступ к материалам
+
+              <div *ngIf="course.author.telegram_url">
+                ✓ Связь с автором в Telegram
               </div>
-  
-              <div>
-                ✓ Сертификат о прохождении
-              </div>
-  
+
             </div>
-  
+
           </div>
   
   

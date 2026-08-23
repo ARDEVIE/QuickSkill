@@ -1,7 +1,7 @@
 .courses-page {
   min-height: 100vh;
-  background: #ffffff;
-  color: #172033;
+  background: var(--white);
+  color: var(--text);
 }
 
 /* =========================
@@ -24,7 +24,7 @@
 
   border-radius: 24px;
 
-  background: #eef5ff;
+  background: var(--primary-light);
 
   position: relative;
   overflow: hidden;
@@ -43,7 +43,7 @@
 
   border-radius: 50%;
 
-  background: #4f8cff;
+  background: var(--primary);
 
   opacity: 0.12;
 }
@@ -58,7 +58,7 @@
 .eyebrow {
   display: inline-block;
 
-  color: #4f8cff;
+  color: var(--primary);
 
   font-size: 11px;
   font-weight: 800;
@@ -80,7 +80,7 @@
 
   max-width: 520px;
 
-  color: #667085;
+  color: var(--text-secondary);
 
   font-size: 15px;
   line-height: 1.6;
@@ -112,11 +112,11 @@
 
   padding: 0 16px;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
 
   border-radius: 999px;
 
-  background: #ffffff;
+  background: var(--white);
 
   box-sizing: border-box;
 
@@ -124,7 +124,7 @@
 }
 
 .search-box:focus-within {
-  border-color: #4f8cff;
+  border-color: var(--primary);
 
   box-shadow:
     0 0 0 3px rgba(79, 140, 255, 0.08);
@@ -173,7 +173,7 @@
 
   font-size: 13px;
 
-  color: #172033;
+  color: var(--text);
 }
 
 .search-box input::placeholder {
@@ -185,13 +185,13 @@
 
   padding: 0 20px;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
 
   border-radius: 999px;
 
-  background: white;
+  background: var(--white);
 
-  color: #172033;
+  color: var(--text);
 
   font-family: inherit;
 
@@ -204,9 +204,9 @@
 }
 
 .filter-button:hover {
-  border-color: #4f8cff;
+  border-color: var(--primary);
 
-  color: #4f8cff;
+  color: var(--primary);
 }
 
 .filter-button span {
@@ -234,13 +234,13 @@
 
   padding: 9px 16px;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
 
   border-radius: 999px;
 
-  background: white;
+  background: var(--white);
 
-  color: #667085;
+  color: var(--text-secondary);
 
   font-family: inherit;
 
@@ -253,17 +253,17 @@
 }
 
 .category:hover {
-  border-color: #4f8cff;
+  border-color: var(--primary);
 
-  color: #4f8cff;
+  color: var(--primary);
 }
 
 .category.active {
-  border-color: #4f8cff;
+  border-color: var(--primary);
 
-  background: #4f8cff;
+  background: var(--primary);
 
-  color: white;
+  color: var(--white);
 }
 
 /* =========================
@@ -313,11 +313,11 @@
 .catalog-card {
   overflow: hidden;
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 
   border-radius: 17px;
 
-  background: white;
+  background: var(--white);
 
   cursor: pointer;
 
@@ -365,7 +365,7 @@
 
   background: rgba(255, 255, 255, 0.9);
 
-  color: #172033;
+  color: var(--text);
 
   font-size: 9px;
 
@@ -392,7 +392,7 @@
 
   background: rgba(255, 255, 255, 0.75);
 
-  color: #4f8cff;
+  color: var(--primary);
 
   font-size: 25px;
   font-weight: 800;
@@ -407,7 +407,7 @@
 
   background: rgba(255, 255, 255, 0.85);
 
-  color: #667085;
+  color: var(--text-secondary);
 
   font-size: 9px;
 }
@@ -433,7 +433,7 @@
 .author {
   margin: 8px 0 14px;
 
-  color: #667085;
+  color: var(--text-secondary);
 
   font-size: 10px;
 }
@@ -462,7 +462,7 @@
 }
 
 .rating {
-  color: #ff8a3d;
+  color: var(--accent);
 
   font-size: 11px;
 
@@ -475,7 +475,7 @@
 
   background: transparent;
 
-  color: #4f8cff;
+  color: var(--primary);
 
   font-family: inherit;
 
@@ -488,7 +488,7 @@
 
 .course-footer button:hover,
 .details-link:hover {
-  color: #ff8a3d;
+  color: var(--accent);
 }
 
 /* =========================

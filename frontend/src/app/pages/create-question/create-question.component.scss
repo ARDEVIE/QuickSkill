@@ -73,12 +73,26 @@
   
   .create-layout {
     display: grid;
-  
+
     grid-template-columns: minmax(0, 1fr) 320px;
-  
+
     gap: 24px;
-  
+
     align-items: start;
+  }
+
+  .create-layout.single-column {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+  }
+
+  .error-message {
+    margin-bottom: 1rem;
+    padding: 0 32px;
+
+    color: #dc3545;
+
+    font-size: 0.9rem;
   }
   
   

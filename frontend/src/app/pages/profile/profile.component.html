@@ -3,7 +3,8 @@
 <main class="profile-container">
   <div class="profile-header">
     <div class="avatar-placeholder">
-      {{ user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U' }}
+      <img *ngIf="user?.avatar" [src]="user?.avatar" [alt]="user?.username" />
+      <span *ngIf="!user?.avatar">{{ user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U' }}</span>
     </div>
     <div class="profile-info">
       <h1>{{ user?.first_name }} {{ user?.last_name }}</h1>

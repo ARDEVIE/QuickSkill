@@ -1,0 +1,20 @@
+<app-header></app-header>
+
+<main class="info-page" *ngIf="data">
+
+  <section class="info-hero">
+    <span class="eyebrow">{{ data.eyebrow }}</span>
+    <h1>{{ data.title }}</h1>
+    <p>{{ data.intro }}</p>
+  </section>
+
+  <section class="info-body">
+    <article class="info-block" *ngFor="let block of data.blocks">
+      <h2>{{ block.heading }}</h2>
+      <p>{{ block.body }}</p>
+    </article>
+  </section>
+
+</main>
+
+<app-footer></app-footer>

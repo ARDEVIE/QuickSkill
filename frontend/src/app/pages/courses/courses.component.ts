@@ -1,13 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CourseService, Course, Category } from 'src/app/core/services/course.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 interface UICourse extends Course {
-  level: string;
-  rating: string;
-  students: string;
-  lessons: string;
   color: string;
   icon: string;
   authorName: string;
@@ -30,9 +27,11 @@ export class CoursesComponent implements OnInit {
   private colors = ['#DCEAFF', '#FFF0E4', '#E5F7F1', '#EAE7FF', '#E8F0FF', '#FFF4D9', '#E7F5FF', '#F2E9FF'];
   private icons = ['</>', '✦', 'Py', '↗', 'A', 'F', '{ }', '★'];
 
-  constructor(private courseService: CourseService) {}
+  constructor(private courseService: CourseService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
+    this.searchQuery = this.route.snapshot.queryParamMap.get('search') || '';
+
     this.fetchCategories();
     this.fetchCourses();
 
@@ -80,10 +79,6 @@ export class CoursesComponent implements OnInit {
     return {
       ...course,
       authorName: course.author ? (course.author.first_name || course.author.username) : 'Неизвестно',
-      level: 'Начальный', // Placeholder as backend doesn't have level
-      rating: '4.8', // Placeholder, we can fetch later if needed
-      students: '100', // Placeholder
-      lessons: '10 уроков', // Placeholder
       color: this.colors[index % this.colors.length],
       icon: this.icons[index % this.icons.length]
     };

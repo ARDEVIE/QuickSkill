@@ -63,7 +63,7 @@
           <div class="course-body" style="flex: 1; margin: 0;">
             <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem; color: var(--text);">
               {{ q.title }}
-              <span *ngIf="q.accepted_comment" style="color: var(--green-color); font-size: 0.8rem; margin-left: 0.5rem;">✓ Решено</span>
+              <span *ngIf="q.accepted_comment" style="color: var(--success); font-size: 0.8rem; margin-left: 0.5rem;">✓ Решено</span>
             </h3>
             
             <p class="author" style="font-size: 0.8rem; color: var(--text-secondary);">
@@ -73,7 +73,7 @@
             </p>
           </div>
   
-          <div style="color: var(--text-muted); font-size: 0.9rem;">
+          <div style="color: var(--text-secondary); font-size: 0.9rem;">
              Просмотров: {{ q.views }}
           </div>
         </article>

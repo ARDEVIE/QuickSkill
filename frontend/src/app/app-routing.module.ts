@@ -14,6 +14,8 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
 import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
+import { InfoPageComponent } from './pages/info-page/info-page.component';
+import { FAQ_PAGE, SUPPORT_PAGE, TERMS_PAGE } from './pages/info-page/info-page.content';
 const routes: Routes = [
   {
     path: '',
@@ -69,6 +71,22 @@ const routes: Routes = [
   {
     path: 'reset-password/:uid/:token',
     component: ResetPasswordComponent
+  },
+
+  {
+    path: 'faq',
+    component: InfoPageComponent,
+    data: { info: FAQ_PAGE }
+  },
+  {
+    path: 'support',
+    component: InfoPageComponent,
+    data: { info: SUPPORT_PAGE }
+  },
+  {
+    path: 'terms',
+    component: InfoPageComponent,
+    data: { info: TERMS_PAGE }
   }
 ];
 

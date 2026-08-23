@@ -1,13 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CourseService, Course, Category } from 'src/app/core/services/course.service';
 
 interface UICourse extends Course {
-  level: string;
-  rating: string;
-  students: string;
-  lessons: string;
   color: string;
-  icon: string;
   authorName: string;
 }
 
@@ -19,11 +15,11 @@ interface UICourse extends Course {
 export class HomeComponent implements OnInit {
   categories: Category[] = [];
   courses: UICourse[] = [];
+  heroSearchQuery = '';
 
   private colors = ['#DCEAFF', '#FFF0E4', '#E5F7F1', '#EAE7FF', '#E8F0FF', '#FFF4D9', '#E7F5FF', '#F2E9FF'];
-  private icons = ['</>', '✦', 'Py', '↗', 'A', 'F', '{ }', '★'];
 
-  constructor(private courseService: CourseService) {}
+  constructor(private courseService: CourseService, private router: Router) {}
 
   ngOnInit(): void {
     this.courseService.getCategories().subscribe(res => {
@@ -36,13 +32,13 @@ export class HomeComponent implements OnInit {
       this.courses = crs.slice(0, 4).map((c: Course, i: number) => ({
         ...c,
         authorName: c.author ? (c.author.first_name || c.author.username) : 'Неизвестно',
-        level: 'Начальный',
-        rating: '4.8',
-        students: '100',
-        lessons: '10 уроков',
-        color: this.colors[i % this.colors.length],
-        icon: this.icons[i % this.icons.length]
+        color: this.colors[i % this.colors.length]
       }));
     });
+  }
+
+  onHeroSearch(): void {
+    const query = this.heroSearchQuery.trim();
+    this.router.navigate(['/courses'], query ? { queryParams: { search: query } } : {});
   }
 }

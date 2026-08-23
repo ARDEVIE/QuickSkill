@@ -19,18 +19,20 @@
       </nav>
   
       <div class="header-actions">
-  
-        <button class="search-button" type="button">
+
+        <button class="search-button" type="button" routerLink="/courses" aria-label="Поиск курсов">
           <span class="search-icon"></span>
         </button>
-  
+
         <ng-container *ngIf="currentUser$ | async as user; else loginLink">
-          <div class="user-menu" style="display: flex; align-items: center; gap: 10px;">
+          <div class="user-menu">
             <a routerLink="/profile" class="login-link">
-              <span class="avatar"></span>
+              <span class="avatar">
+                <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.username" />
+              </span>
               <span>{{ user.first_name || user.username }}</span>
             </a>
-            <button (click)="logout()" style="background: none; border: none; cursor: pointer; color: #666; font-size: 0.9rem;">
+            <button class="logout-button" (click)="logout()">
               Выйти
             </button>
           </div>
@@ -41,7 +43,7 @@
             <span>Вход / Регистрация</span>
           </a>
         </ng-template>
-  
+
       </div>
   
     </div>
