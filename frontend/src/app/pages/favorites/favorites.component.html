@@ -1,0 +1,74 @@
+<app-header></app-header>
+
+<main class="favorites-page">
+
+  <section class="page-hero">
+    <span class="eyebrow">FAVORITES</span>
+    <h1>Избранное</h1>
+    <p>Курсы и вопросы форума, которые ты сохранил.</p>
+  </section>
+
+  <section class="favorites-section">
+    <h2>Курсы</h2>
+
+    <div class="loading-state" *ngIf="isLoadingCourses">Загрузка...</div>
+
+    <div class="courses-grid" *ngIf="!isLoadingCourses">
+      <a
+        class="course-card"
+        *ngFor="let course of courses"
+        [routerLink]="['/courses', course.id]">
+
+        <div class="course-cover" [style.background]="course.cover ? 'none' : '#DCEAFF'">
+          <img *ngIf="course.cover" [src]="course.cover" [alt]="course.title" />
+          <span>{{ course.category.name }}</span>
+        </div>
+
+        <div class="course-content">
+          <h3>{{ course.title }}</h3>
+          <p>{{ course.author.first_name || course.author.username }}</p>
+        </div>
+
+      </a>
+
+      <p *ngIf="courses.length === 0" class="empty-state">
+        Пока нет избранных курсов — нажми «В избранное» на странице курса.
+      </p>
+    </div>
+  </section>
+
+  <section class="favorites-section">
+    <h2>Вопросы форума</h2>
+
+    <div class="loading-state" *ngIf="isLoadingQuestions">Загрузка...</div>
+
+    <div class="questions-list" *ngIf="!isLoadingQuestions">
+      <a
+        class="question-card"
+        *ngFor="let q of questions"
+        [routerLink]="['/forum', q.slug]">
+
+        <div class="question-count">
+          <strong>{{ q.comments_count }}</strong>
+          <span>ответ</span>
+        </div>
+
+        <div class="question-body">
+          <h3>
+            {{ q.title }}
+            <span *ngIf="q.accepted_comment" class="solved-badge">✓ Решено</span>
+          </h3>
+          <p>{{ q.author.first_name || q.author.username }} в {{ q.category.name }}</p>
+        </div>
+
+      </a>
+
+      <p *ngIf="questions.length === 0" class="empty-state">
+        Пока нет избранных вопросов — нажми «В избранное» на странице вопроса.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<app-footer></app-footer>

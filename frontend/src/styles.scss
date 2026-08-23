@@ -115,3 +115,34 @@ img {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  background: var(--white);
+  color: var(--text-secondary);
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.favorite-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.favorite-btn.favorited {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}

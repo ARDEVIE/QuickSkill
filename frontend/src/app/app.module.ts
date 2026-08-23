@@ -22,6 +22,7 @@ import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { InfoPageComponent } from './pages/info-page/info-page.component';
+import { FavoritesComponent } from './pages/favorites/favorites.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { InfoPageComponent } from './pages/info-page/info-page.component';
     QuestionDetailsComponent,
     CreateQuestionComponent,
     InfoPageComponent,
+    FavoritesComponent,
 
   ],
   imports: [

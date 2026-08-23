@@ -11,13 +11,14 @@ from rest_framework.response import Response
 
 # Project modules
 from apps.common.permissions import IsAuthorOrReadOnly
-from apps.courses.models import Category, Course, Favorite, Material, Rating
+from apps.courses.models import Category, Course, Favorite, Lesson, Material, Rating
 from apps.courses.permissions import IsRatingOwnerOrAdminOrReadOnly
 from apps.courses.serializers import (
     CategorySerializer,
     CourseDetailSerializer,
     CourseListSerializer,
     CourseWriteSerializer,
+    LessonSerializer,
     MaterialSerializer,
     RatingSerializer,
 )
@@ -75,10 +76,26 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def materials(self, request, pk=None):
-        '''Author-only: attach a PDF or video-link material to this course.'''
+        '''Author-only: attach a PDF, link, video-link, or text material directly to this course.'''
         course = self.get_object()
 
-        serializer = MaterialSerializer(data=request.data)
+        serializer = MaterialSerializer(data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        serializer.save(course=course, lesson=None)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get', 'post'])
+    def lessons(self, request, pk=None):
+        '''List a course's lessons, or (author-only) create a new one.'''
+        course = self.get_object()
+
+        if request.method == 'GET':
+            lessons = course.lessons.prefetch_related('materials')
+            serializer = LessonSerializer(lessons, many=True, context=self.get_serializer_context())
+            return Response(serializer.data)
+
+        # POST: get_object() above already enforced IsAuthorOrReadOnly for this write.
+        serializer = LessonSerializer(data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         serializer.save(course=course)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -92,6 +109,20 @@ class CourseViewSet(viewsets.ModelViewSet):
             favorite.delete()
         return Response({'favorited': created})
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def favorites(self, request):
+        '''List the courses the current user has favorited.'''
+        courses = Course.objects.filter(favorited_by__user=request.user).select_related(
+            'category', 'author'
+        )
+        page = self.paginate_queryset(courses)
+        if page is not None:
+            serializer = CourseListSerializer(page, many=True, context=self.get_serializer_context())
+            return self.get_paginated_response(serializer.data)
+
+        serializer = CourseListSerializer(courses, many=True, context=self.get_serializer_context())
+        return Response(serializer.data)
+
     @action(detail=True, methods=['get', 'post'], permission_classes=[IsAuthenticatedOrReadOnly])
     def ratings(self, request, pk=None):
         '''List a course's reviews, or leave/update your own (one per user per course).'''
@@ -101,23 +132,23 @@ class CourseViewSet(viewsets.ModelViewSet):
             ratings = course.ratings.select_related('user')
             page = self.paginate_queryset(ratings)
             if page is not None:
-                serializer = RatingSerializer(page, many=True)
+                serializer = RatingSerializer(page, many=True, context=self.get_serializer_context())
                 return self.get_paginated_response(serializer.data)
 
-            serializer = RatingSerializer(ratings, many=True)
+            serializer = RatingSerializer(ratings, many=True, context=self.get_serializer_context())
             return Response(serializer.data)
 
         if course.author == request.user:
             raise PermissionDenied("You can't rate your own course.")
 
-        serializer = RatingSerializer(data=request.data)
+        serializer = RatingSerializer(data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         rating, _ = Rating.objects.update_or_create(
             course=course,
             user=request.user,
             defaults=serializer.validated_data,
         )
-        response_serializer = RatingSerializer(rating)
+        response_serializer = RatingSerializer(rating, context=self.get_serializer_context())
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -127,11 +158,35 @@ class MaterialViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    '''Retrieve/update/delete a single material; creation happens via CourseViewSet.materials().'''
+    '''Retrieve/update/delete a single material; creation happens via CourseViewSet.materials()
+    or LessonViewSet.materials().'''
 
     queryset = Material.objects.select_related('course__author')
     serializer_class = MaterialSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+
+class LessonViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    '''Retrieve/update/delete a single lesson; creation happens via CourseViewSet.lessons().'''
+
+    queryset = Lesson.objects.select_related('course__author').prefetch_related('materials')
+    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAuthorOrReadOnly])
+    def materials(self, request, pk=None):
+        '''Author-only: attach a material to this lesson.'''
+        lesson = self.get_object()
+
+        serializer = MaterialSerializer(data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        serializer.save(course=lesson.course, lesson=lesson)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class RatingViewSet(

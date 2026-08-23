@@ -13,9 +13,9 @@
     </div>
   </div>
 
-  <section class="profile-details">
+  <section class="profile-details" *ngIf="!isEditing">
     <h2>Информация</h2>
-    
+
     <div class="info-group">
       <label>Email</label>
       <p>{{ user?.email }}</p>
@@ -32,8 +32,54 @@
     </div>
 
     <div class="actions">
+      <button class="secondary-btn" (click)="startEdit()">Редактировать профиль</button>
       <button class="secondary-btn" (click)="logout()">Выйти</button>
     </div>
+  </section>
+
+  <section class="profile-details" *ngIf="isEditing">
+    <h2>Редактирование профиля</h2>
+
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <form [formGroup]="editForm" (ngSubmit)="onSave()">
+
+      <div class="form-group">
+        <label>Аватар</label>
+        <input type="file" accept=".png,.jpg,.jpeg,.webp" (change)="onAvatarSelected($event)">
+        <span class="input-hint" *ngIf="selectedAvatarFile">Выбран файл: {{ selectedAvatarFile.name }}</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Имя</label>
+          <input type="text" formControlName="first_name" placeholder="Имя">
+        </div>
+
+        <div class="form-group">
+          <label>Фамилия</label>
+          <input type="text" formControlName="last_name" placeholder="Фамилия">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>О себе</label>
+        <textarea rows="4" formControlName="bio" placeholder="Пара слов о себе"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Telegram</label>
+        <input type="text" formControlName="telegram_username" placeholder="username (без @)">
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="accent-btn" [disabled]="isSaving">
+          {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
+        </button>
+        <button type="button" class="secondary-btn" (click)="cancelEdit()">Отмена</button>
+      </div>
+
+    </form>
   </section>
 </main>
 

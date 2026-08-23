@@ -92,6 +92,12 @@ export class AuthService {
     );
   }
 
+  updateProfile(data: Partial<User> | FormData): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/users/me/`, data).pipe(
+      tap(user => this.currentUserSubject.next(user))
+    );
+  }
+
   private storeTokens(tokens: AuthTokens): void {
     if (tokens.access) localStorage.setItem('access_token', tokens.access);
     if (tokens.refresh) localStorage.setItem('refresh_token', tokens.refresh);

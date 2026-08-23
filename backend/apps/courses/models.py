@@ -73,18 +73,43 @@ class Course(TimeStampedModel):
         return self.title
 
 
+class Lesson(TimeStampedModel):
+    '''A named topic within a course that groups a set of materials.'''
+
+    course = ForeignKey(Course, on_delete=CASCADE, related_name='lessons')
+    title = CharField(max_length=200)
+    description = TextField(blank=True)
+    order = PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return self.title
+
+
 class Material(TimeStampedModel):
-    '''A single PDF file or video link attached to a course.'''
+    '''A single piece of course content: a PDF, a video link, a plain link, or text.'''
 
     class MaterialType(TextChoices):
         PDF = 'pdf', 'PDF'
         VIDEO_LINK = 'video_link', 'Video link'
+        LINK = 'link', 'Link'
+        TEXT = 'text', 'Text'
 
     course = ForeignKey(Course, on_delete=CASCADE, related_name='materials')
+    lesson = ForeignKey(
+        Lesson,
+        on_delete=CASCADE,
+        related_name='materials',
+        null=True,
+        blank=True,
+    )
     title = CharField(max_length=200)
     type = CharField(max_length=20, choices=MaterialType.choices)
     file = FileField(upload_to='materials/', blank=True, null=True)
     url = URLField(blank=True)
+    content = TextField(blank=True)
     order = PositiveIntegerField(default=0)
 
     class Meta:
@@ -99,11 +124,14 @@ class Material(TimeStampedModel):
                 raise ValidationError({'file': 'PDF material must have a file attached.'})
             if self.url:
                 raise ValidationError({'url': 'PDF material must not have a URL.'})
-        elif self.type == self.MaterialType.VIDEO_LINK:
+        elif self.type in (self.MaterialType.VIDEO_LINK, self.MaterialType.LINK):
             if not self.url:
-                raise ValidationError({'url': 'Video link material must have a URL.'})
+                raise ValidationError({'url': f'{self.get_type_display()} material must have a URL.'})
             if self.file:
-                raise ValidationError({'file': 'Video link material must not have a file.'})
+                raise ValidationError({'file': f'{self.get_type_display()} material must not have a file.'})
+        elif self.type == self.MaterialType.TEXT:
+            if not self.content:
+                raise ValidationError({'content': 'Text material must have content.'})
 
 
 class Rating(TimeStampedModel):

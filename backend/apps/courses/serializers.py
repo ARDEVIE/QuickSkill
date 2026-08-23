@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 # Project modules
 from apps.common.serializers import AuthorSerializer
-from apps.courses.models import Category, Course, Material, Rating
+from apps.courses.models import Category, Course, Lesson, Material, Rating
 
 MAX_PDF_SIZE_MB = 10
 MAX_COVER_SIZE_MB = 5
@@ -19,14 +19,15 @@ class CategorySerializer(serializers.ModelSerializer):
 class MaterialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Material
-        fields = ['id', 'course', 'title', 'type', 'file', 'url', 'order', 'created_at']
-        read_only_fields = ['id', 'course', 'created_at']
+        fields = ['id', 'course', 'lesson', 'title', 'type', 'file', 'url', 'content', 'order', 'created_at']
+        read_only_fields = ['id', 'course', 'lesson', 'created_at']
 
     def validate(self, attrs):
-        '''Enforce that pdf/video_link materials carry exactly the fields they need.'''
+        '''Enforce that each material type carries exactly the fields it needs.'''
         material_type = attrs.get('type', getattr(self.instance, 'type', None))
         file = attrs.get('file', getattr(self.instance, 'file', None))
         url = attrs.get('url', getattr(self.instance, 'url', None))
+        content = attrs.get('content', getattr(self.instance, 'content', None))
 
         if material_type == Material.MaterialType.PDF:
             if not file:
@@ -45,15 +46,27 @@ class MaterialSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {'file': f'File must be smaller than {MAX_PDF_SIZE_MB}MB.'}
                 )
-        elif material_type == Material.MaterialType.VIDEO_LINK:
+        elif material_type in (Material.MaterialType.VIDEO_LINK, Material.MaterialType.LINK):
             if not url:
-                raise serializers.ValidationError({'url': 'Video link material must have a URL.'})
+                raise serializers.ValidationError({'url': 'This material must have a URL.'})
             if file:
                 raise serializers.ValidationError(
-                    {'file': 'Video link material must not have a file.'}
+                    {'file': 'This material must not have a file.'}
                 )
+        elif material_type == Material.MaterialType.TEXT:
+            if not content:
+                raise serializers.ValidationError({'content': 'Text material must have content.'})
 
         return attrs
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    materials = MaterialSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Lesson
+        fields = ['id', 'course', 'title', 'description', 'order', 'materials', 'created_at']
+        read_only_fields = ['id', 'course', 'created_at']
 
 
 class RatingSerializer(serializers.ModelSerializer):
@@ -75,15 +88,21 @@ class CourseListSerializer(serializers.ModelSerializer):
 
 
 class CourseDetailSerializer(CourseListSerializer):
-    materials = MaterialSerializer(many=True, read_only=True)
+    lessons = LessonSerializer(many=True, read_only=True)
+    materials = serializers.SerializerMethodField()
     ratings = RatingSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     ratings_count = serializers.SerializerMethodField()
 
     class Meta(CourseListSerializer.Meta):
         fields = CourseListSerializer.Meta.fields + [
-            'updated_at', 'materials', 'ratings', 'average_rating', 'ratings_count'
+            'updated_at', 'lessons', 'materials', 'ratings', 'average_rating', 'ratings_count'
         ]
+
+    def get_materials(self, obj):
+        '''Materials not grouped under any lesson (kept for backwards compatibility).'''
+        ungrouped = obj.materials.filter(lesson__isnull=True)
+        return MaterialSerializer(ungrouped, many=True).data
 
     def get_average_rating(self, obj):
         scores = [rating.score for rating in obj.ratings.all()]

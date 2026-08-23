@@ -71,7 +71,7 @@
             </div>
   
             <div>
-              <strong>{{ course.materials.length }}</strong>
+              <strong>{{ totalMaterialsCount() }}</strong>
               <span>Материалов</span>
             </div>
 
@@ -124,99 +124,169 @@
           <!-- CURRICULUM -->
 
           <section class="content-section" id="curriculum" *ngIf="course">
-  
+
             <div class="curriculum-header">
-  
+
               <div>
-  
+
                 <h2>
                   Содержание курса
                 </h2>
-  
+
                 <p>
-                  {{ course.materials.length }} материалов
+                  {{ course.lessons.length }} {{ course.lessons.length === 1 ? 'тема' : 'тем' }} · {{ totalMaterialsCount() }} материалов
                 </p>
-  
+
               </div>
-              
-              <button class="secondary-btn" *ngIf="isAuthor" (click)="showAddMaterial = true">
-                + Добавить материал
+
+              <button class="secondary-btn" *ngIf="isAuthor" (click)="showAddLesson = !showAddLesson">
+                + Добавить тему
               </button>
-  
+
             </div>
-  
-  
-            <div class="lessons">
-  
-  
-              <div class="lesson" *ngFor="let material of course.materials; let i = index">
-  
+
+            <!-- ADD LESSON FORM -->
+            <div class="lesson-form" *ngIf="isAuthor && showAddLesson">
+              <div *ngIf="lessonError" class="error-message">{{ lessonError }}</div>
+              <form [formGroup]="lessonForm" (ngSubmit)="onAddLesson()">
+                <div class="form-group">
+                  <label>Название темы</label>
+                  <input type="text" formControlName="title" placeholder="Например: Введение">
+                </div>
+                <div class="form-group">
+                  <label>Описание (необязательно)</label>
+                  <textarea rows="2" formControlName="description" placeholder="Коротко о теме"></textarea>
+                </div>
+                <div class="form-actions-row">
+                  <button type="submit" class="accent-btn" [disabled]="lessonForm.invalid || isSubmitting">Создать тему</button>
+                  <button type="button" class="secondary-btn" (click)="showAddLesson = false">Отмена</button>
+                </div>
+              </form>
+            </div>
+
+            <p *ngIf="course.lessons.length === 0 && !showAddLesson" class="empty-state">
+              Темы пока не добавлены{{ isAuthor ? ' — начните с кнопки «+ Добавить тему» выше.' : '.' }}
+            </p>
+
+            <!-- LESSONS -->
+            <div class="lesson-block" *ngFor="let lesson of course.lessons">
+
+              <div class="lesson-block-header">
+                <div>
+                  <h3>{{ lesson.title }}</h3>
+                  <p *ngIf="lesson.description">{{ lesson.description }}</p>
+                </div>
+                <button class="text-link-btn" *ngIf="isAuthor" (click)="openAddMaterial(lesson.id)">
+                  + Материал
+                </button>
+              </div>
+
+              <div class="lessons">
+                <ng-container *ngFor="let material of lesson.materials; let i = index">
+                  <ng-container *ngTemplateOutlet="materialItem; context: { $implicit: material, i: i }"></ng-container>
+                </ng-container>
+
+                <p *ngIf="lesson.materials.length === 0" class="empty-state">
+                  Материалы пока не добавлены.
+                </p>
+              </div>
+
+              <!-- ADD MATERIAL FORM, scoped to this lesson -->
+              <div class="lesson-form" *ngIf="isAuthor && activeMaterialLessonId === lesson.id">
+                <div *ngIf="materialError" class="error-message">{{ materialError }}</div>
+                <form [formGroup]="materialForm" (ngSubmit)="onAddMaterial()">
+                  <div class="form-group">
+                    <label>Название материала</label>
+                    <input type="text" formControlName="title" placeholder="Например: Конспект урока">
+                  </div>
+
+                  <div class="form-group">
+                    <label>Тип</label>
+                    <select formControlName="type" (change)="onMaterialTypeChange()">
+                      <option value="video_link">Видео (ссылка на YouTube и т.п.)</option>
+                      <option value="pdf">PDF документ</option>
+                      <option value="link">Ссылка на сайт</option>
+                      <option value="text">Текст</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group" *ngIf="materialForm.get('type')?.value === 'video_link'">
+                    <label>Ссылка на видео</label>
+                    <input type="text" formControlName="url" placeholder="https://youtube.com/...">
+                  </div>
+
+                  <div class="form-group" *ngIf="materialForm.get('type')?.value === 'link'">
+                    <label>Ссылка</label>
+                    <input type="text" formControlName="url" placeholder="https://...">
+                  </div>
+
+                  <div class="form-group" *ngIf="materialForm.get('type')?.value === 'pdf'">
+                    <label>Файл (PDF)</label>
+                    <input type="file" (change)="onFileSelect($event)" accept=".pdf">
+                  </div>
+
+                  <div class="form-group" *ngIf="materialForm.get('type')?.value === 'text'">
+                    <label>Текст</label>
+                    <textarea rows="5" formControlName="content" placeholder="Текст материала"></textarea>
+                  </div>
+
+                  <div class="form-actions-row">
+                    <button type="submit" class="accent-btn" [disabled]="materialForm.invalid || isSubmitting">Сохранить</button>
+                    <button type="button" class="secondary-btn" (click)="closeAddMaterial()">Отмена</button>
+                  </div>
+                </form>
+              </div>
+
+            </div>
+
+            <!-- Materials created before lessons existed -->
+            <div class="lesson-block" *ngIf="course.materials.length > 0">
+              <div class="lesson-block-header">
+                <div>
+                  <h3>Прочие материалы</h3>
+                </div>
+              </div>
+              <div class="lessons">
+                <ng-container *ngFor="let material of course.materials; let i = index">
+                  <ng-container *ngTemplateOutlet="materialItem; context: { $implicit: material, i: i }"></ng-container>
+                </ng-container>
+              </div>
+            </div>
+
+            <!-- Shared material row template -->
+            <ng-template #materialItem let-material let-i="i">
+              <div class="lesson">
+
                 <div class="lesson-number">
                   {{ (i + 1).toString().padStart(2, '0') }}
                 </div>
-  
+
                 <div class="lesson-info">
-  
+
                   <strong>
                     {{ material.title }}
                   </strong>
-  
+
                   <span>
-                    {{ material.type === 'pdf' ? 'PDF Документ' : 'Видео' }}
+                    {{ materialTypeLabel(material.type) }}
                   </span>
-  
+
+                  <p class="material-text" *ngIf="material.type === 'text' && material.content">
+                    {{ material.content }}
+                  </p>
+
                 </div>
-  
+
                 <span class="duration">
-                  <a *ngIf="material.type === 'video_link' && material.url" [href]="material.url" target="_blank" class="material-link">Смотреть</a>
+                  <a *ngIf="(material.type === 'video_link' || material.type === 'link') && material.url" [href]="material.url" target="_blank" class="material-link">
+                    {{ material.type === 'video_link' ? 'Смотреть' : 'Открыть' }}
+                  </a>
                   <a *ngIf="material.type === 'pdf' && material.file" [href]="material.file" target="_blank" class="material-link">Скачать</a>
                 </span>
 
               </div>
+            </ng-template>
 
-              <p *ngIf="course.materials.length === 0" class="empty-state">
-                Материалы пока не добавлены{{ isAuthor ? ' — добавьте первый ниже.' : '.' }}
-              </p>
-
-            </div>
-
-          </section>
-
-          <!-- ADD MATERIAL FORM (Only for Author) -->
-          <section class="content-section" *ngIf="isAuthor && showAddMaterial">
-            <h2>Добавить материал</h2>
-
-            <div *ngIf="materialError" class="error-message">{{ materialError }}</div>
-
-            <form [formGroup]="materialForm" (ngSubmit)="onAddMaterial()">
-              <div class="form-group">
-                <label>Название материала</label>
-                <input type="text" formControlName="title" placeholder="Например: Урок 1">
-              </div>
-
-              <div class="form-group">
-                <label>Тип</label>
-                <select formControlName="type" (change)="onMaterialTypeChange()">
-                  <option value="video_link">Видео-ссылка</option>
-                  <option value="pdf">PDF документ</option>
-                </select>
-              </div>
-
-              <div class="form-group" *ngIf="materialForm.get('type')?.value === 'video_link'">
-                <label>Ссылка (URL)</label>
-                <input type="text" formControlName="url" placeholder="https://youtube.com/...">
-              </div>
-
-              <div class="form-group" *ngIf="materialForm.get('type')?.value === 'pdf'">
-                <label>Файл (PDF)</label>
-                <input type="file" (change)="onFileSelect($event)" accept=".pdf">
-              </div>
-
-              <div class="form-actions-row">
-                <button type="submit" class="accent-btn" [disabled]="materialForm.invalid || isSubmitting">Сохранить</button>
-                <button type="button" class="secondary-btn" (click)="showAddMaterial = false">Отмена</button>
-              </div>
-            </form>
           </section>
 
           <!-- RATINGS SECTION -->
@@ -297,7 +367,7 @@
               </strong>
 
               <div>
-                ✓ {{ course.materials.length }} {{ course.materials.length === 1 ? 'материал' : 'материалов' }}
+                ✓ {{ totalMaterialsCount() }} {{ totalMaterialsCount() === 1 ? 'материал' : 'материалов' }}
               </div>
 
               <div>

@@ -69,4 +69,12 @@ export class ForumService {
   acceptAnswer(slug: string, commentId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/questions/${slug}/accept_answer/`, { comment_id: commentId });
   }
+
+  toggleFavorite(slug: string): Observable<{ favorited: boolean }> {
+    return this.http.post<{ favorited: boolean }>(`${this.apiUrl}/questions/${slug}/favorite/`, {});
+  }
+
+  getFavoriteQuestions(): Observable<PaginatedResponse<Question> | Question[]> {
+    return this.http.get<PaginatedResponse<Question> | Question[]>(`${this.apiUrl}/questions/favorites/`);
+  }
 }
