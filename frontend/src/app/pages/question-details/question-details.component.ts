@@ -20,6 +20,8 @@ export class QuestionDetailsComponent implements OnInit {
 
   commentForm: FormGroup;
   isSubmitting = false;
+  commentError: string | null = null;
+  acceptError: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -70,6 +72,7 @@ export class QuestionDetailsComponent implements OnInit {
     if (this.commentForm.invalid) return;
 
     this.isSubmitting = true;
+    this.commentError = null;
     this.forumService.addComment(this.slug, this.commentForm.value).subscribe({
       next: (comment) => {
         this.comments.push(comment);
@@ -79,13 +82,14 @@ export class QuestionDetailsComponent implements OnInit {
       },
       error: () => {
         this.isSubmitting = false;
-        alert('Ошибка при отправке ответа');
+        this.commentError = 'Ошибка при отправке ответа';
       }
     });
   }
 
   acceptAnswer(commentId: number): void {
     if (!this.question) return;
+    this.acceptError = null;
     this.forumService.acceptAnswer(this.slug, commentId).subscribe({
       next: () => {
         if (this.question) {
@@ -93,7 +97,7 @@ export class QuestionDetailsComponent implements OnInit {
         }
       },
       error: () => {
-        alert('Ошибка при отметке решения');
+        this.acceptError = 'Ошибка при отметке решения';
       }
     });
   }

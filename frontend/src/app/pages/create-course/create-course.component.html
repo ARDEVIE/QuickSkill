@@ -35,7 +35,7 @@
   
         <section class="course-form" [formGroup]="courseForm">
   
-          <div *ngIf="errorMessage" class="error-message" style="color: #dc3545; margin-bottom: 1rem; font-size: 0.9rem;">
+          <div *ngIf="errorMessage" class="error-message">
             {{ errorMessage }}
           </div>
   
@@ -100,41 +100,22 @@
             </div>
   
   
-            <div class="form-row">
-  
-              <div class="form-group">
-  
-                <label>Категория</label>
-  
-                <select formControlName="category">
-  
-                  <option selected disabled value="">
-                    Выберите категорию
-                  </option>
-  
-                  <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
-  
-                </select>
-  
-              </div>
-  
-  
-              <div class="form-group">
-  
-                <label>Уровень</label>
-  
-                <select>
-  
-                  <option>Начальный</option>
-                  <option>Средний</option>
-                  <option>Продвинутый</option>
-  
-                </select>
-  
-              </div>
-  
+            <div class="form-group">
+
+              <label>Категория</label>
+
+              <select formControlName="category">
+
+                <option selected disabled value="">
+                  Выберите категорию
+                </option>
+
+                <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+
+              </select>
+
             </div>
-  
+
           </div>
   
   
@@ -182,8 +163,8 @@
               <button type="button" (click)="fileInput.click()">
                 Выбрать файл
               </button>
-              <input type="file" #fileInput (change)="onFileSelected($event)" accept=".png,.jpg,.jpeg,.webp" style="display: none;" />
-              <div *ngIf="selectedFile" style="margin-top: 10px; font-size: 0.9rem; color: #4CAF50;">
+              <input type="file" #fileInput class="file-input-hidden" (change)="onFileSelected($event)" accept=".png,.jpg,.jpeg,.webp" />
+              <div *ngIf="selectedFile" class="selected-file">
                 Выбран файл: {{ selectedFile.name }}
               </div>
   
@@ -192,201 +173,30 @@
           </div>
   
   
-          <!-- WHAT STUDENTS LEARN -->
-  
+          <!-- NEXT STEP HINT -->
+
           <div class="form-section">
-  
+
             <div class="section-heading">
-  
+
               <div class="section-number">
                 03
               </div>
-  
+
               <div>
-                <h2>Чему научится студент?</h2>
-  
+                <h2>Материалы курса</h2>
+
                 <p>
-                  Добавь основные результаты обучения.
+                  PDF-документы и ссылки на видео добавляются отдельным
+                  шагом — сразу после сохранения курса, на его странице.
                 </p>
               </div>
-  
+
             </div>
-  
-  
-            <div class="learning-list">
-  
-              <div class="learning-item">
-  
-                <span>✓</span>
-  
-                <input
-                  type="text"
-                  placeholder="Например: Создавать современные сайты"
-                />
-  
-              </div>
-  
-  
-              <div class="learning-item">
-  
-                <span>✓</span>
-  
-                <input
-                  type="text"
-                  placeholder="Например: Работать с Figma"
-                />
-  
-              </div>
-  
-  
-              <div class="learning-item">
-  
-                <span>✓</span>
-  
-                <input
-                  type="text"
-                  placeholder="Добавить ещё результат обучения"
-                />
-  
-              </div>
-  
-            </div>
-  
-  
-            <button
-              type="button"
-              class="add-learning">
-  
-              + Добавить пункт
-  
-            </button>
-  
+
           </div>
-  
-  
-          <!-- LESSONS -->
-  
-          <div class="form-section">
-  
-            <div class="section-heading lesson-heading">
-  
-              <div class="section-number">
-                04
-              </div>
-  
-              <div>
-                <h2>Содержание курса</h2>
-  
-                <p>
-                  Создай структуру своего курса.
-                </p>
-              </div>
-  
-              <button
-                type="button"
-                class="add-lesson">
-  
-                + Добавить урок
-  
-              </button>
-  
-            </div>
-  
-  
-            <div class="lessons-list">
-  
-  
-              <div class="lesson">
-  
-                <div class="lesson-number">
-                  01
-                </div>
-  
-                <div class="lesson-info">
-  
-                  <strong>
-                    Введение в курс
-                  </strong>
-  
-                  <span>
-                    Первый шаг к изучению темы
-                  </span>
-  
-                </div>
-  
-                <span class="lesson-duration">
-                  12:30
-                </span>
-  
-                <button class="lesson-menu">
-                  ⋮
-                </button>
-  
-              </div>
-  
-  
-              <div class="lesson">
-  
-                <div class="lesson-number">
-                  02
-                </div>
-  
-                <div class="lesson-info">
-  
-                  <strong>
-                    Основные понятия
-                  </strong>
-  
-                  <span>
-                    Базовые знания
-                  </span>
-  
-                </div>
-  
-                <span class="lesson-duration">
-                  18:20
-                </span>
-  
-                <button class="lesson-menu">
-                  ⋮
-                </button>
-  
-              </div>
-  
-  
-              <div class="lesson">
-  
-                <div class="lesson-number">
-                  03
-                </div>
-  
-                <div class="lesson-info">
-  
-                  <strong>
-                    Практическое задание
-                  </strong>
-  
-                  <span>
-                    Закрепляем полученные знания
-                  </span>
-  
-                </div>
-  
-                <span class="lesson-duration">
-                  24:10
-                </span>
-  
-                <button class="lesson-menu">
-                  ⋮
-                </button>
-  
-              </div>
-  
-            </div>
-  
-          </div>
-  
-  
+
+
           <!-- ACTIONS -->
   
           <div class="form-actions">
@@ -488,60 +298,28 @@
           </div>
   
   
-          <!-- PREVIEW INFO -->
-  
-          <div class="preview-info">
-  
-            <div>
-  
-              <span>Уроки</span>
-  
-              <strong>3</strong>
-  
-            </div>
-  
-            <div>
-  
-              <span>Уровень</span>
-  
-              <strong>Начальный</strong>
-  
-            </div>
-  
-            <div>
-  
-              <span>Студенты</span>
-  
-              <strong>0</strong>
-  
-            </div>
-  
-          </div>
-  
-  
           <!-- TIP -->
-  
+
           <div class="creator-tip">
-  
+
             <div class="tip-icon">
               ✦
             </div>
-  
+
             <div>
-  
+
               <strong>
                 Совет для автора
               </strong>
-  
+
               <p>
-                Добавь понятное описание и
-                качественную обложку — так
-                студентам будет проще выбрать
-                твой курс.
+                Добавь понятное описание и качественную обложку,
+                а после сохранения — материалы курса (PDF или
+                видео), чтобы студентам было чему учиться.
               </p>
-  
+
             </div>
-  
+
           </div>
   
         </aside>

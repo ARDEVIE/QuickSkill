@@ -20,27 +20,29 @@
         Учись у тех, кто уже прошёл этот путь.
       </p>
 
-      <div class="hero-search">
+      <form class="hero-search" (ngSubmit)="onHeroSearch()">
 
         <span class="search-icon"></span>
-      
+
         <input
           type="text"
+          name="heroSearch"
           placeholder="Что хочешь изучить?"
+          [(ngModel)]="heroSearchQuery"
         />
-      
-        <button>
+
+        <button type="submit">
           Найти
         </button>
-      
-      </div>
+
+      </form>
 
       <div class="hero-buttons">
-        <button class="primary-btn">
+        <button class="primary-btn" routerLink="/courses">
           Начать обучение
         </button>
 
-        <button class="secondary-btn">
+        <button class="secondary-btn" routerLink="/create-course">
           Создать курс
         </button>
       </div>
@@ -75,7 +77,7 @@
         <h2>Популярные категории</h2>
       </div>
 
-      <a href="#">Смотреть все →</a>
+      <a routerLink="/courses">Смотреть все →</a>
 
     </div>
 
@@ -111,7 +113,7 @@
         <h2>Новые курсы</h2>
       </div>
 
-      <a href="#">Все курсы →</a>
+      <a routerLink="/courses">Все курсы →</a>
 
     </div>
 
@@ -119,40 +121,32 @@
 
         <div
           class="course-card"
-          *ngFor="let course of courses">
-      
+          *ngFor="let course of courses"
+          [routerLink]="['/courses', course.id]">
+
           <div
             class="course-cover"
-            [style.background]="course.color">
-      
+            [style.background]="course.cover ? 'none' : course.color">
+
+            <img *ngIf="course.cover" [src]="course.cover" [alt]="course.title" />
             <span>{{ course.category.name }}</span>
-      
+
           </div>
-      
+
           <div class="course-content">
-      
+
             <h3>{{ course.title }}</h3>
-      
+
             <p>{{ course.authorName }}</p>
-      
-            <div class="course-meta">
-      
-              <span>{{ course.level }}</span>
-      
-              <span class="rating">
-                ★ {{ course.rating }}
-              </span>
-      
-            </div>
-      
+
           </div>
-      
+
         </div>
-        
-        <div *ngIf="courses.length === 0" style="text-align: center; color: #888; padding: 2rem;">
+
+        <div *ngIf="courses.length === 0" class="empty-state">
           Курсы пока не добавлены
         </div>
-      
+
       </div>
 
   </section>

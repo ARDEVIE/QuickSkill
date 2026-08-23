@@ -9,6 +9,9 @@
   --accent-dark: #f27528;
   --accent-light: #fff3ea;
 
+  --success: #1a9c6b;
+  --success-light: #e5f7f1;
+
   --white: #ffffff;
   --background: #ffffff;
   --surface: #f8fafc;
@@ -60,4 +63,55 @@ a {
 img {
   max-width: 100%;
   display: block;
+}
+
+/* Shared buttons — used across pages, kept global so every component gets
+   the same look without redefining it (Angular scopes component styles). */
+
+.primary-btn,
+.secondary-btn,
+.accent-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 26px;
+  font-weight: 700;
+  font-family: inherit;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.primary-btn:hover {
+  background: var(--primary-dark);
+}
+
+.secondary-btn {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.secondary-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.accent-btn {
+  background: var(--accent);
+  color: var(--white);
+}
+
+.accent-btn:hover {
+  background: var(--accent-dark);
+}
+
+.primary-btn:disabled,
+.secondary-btn:disabled,
+.accent-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

@@ -1,0 +1,51 @@
+.info-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.info-hero {
+  padding: 60px 0 40px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.info-hero h1 {
+  margin: 16px 0;
+  font-size: 38px;
+  letter-spacing: -1px;
+}
+
+.info-hero p {
+  max-width: 560px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.info-body {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-bottom: 80px;
+}
+
+.info-block h2 {
+  margin: 0 0 10px;
+  font-size: 19px;
+}
+
+.info-block p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}

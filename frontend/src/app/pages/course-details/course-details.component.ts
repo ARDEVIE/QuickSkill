@@ -25,9 +25,11 @@ export class CourseDetailsComponent implements OnInit {
   materialForm: FormGroup;
   selectedFile: File | null = null;
   isSubmitting = false;
+  materialError: string | null = null;
 
   // Rating Form
   ratingForm: FormGroup;
+  ratingError: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -129,6 +131,7 @@ export class CourseDetailsComponent implements OnInit {
     if (this.materialForm.invalid || !this.course) return;
 
     this.isSubmitting = true;
+    this.materialError = null;
     const formData = new FormData();
     formData.append('title', this.materialForm.get('title')?.value);
     formData.append('type', this.materialForm.get('type')?.value);
@@ -149,7 +152,7 @@ export class CourseDetailsComponent implements OnInit {
       },
       error: () => {
         this.isSubmitting = false;
-        alert('Ошибка при добавлении материала');
+        this.materialError = 'Ошибка при добавлении материала';
       }
     });
   }
@@ -158,6 +161,7 @@ export class CourseDetailsComponent implements OnInit {
     if (this.ratingForm.invalid || !this.course) return;
 
     this.isSubmitting = true;
+    this.ratingError = null;
     const ratingData = {
       score: +this.ratingForm.get('score')?.value,
       comment: this.ratingForm.get('comment')?.value
@@ -176,7 +180,7 @@ export class CourseDetailsComponent implements OnInit {
       },
       error: () => {
         this.isSubmitting = false;
-        alert('Ошибка или вы уже оставили отзыв');
+        this.ratingError = 'Ошибка или вы уже оставили отзыв';
       }
     });
   }
