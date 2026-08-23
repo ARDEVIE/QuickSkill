@@ -16,6 +16,7 @@ import { QuestionDetailsComponent } from './pages/question-details/question-deta
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { InfoPageComponent } from './pages/info-page/info-page.component';
 import { FAQ_PAGE, SUPPORT_PAGE, TERMS_PAGE } from './pages/info-page/info-page.content';
+import { FavoritesComponent } from './pages/favorites/favorites.component';
 const routes: Routes = [
   {
     path: '',
@@ -63,6 +64,10 @@ const routes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent
+  },
+  {
+    path: 'favorites',
+    component: FavoritesComponent
   },
   {
     path: 'forgot-password',

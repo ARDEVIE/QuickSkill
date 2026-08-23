@@ -475,6 +475,85 @@
     text-decoration: underline;
   }
 
+  .material-text {
+    margin: 6px 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: 10px;
+    line-height: 1.6;
+
+    white-space: pre-wrap;
+  }
+
+
+  /* =========================
+     LESSON BLOCKS (topics)
+  ========================= */
+
+  .lesson-block {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lesson-block:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .lesson-block-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: flex-start;
+
+    margin-bottom: 14px;
+  }
+
+  .lesson-block-header h3 {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .lesson-block-header p {
+    margin: 4px 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: 10px;
+  }
+
+  .text-link-btn {
+    border: none;
+    background: transparent;
+
+    color: var(--primary);
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .text-link-btn:hover {
+    text-decoration: underline;
+  }
+
+  .lesson-form {
+    margin: 14px 0;
+    padding: 18px;
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    background: var(--surface);
+  }
+
   .empty-state {
     color: var(--text-secondary);
 

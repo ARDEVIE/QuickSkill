@@ -26,6 +26,9 @@
 
         <ng-container *ngIf="currentUser$ | async as user; else loginLink">
           <div class="user-menu">
+            <a routerLink="/favorites" routerLinkActive="active" class="favorites-link" title="Избранное">
+              ♡
+            </a>
             <a routerLink="/profile" class="login-link">
               <span class="avatar">
                 <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.username" />

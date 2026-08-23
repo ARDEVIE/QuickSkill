@@ -29,14 +29,28 @@ export interface Course {
   created_at: string;
 }
 
+export type MaterialType = 'pdf' | 'video_link' | 'link' | 'text';
+
 export interface Material {
   id: number;
   course: number;
+  lesson: number | null;
   title: string;
-  type: 'pdf' | 'video_link';
+  type: MaterialType;
   file: string | null;
   url: string | null;
+  content: string | null;
   order: number;
+  created_at: string;
+}
+
+export interface Lesson {
+  id: number;
+  course: number;
+  title: string;
+  description: string;
+  order: number;
+  materials: Material[];
   created_at: string;
 }
 
@@ -51,6 +65,7 @@ export interface Rating {
 
 export interface CourseDetail extends Course {
   updated_at: string;
+  lessons: Lesson[];
   materials: Material[];
   ratings: Rating[];
   average_rating: number | null;
@@ -112,5 +127,25 @@ export class CourseService {
 
   rateCourse(courseId: number, ratingData: { score: number, comment: string }): Observable<Rating> {
     return this.http.post<Rating>(`${this.apiUrl}/courses/${courseId}/ratings/`, ratingData);
+  }
+
+  getFavoriteCourses(): Observable<PaginatedResponse<Course> | Course[]> {
+    return this.http.get<PaginatedResponse<Course> | Course[]>(`${this.apiUrl}/courses/favorites/`);
+  }
+
+  createLesson(courseId: number, data: { title: string, description?: string, order?: number }): Observable<Lesson> {
+    return this.http.post<Lesson>(`${this.apiUrl}/courses/${courseId}/lessons/`, data);
+  }
+
+  updateLesson(lessonId: number, data: Partial<Pick<Lesson, 'title' | 'description' | 'order'>>): Observable<Lesson> {
+    return this.http.patch<Lesson>(`${this.apiUrl}/lessons/${lessonId}/`, data);
+  }
+
+  deleteLesson(lessonId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/lessons/${lessonId}/`);
+  }
+
+  addMaterialToLesson(lessonId: number, materialData: FormData | any): Observable<Material> {
+    return this.http.post<Material>(`${this.apiUrl}/lessons/${lessonId}/materials/`, materialData);
   }
 }

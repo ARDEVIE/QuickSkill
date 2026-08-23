@@ -7,8 +7,11 @@
       <section class="course-hero" *ngIf="question" style="background: var(--primary-light);">
         <div class="course-intro" style="max-width: 800px; padding: 2rem;">
           <span class="eyebrow" style="color: var(--primary);">{{ question.category.name }}</span>
-          <h1 style="font-size: 2rem; color: var(--text);">
+          <h1 style="font-size: 2rem; color: var(--text); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
             {{ question.title }}
+            <button *ngIf="isLoggedIn" class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()">
+              {{ isFavorited ? '♥ В избранном' : '♡ В избранное' }}
+            </button>
           </h1>
           <p class="description" style="white-space: pre-wrap; font-size: 1.1rem; color: var(--text-secondary); margin-top: 1rem;">
             {{ question.content }}
