@@ -6,7 +6,7 @@
   
       <section class="course-hero" *ngIf="question" style="background: var(--primary-light);">
         <div class="course-intro" style="max-width: 800px; padding: 2rem;">
-          <span class="eyebrow" style="color: var(--primary);">{{ question.category.name }}</span>
+          <a *ngIf="question.category" class="eyebrow" [routerLink]="['/subjects', question.category.id]" style="color: var(--primary); text-decoration: none;">{{ question.category.name }}</a>
           <h1 style="font-size: 2rem; color: var(--text);">
             {{ question.title }}
             <button class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()" *ngIf="isLoggedIn" style="font-size: 1rem; vertical-align: middle; margin-left: 10px;">

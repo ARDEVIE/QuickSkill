@@ -24,6 +24,8 @@ import { QuestionDetailsComponent } from './pages/question-details/question-deta
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { PublicProfileComponent } from './pages/public-profile/public-profile.component';
 import { FavoritesComponent } from './pages/favorites/favorites.component';
+import { SubjectListComponent } from './pages/subject-list/subject-list.component';
+import { SubjectDetailComponent } from './pages/subject-detail/subject-detail.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +48,8 @@ import { FavoritesComponent } from './pages/favorites/favorites.component';
     CreateQuestionComponent,
     PublicProfileComponent,
     FavoritesComponent,
+    SubjectListComponent,
+    SubjectDetailComponent,
   ],
   imports: [
     BrowserModule,

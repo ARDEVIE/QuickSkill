@@ -36,6 +36,9 @@ class QuestionViewSet(viewsets.ModelViewSet):
             else:
                 queryset = queryset.filter(category__slug=category)
 
+        if self.request.query_params.get('unresolved') == 'true':
+            queryset = queryset.filter(accepted_comment__isnull=True)
+
         return queryset
 
     def get_permissions(self):

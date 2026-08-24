@@ -7,6 +7,7 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
+  code?: string;
   course_count?: number;
 }
 
@@ -28,6 +29,8 @@ export interface Course {
   author: Author;
   is_published: boolean;
   created_at: string;
+  average_rating: number | null;
+  ratings_count: number;
 }
 
 export type BlockType = 'text' | 'video_link' | 'link' | 'media';
@@ -65,8 +68,6 @@ export interface CourseDetail extends Course {
   updated_at: string;
   sections: Section[];
   ratings: Rating[];
-  average_rating: number | null;
-  ratings_count: number;
 }
 
 export interface PaginatedResponse<T> {

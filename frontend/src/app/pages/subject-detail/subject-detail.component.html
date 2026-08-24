@@ -1,0 +1,199 @@
+<app-header></app-header>
+
+<main class="subject-page">
+
+  <div class="loading-state" *ngIf="isLoading">Загрузка предмета…</div>
+  <div class="loading-state" *ngIf="!isLoading && !subject">Предмет не найден.</div>
+
+  <ng-container *ngIf="!isLoading && subject">
+
+    <a routerLink="/subjects" class="back-link">← Все предметы</a>
+
+    <!-- HEADER -->
+    <section class="subject-header">
+      <div>
+        <span class="subject-code" *ngIf="subject.code">{{ subject.code }}</span>
+        <h1>{{ subject.name }}</h1>
+        <p class="subject-description" *ngIf="subject.description">{{ subject.description }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        [class.following]="subject.is_following"
+        (click)="toggleFollow()"
+        [disabled]="isTogglingFollow"
+        *ngIf="currentUser"
+      >
+        {{ subject.is_following ? '✓ Вы подписаны' : 'Подписаться' }}
+      </button>
+    </section>
+
+    <div class="subject-stats">
+      <div><strong>{{ subject.students_count }}</strong><span>студентов</span></div>
+      <div><strong>{{ subject.materials_count }}</strong><span>материалов</span></div>
+      <div><strong>{{ subject.guides_count }}</strong><span>гайдов</span></div>
+      <div><strong>{{ subject.questions_count }}</strong><span>вопросов</span></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="subject-tabs">
+      <button type="button" [class.active-tab]="activeTab === 'overview'" (click)="setTab('overview')">Обзор</button>
+      <button type="button" [class.active-tab]="activeTab === 'materials'" (click)="setTab('materials')">Материалы</button>
+      <button type="button" [class.active-tab]="activeTab === 'guides'" (click)="setTab('guides')">Гайды</button>
+      <button type="button" [class.active-tab]="activeTab === 'questions'" (click)="setTab('questions')">Вопросы</button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <section class="subject-content" *ngIf="activeTab === 'overview'">
+      <div class="loading-state" *ngIf="isLoadingOverview">Загрузка…</div>
+
+      <ng-container *ngIf="!isLoadingOverview">
+
+        <div class="overview-block">
+          <div class="overview-block-header">
+            <h2>Материалы</h2>
+            <button type="button" class="text-link-btn" (click)="setTab('materials')" *ngIf="overviewResources.length > 0">Все материалы →</button>
+          </div>
+          <div class="resource-row" *ngFor="let r of overviewResources">
+            <span class="resource-type">{{ resourceTypeLabel(r.type) }}</span>
+            <a [href]="r.file || r.url" target="_blank">{{ r.title }}</a>
+          </div>
+          <p class="empty-hint" *ngIf="overviewResources.length === 0">
+            По этому предмету пока нет материалов — стань первым, кто поделится.
+          </p>
+        </div>
+
+        <div class="overview-block">
+          <div class="overview-block-header">
+            <h2>Открытые вопросы</h2>
+            <button type="button" class="text-link-btn" (click)="setTab('questions')" *ngIf="overviewUnresolved.length > 0">Все вопросы →</button>
+          </div>
+          <a class="question-row" *ngFor="let q of overviewUnresolved" [routerLink]="['/forum', q.slug]">{{ q.title }}</a>
+          <p class="empty-hint" *ngIf="overviewUnresolved.length === 0">Нерешённых вопросов нет — отлично!</p>
+        </div>
+
+        <div class="overview-block">
+          <div class="overview-block-header">
+            <h2>Гайды от студентов</h2>
+            <button type="button" class="text-link-btn" (click)="setTab('guides')" *ngIf="overviewGuides.length > 0">Все гайды →</button>
+          </div>
+          <a class="guide-row" *ngFor="let c of overviewGuides" [routerLink]="['/courses', c.id]">
+            {{ c.title }}
+            <span>★ {{ c.average_rating || '—' }}</span>
+          </a>
+          <p class="empty-hint" *ngIf="overviewGuides.length === 0">
+            По этому предмету пока нет гайдов —
+            <a routerLink="/create-course">создай первый</a>.
+          </p>
+        </div>
+
+      </ng-container>
+    </section>
+
+    <!-- MATERIALS -->
+    <section class="subject-content" *ngIf="activeTab === 'materials'">
+      <div class="section-toolbar">
+        <p class="section-count">{{ materials.length }} материалов</p>
+        <button type="button" class="text-link-btn" (click)="toggleAddMaterial()" *ngIf="currentUser">
+          {{ addingMaterial ? 'Отмена' : '+ Добавить материал' }}
+        </button>
+      </div>
+
+      <div class="inline-material-form" *ngIf="addingMaterial" [formGroup]="materialForm">
+        <div *ngIf="materialError" class="error-message">{{ materialError }}</div>
+        <div class="form-row">
+          <input type="text" formControlName="title" placeholder="Название материала" />
+          <select formControlName="type">
+            <option value="link">Ссылка</option>
+            <option value="video">Видео</option>
+            <option value="pdf">PDF</option>
+            <option value="notes">Конспект</option>
+            <option value="cheatsheet">Шпаргалка</option>
+            <option value="past_paper">Прошлый экзамен</option>
+          </select>
+        </div>
+        <div class="form-row" *ngIf="!needsFile()">
+          <input type="text" formControlName="url" placeholder="https://…" />
+        </div>
+        <div class="form-row" *ngIf="needsFile()">
+          <input type="file" (change)="onMaterialFileSelect($event)" />
+        </div>
+        <div class="form-actions-row">
+          <button type="button" class="accent-btn" (click)="submitMaterial()" [disabled]="isSubmittingMaterial || materialForm.invalid">
+            {{ isSubmittingMaterial ? 'Добавляем…' : 'Добавить' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="loading-state" *ngIf="isLoadingMaterials">Загрузка…</div>
+
+      <div class="resource-list" *ngIf="!isLoadingMaterials">
+        <div class="resource-item" *ngFor="let r of materials">
+          <span class="resource-type">{{ resourceTypeLabel(r.type) }}</span>
+          <a [href]="r.file || r.url" target="_blank" class="resource-title">{{ r.title }}</a>
+          <span class="resource-author">{{ r.author.first_name || r.author.username }}</span>
+          <button type="button" class="text-link-btn danger" *ngIf="isOwnResource(r)" (click)="deleteMaterial(r)">Удалить</button>
+        </div>
+        <p class="empty-hint" *ngIf="materials.length === 0">
+          По этому предмету пока нет материалов.
+          <ng-container *ngIf="currentUser">Стань первым, кто поделится.</ng-container>
+        </p>
+      </div>
+    </section>
+
+    <!-- GUIDES -->
+    <section class="subject-content" *ngIf="activeTab === 'guides'">
+      <div class="section-toolbar">
+        <p class="section-count">{{ guides.length }} гайдов</p>
+        <a routerLink="/create-course" class="text-link-btn" *ngIf="currentUser">+ Создать гайд</a>
+      </div>
+
+      <div class="loading-state" *ngIf="isLoadingGuides">Загрузка…</div>
+
+      <div class="guides-grid" *ngIf="!isLoadingGuides">
+        <a class="catalog-card guide-card" *ngFor="let c of guides" [routerLink]="['/courses', c.id]">
+          <h3>{{ c.title }}</h3>
+          <p>{{ c.description }}</p>
+          <div class="guide-card-meta">
+            <span>★ {{ c.average_rating || '—' }}</span>
+            <span>{{ c.author.first_name || c.author.username }}</span>
+          </div>
+        </a>
+        <p class="empty-hint" *ngIf="guides.length === 0">
+          По этому предмету пока нет гайдов.
+          <ng-container *ngIf="currentUser"><a routerLink="/create-course">Создай первый</a>.</ng-container>
+        </p>
+      </div>
+    </section>
+
+    <!-- QUESTIONS -->
+    <section class="subject-content" *ngIf="activeTab === 'questions'">
+      <div class="section-toolbar">
+        <p class="section-count">{{ questions.length }} вопросов</p>
+        <button type="button" class="text-link-btn" (click)="askQuestion()" *ngIf="currentUser">+ Задать вопрос</button>
+      </div>
+
+      <div class="loading-state" *ngIf="isLoadingQuestions">Загрузка…</div>
+
+      <div class="question-list" *ngIf="!isLoadingQuestions">
+        <a class="question-item" *ngFor="let q of questions" [routerLink]="['/forum', q.slug]">
+          <span>{{ q.title }}</span>
+          <span class="question-status" [class.resolved]="q.accepted_comment">
+            {{ q.accepted_comment ? '✓ Решён' : 'Открыт' }}
+          </span>
+        </a>
+        <p class="empty-hint" *ngIf="questions.length === 0">
+          По этому предмету пока нет вопросов.
+          <ng-container *ngIf="currentUser">
+            <a (click)="askQuestion()">Задай первый</a>.
+          </ng-container>
+        </p>
+      </div>
+    </section>
+
+  </ng-container>
+
+</main>
+
+<app-footer></app-footer>

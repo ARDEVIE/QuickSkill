@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 # Project modules
 from apps.common.permissions import IsAuthorOrReadOnly
-from apps.courses.models import Category, ContentBlock, Course, Favorite, LessonProgress, Rating, Section
+from apps.courses.models import Category, CategoryFollow, ContentBlock, Course, Favorite, LessonProgress, Rating, Resource, Section
 from apps.courses.permissions import IsRatingOwnerOrAdminOrReadOnly
 from apps.courses.serializers import (
     CategorySerializer,
@@ -19,17 +19,63 @@ from apps.courses.serializers import (
     CourseListSerializer,
     CourseWriteSerializer,
     RatingSerializer,
+    ResourceSerializer,
+    ResourceWriteSerializer,
     SectionSerializer,
+    SubjectDetailSerializer,
 )
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    '''The catalog/forum "category" filter list, and — via retrieve — a subject's hub page.'''
+
     from django.db.models import Count, Q
     queryset = Category.objects.annotate(
         course_count=Count('courses', filter=Q(courses__is_published=True), distinct=True)
     ).order_by('-course_count')
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return SubjectDetailSerializer
+        return CategorySerializer
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def follow(self, request, pk=None):
+        '''Toggle the current user's subscription to this subject.'''
+        category = self.get_object()
+        follow, created = CategoryFollow.objects.get_or_create(user=request.user, category=category)
+        if not created:
+            follow.delete()
+        return Response({'following': created})
+
+
+class ResourceViewSet(viewsets.ModelViewSet):
+    '''Loose, subject-scoped materials (PDFs, notes, cheat sheets, links, videos).'''
+
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Resource.objects.select_related('category', 'author')
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category_id=category)
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'update', 'partial_update'):
+            return ResourceWriteSerializer
+        return ResourceSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=request.user)
+
+        response_serializer = ResourceSerializer(serializer.instance, context=self.get_serializer_context())
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CourseViewSet(viewsets.ModelViewSet):

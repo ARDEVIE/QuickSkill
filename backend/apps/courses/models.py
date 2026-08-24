@@ -25,10 +25,15 @@ from apps.common.utils import unique_slugify
 
 
 class Category(Model):
-    '''A topic used to group and filter courses in the catalog.'''
+    '''A university subject (or general topic) that groups courses, questions and resources.
+
+    Deliberately one model, not two: this is also the catalog/forum "category" filter.
+    '''
 
     name = CharField(max_length=100, unique=True)
     slug = SlugField(max_length=120, unique=True, blank=True)
+    code = CharField(max_length=20, blank=True)  # e.g. "CSCI 2105"
+    description = TextField(blank=True)
 
     class Meta:
         verbose_name = 'Category'
@@ -166,3 +171,52 @@ class Favorite(Model):
 
     def __str__(self):
         return f'{self.user} -> {self.course}'
+
+
+class CategoryFollow(Model):
+    '''A user following (subscribing to) a subject.'''
+
+    user = ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+        related_name='followed_categories',
+    )
+    category = ForeignKey(Category, on_delete=CASCADE, related_name='followers')
+    created_at = DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['user', 'category'], name='unique_user_category_follow'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} follows {self.category}'
+
+
+class Resource(TimeStampedModel):
+    '''A loose, subject-scoped material — a PDF, cheat sheet, link, etc. — not tied to any course.'''
+
+    class ResourceType(TextChoices):
+        PDF = 'pdf', 'PDF'
+        NOTES = 'notes', 'Lecture notes'
+        CHEATSHEET = 'cheatsheet', 'Cheat sheet'
+        PAST_PAPER = 'past_paper', 'Past paper'
+        LINK = 'link', 'Link'
+        VIDEO = 'video', 'Video'
+
+    category = ForeignKey(Category, on_delete=CASCADE, related_name='resources')
+    author = ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+        related_name='resources',
+    )
+    title = CharField(max_length=200)
+    type = CharField(max_length=20, choices=ResourceType.choices)
+    url = CharField(max_length=500, blank=True)
+    file = FileField(upload_to='resources/', blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.title} ({self.type})'

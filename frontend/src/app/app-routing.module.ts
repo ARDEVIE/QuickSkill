@@ -17,6 +17,8 @@ import { QuestionDetailsComponent } from './pages/question-details/question-deta
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { PublicProfileComponent } from './pages/public-profile/public-profile.component';
 import { FavoritesComponent } from './pages/favorites/favorites.component';
+import { SubjectListComponent } from './pages/subject-list/subject-list.component';
+import { SubjectDetailComponent } from './pages/subject-detail/subject-detail.component';
 
 const routes: Routes = [
   {
@@ -73,6 +75,14 @@ const routes: Routes = [
   {
     path: 'favorites',
     component: FavoritesComponent
+  },
+  {
+    path: 'subjects',
+    component: SubjectListComponent
+  },
+  {
+    path: 'subjects/:id',
+    component: SubjectDetailComponent
   },
   {
     path: 'public-profile/:username',

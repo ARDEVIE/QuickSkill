@@ -17,9 +17,9 @@
   
         <div class="course-cover">
   
-          <span class="category">
+          <a class="category" *ngIf="course.category" [routerLink]="['/subjects', course.category.id]" style="text-decoration: none;">
             {{ course.category.name }}
-          </span>
+          </a>
 
         </div>
   
