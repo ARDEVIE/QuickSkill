@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BlockType, Category, ContentBlock, CourseDetail, CourseService, Section } from 'src/app/core/services/course.service';
@@ -6,17 +6,12 @@ import { AuthService, User } from 'src/app/core/services/auth.service';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
-const YOUTUBE_RE = /(youtube\.com|youtu\.be|vimeo\.com)/i;
-const URL_RE = /^https?:\/\/\S+$/i;
-
 @Component({
   selector: 'app-course-editor',
   templateUrl: './course-editor.component.html',
   styleUrls: ['./course-editor.component.scss']
 })
 export class CourseEditorComponent implements OnInit {
-  @ViewChild('quickAddInput') quickAddInputRef?: ElementRef<HTMLTextAreaElement>;
-
   courseId!: number;
   course: CourseDetail | null = null;
   isLoading = true;
@@ -34,9 +29,8 @@ export class CourseEditorComponent implements OnInit {
   addingSection = false;
   newSectionTitle = '';
 
-  quickAddValue = '';
-  quickAddFile: File | null = null;
-  quickAddError: string | null = null;
+  /** Key of the currently open contextual (kebab) menu, e.g. "section-3" or "block-12". */
+  openMenuFor: string | null = null;
 
   saveState: SaveState = 'idle';
   private saveTimers = new Map<string, any>();
@@ -105,6 +99,16 @@ export class CourseEditorComponent implements OnInit {
     if (this.course && this.currentUser && this.course.author.id !== this.currentUser.id) {
       this.router.navigate(['/courses', this.courseId]);
     }
+  }
+
+  @HostListener('document:click')
+  closeContextualMenu(): void {
+    this.openMenuFor = null;
+  }
+
+  toggleMenu(key: string, event: Event): void {
+    event.stopPropagation();
+    this.openMenuFor = this.openMenuFor === key ? null : key;
   }
 
   // ---------- Title (top bar, inline) ----------
@@ -204,6 +208,7 @@ export class CourseEditorComponent implements OnInit {
   }
 
   deleteSection(section: Section): void {
+    this.openMenuFor = null;
     if (!confirm(`Удалить раздел «${section.title}» вместе со всеми уроками?`)) return;
     this.courseService.deleteSection(section.id).subscribe({
       next: () => {
@@ -215,6 +220,20 @@ export class CourseEditorComponent implements OnInit {
         }
       }
     });
+  }
+
+  moveSection(section: Section, direction: -1 | 1): void {
+    if (!this.course) return;
+    const sections = this.course.sections;
+    const index = sections.indexOf(section);
+    const swapIndex = index + direction;
+    if (swapIndex < 0 || swapIndex >= sections.length) return;
+
+    const neighbor = sections[swapIndex];
+    [sections[index], sections[swapIndex]] = [sections[swapIndex], sections[index]];
+
+    this.courseService.updateSection(section.id, { order: swapIndex }).subscribe();
+    this.courseService.updateSection(neighbor.id, { order: index }).subscribe();
   }
 
   // ---------- Lessons (blocks) ----------
@@ -232,72 +251,66 @@ export class CourseEditorComponent implements OnInit {
     this.selectedBlockId = null;
   }
 
-  /** "+ Добавить урок" in the curriculum column — targets the active (or first) section and hands off to the always-visible quick-add row on the right, instead of opening a separate creation flow. */
-  focusAddLesson(): void {
-    if (!this.selectedSectionId && this.course?.sections.length) {
-      this.selectedSectionId = this.course.sections[this.course.sections.length - 1].id;
-    }
-    setTimeout(() => this.quickAddInputRef?.nativeElement.focus());
-  }
-
   selectBlock(section: Section, block: ContentBlock): void {
     this.selectedSectionId = section.id;
     this.selectedBlockId = block.id;
-    this.quickAddValue = '';
-    this.quickAddFile = null;
-    this.quickAddError = null;
   }
 
-  onQuickAddFileSelect(event: any): void {
-    const file = event.target.files[0];
-    if (file) this.quickAddFile = file;
-  }
+  /** One click, no typing required: creates an empty lesson and selects it. Its content type is chosen afterwards via "+ Добавить содержимое". */
+  addLesson(): void {
+    if (!this.course || this.course.sections.length === 0) return;
+    const section = this.selectedSection || this.course.sections[0];
 
-  /** Detects text/video/link/media from what the author just typed or attached — no type picker. */
-  private detectBlockType(): BlockType {
-    if (this.quickAddFile) return 'media';
-    const value = this.quickAddValue.trim();
-    if (YOUTUBE_RE.test(value)) return 'video_link';
-    if (URL_RE.test(value)) return 'link';
-    return 'text';
-  }
-
-  submitQuickAdd(): void {
-    const targetSectionId = this.selectedSectionId || this.course?.sections[0]?.id;
-    if (!targetSectionId) {
-      this.quickAddError = 'Сначала добавь раздел.';
-      return;
-    }
-    if (!this.quickAddValue.trim() && !this.quickAddFile) return;
-
-    const section = this.course?.sections.find(s => s.id === targetSectionId);
-    if (!section) return;
-
-    const type = this.detectBlockType();
     const formData = new FormData();
-    formData.append('type', type);
+    formData.append('type', 'text');
+    formData.append('title', 'Новый урок');
+    formData.append('content', '');
     formData.append('order', String(section.blocks.length));
 
-    if (type === 'media' && this.quickAddFile) {
-      formData.append('file', this.quickAddFile);
-      formData.append('title', this.quickAddFile.name);
-    } else {
-      formData.append('content', this.quickAddValue.trim());
-      if (type === 'text') {
-        formData.append('title', this.quickAddValue.trim().slice(0, 60));
-      }
-    }
-
-    this.quickAddError = null;
-
-    this.courseService.addBlock(targetSectionId, formData).subscribe({
+    this.courseService.addBlock(section.id, formData).subscribe({
       next: (block) => {
         section.blocks.push(block);
         this.selectBlock(section, block);
-      },
-      error: () => {
-        this.quickAddError = 'Не удалось добавить урок.';
       }
+    });
+  }
+
+  moveBlock(section: Section, block: ContentBlock, direction: -1 | 1): void {
+    const index = section.blocks.indexOf(block);
+    const swapIndex = index + direction;
+    if (swapIndex < 0 || swapIndex >= section.blocks.length) return;
+
+    const neighbor = section.blocks[swapIndex];
+    [section.blocks[index], section.blocks[swapIndex]] = [section.blocks[swapIndex], section.blocks[index]];
+
+    this.courseService.updateBlock(block.id, { order: swapIndex } as any).subscribe();
+    this.courseService.updateBlock(neighbor.id, { order: index } as any).subscribe();
+  }
+
+  /** Blocks the author has explicitly given a content type to — dismisses the chooser even when the
+   * chosen type matches the model default ('text'), which wouldn't otherwise trigger any change. */
+  private activatedBlockIds = new Set<number>();
+
+  /** Empty lesson (just created, nothing typed/attached yet) — content type hasn't been chosen. */
+  isEmptyBlock(block: ContentBlock): boolean {
+    if (this.activatedBlockIds.has(block.id)) return false;
+    return block.type === 'text' && !block.content && !block.file;
+  }
+
+  /** "+ Добавить содержимое" — sets the lesson's content type. No modal: reveals the matching inline editor. */
+  setBlockType(block: ContentBlock, type: BlockType, fileInput?: HTMLInputElement): void {
+    if (type === 'media') {
+      fileInput?.click();
+      return;
+    }
+    this.activatedBlockIds.add(block.id);
+    if (block.type === type) return;
+
+    block.type = type;
+    this.saveState = 'saving';
+    this.courseService.updateBlock(block.id, { type } as any).subscribe({
+      next: () => this.saveState = 'saved',
+      error: () => this.saveState = 'error'
     });
   }
 
@@ -311,14 +324,17 @@ export class CourseEditorComponent implements OnInit {
     this.debounce(`block-content-${block.id}`, () => this.saveBlockField(block, { content: value }));
   }
 
-  onBlockFileReplace(event: any, block: ContentBlock): void {
+  onBlockFileSelect(event: any, block: ContentBlock): void {
     const file = event.target.files[0];
     if (!file) return;
+    this.activatedBlockIds.add(block.id);
     const formData = new FormData();
+    formData.append('type', 'media');
     formData.append('file', file);
     this.saveState = 'saving';
     this.courseService.updateBlock(block.id, formData).subscribe({
       next: (res) => {
+        block.type = 'media';
         block.file = res.file;
         this.saveState = 'saved';
       },
@@ -327,6 +343,7 @@ export class CourseEditorComponent implements OnInit {
   }
 
   deleteBlock(section: Section, block: ContentBlock): void {
+    this.openMenuFor = null;
     if (!confirm('Удалить этот урок?')) return;
     this.courseService.deleteBlock(block.id).subscribe({
       next: () => {

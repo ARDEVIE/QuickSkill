@@ -5,26 +5,25 @@
 
     <a routerLink="/courses/{{ courseId }}" class="topbar-back" title="Назад к курсу">←</a>
 
-    <input
-      *ngIf="course"
-      class="topbar-title"
-      [value]="course.title"
-      (input)="onTitleInput($any($event.target).value)"
-      placeholder="Название курса"
-    />
-
-    <span class="status-badge" *ngIf="course" [class.published]="course.is_published">
-      {{ course.is_published ? 'Опубликован' : 'Черновик' }}
-    </span>
-
-    <span class="save-indicator" [ngSwitch]="saveState">
-      <ng-container *ngSwitchCase="'saving'">Сохранение…</ng-container>
-      <ng-container *ngSwitchCase="'saved'">Сохранено</ng-container>
-      <ng-container *ngSwitchCase="'error'">Ошибка сохранения</ng-container>
-    </span>
+    <div class="topbar-heading" *ngIf="course">
+      <input
+        class="topbar-title"
+        [value]="course.title"
+        (input)="onTitleInput($any($event.target).value)"
+        placeholder="Название курса"
+      />
+      <p class="topbar-status">
+        <span [class.published]="course.is_published">{{ course.is_published ? 'Опубликован' : 'Черновик' }}</span>
+        <ng-container [ngSwitch]="saveState">
+          <ng-container *ngSwitchCase="'saving'"> · Сохранение…</ng-container>
+          <ng-container *ngSwitchCase="'saved'"> · Сохранено</ng-container>
+          <ng-container *ngSwitchCase="'error'"> · Ошибка сохранения</ng-container>
+        </ng-container>
+      </p>
+    </div>
 
     <div class="topbar-actions">
-      <button type="button" class="text-btn" (click)="toggleSettings()">⚙ Настройки</button>
+      <button type="button" class="icon-text-btn" (click)="toggleSettings()" title="Настройки курса">⚙</button>
       <button type="button" class="secondary-btn" (click)="openPreview()">Предпросмотр</button>
       <button type="button" class="accent-btn" (click)="togglePublish()" *ngIf="course">
         {{ course.is_published ? 'Снять с публикации' : 'Опубликовать' }}
@@ -80,30 +79,54 @@
 
       <div
         class="curriculum-section"
-        *ngFor="let section of course.sections"
+        *ngFor="let section of course.sections; let si = index"
         [class.active]="section.id === selectedSectionId"
       >
         <div class="curriculum-section-header">
+
+          <div class="row-move">
+            <button type="button" class="move-btn" *ngIf="si > 0" (click)="moveSection(section, -1)" title="Выше">↑</button>
+            <button type="button" class="move-btn" *ngIf="si < course.sections.length - 1" (click)="moveSection(section, 1)" title="Ниже">↓</button>
+          </div>
+
           <input
             class="section-title-input"
             [value]="section.title"
             (focus)="selectSection(section)"
             (input)="onSectionTitleInput(section, $any($event.target).value)"
           />
-          <button type="button" class="icon-btn" (click)="deleteSection(section)" title="Удалить раздел">✕</button>
+
+          <div class="kebab-wrap">
+            <button type="button" class="icon-btn" (click)="toggleMenu('section-' + section.id, $event)" title="Ещё">⋯</button>
+            <div class="contextual-menu" *ngIf="openMenuFor === 'section-' + section.id" (click)="$event.stopPropagation()">
+              <button type="button" class="menu-item danger" (click)="deleteSection(section)">Удалить раздел</button>
+            </div>
+          </div>
         </div>
 
         <div class="curriculum-lessons">
-          <button
-            type="button"
+          <div
             class="curriculum-lesson"
             *ngFor="let block of section.blocks; let i = index"
             [class.active]="block.id === selectedBlockId"
-            (click)="selectBlock(section, block)"
           >
-            <span class="lesson-index">{{ (i + 1).toString().padStart(2, '0') }}</span>
-            <span class="lesson-title">{{ block.title || blockTypeLabel(block.type) }}</span>
-          </button>
+            <button type="button" class="lesson-select" (click)="selectBlock(section, block)">
+              <span class="lesson-index">{{ (i + 1).toString().padStart(2, '0') }}</span>
+              <span class="lesson-title">{{ block.title || blockTypeLabel(block.type) }}</span>
+            </button>
+
+            <div class="row-move row-move-lesson">
+              <button type="button" class="move-btn" *ngIf="i > 0" (click)="moveBlock(section, block, -1)" title="Выше">↑</button>
+              <button type="button" class="move-btn" *ngIf="i < section.blocks.length - 1" (click)="moveBlock(section, block, 1)" title="Ниже">↓</button>
+            </div>
+
+            <div class="kebab-wrap">
+              <button type="button" class="icon-btn" (click)="toggleMenu('block-' + block.id, $event)" title="Ещё">⋯</button>
+              <div class="contextual-menu" *ngIf="openMenuFor === 'block-' + block.id" (click)="$event.stopPropagation()">
+                <button type="button" class="menu-item danger" (click)="deleteBlock(section, block)">Удалить урок</button>
+              </div>
+            </div>
+          </div>
 
           <p class="empty-hint" *ngIf="section.blocks.length === 0">Уроков пока нет.</p>
         </div>
@@ -125,7 +148,7 @@
       </div>
 
       <div class="curriculum-actions">
-        <button type="button" class="text-btn" (click)="focusAddLesson()" [disabled]="course.sections.length === 0">
+        <button type="button" class="text-btn" (click)="addLesson()" [disabled]="course.sections.length === 0">
           + Добавить урок
         </button>
         <button type="button" class="text-btn" (click)="toggleAddSection()">
@@ -149,41 +172,61 @@
               (input)="onBlockTitleInput(block, $any($event.target).value)"
               placeholder="Название урока"
             />
-            <span class="lesson-type-tag">{{ blockTypeLabel(block.type) }}</span>
-            <button type="button" class="icon-btn" (click)="deleteBlock(section, block)" title="Удалить урок">✕</button>
+            <span class="lesson-type-tag" *ngIf="!isEmptyBlock(block)">{{ blockTypeLabel(block.type) }}</span>
           </div>
 
-          <textarea
-            *ngIf="block.type === 'text'"
-            class="lesson-content-text"
-            [value]="block.content"
-            (input)="onBlockContentInput(block, $any($event.target).value)"
-            rows="12"
-            placeholder="Текст урока…"
-          ></textarea>
+          <!-- EMPTY LESSON: choose content type inline, no modal -->
+          <div class="content-chooser" *ngIf="isEmptyBlock(block)">
+            <p>Добавь содержимое урока:</p>
+            <div class="content-chooser-options">
+              <button type="button" (click)="setBlockType(block, 'text')">📝 Текст</button>
+              <button type="button" (click)="setBlockType(block, 'video_link')">🎬 Видео</button>
+              <button type="button" (click)="setBlockType(block, 'media', fileInput)">📄 Файл / PDF</button>
+              <button type="button" (click)="setBlockType(block, 'link')">🔗 Ссылка</button>
+            </div>
+            <input type="file" #fileInput style="display: none;" (change)="onBlockFileSelect($event, block)" accept=".pdf,.png,.jpg,.jpeg,.webp,.mp4,.webm" />
+          </div>
 
-          <div class="lesson-content-link" *ngIf="block.type === 'video_link' || block.type === 'link'">
-            <input
-              type="text"
+          <ng-container *ngIf="!isEmptyBlock(block)">
+
+            <textarea
+              *ngIf="block.type === 'text'"
+              class="lesson-content-text"
               [value]="block.content"
               (input)="onBlockContentInput(block, $any($event.target).value)"
-              placeholder="https://…"
-            />
-            <a *ngIf="block.content" [href]="block.content" target="_blank" class="lesson-open-link">Открыть ↗</a>
-          </div>
+              rows="12"
+              placeholder="Текст урока…"
+            ></textarea>
 
-          <div class="lesson-content-media" *ngIf="block.type === 'media'">
-            <a *ngIf="block.file" [href]="block.file" target="_blank" class="lesson-file-chip">📎 Открыть файл</a>
-            <span *ngIf="!block.file" class="lesson-file-empty">Файл не загружен</span>
-            <button type="button" class="text-btn" (click)="mediaFileInput.click()">Заменить файл</button>
-            <input type="file" #mediaFileInput style="display: none;" (change)="onBlockFileReplace($event, block)" />
+            <div class="lesson-content-link" *ngIf="block.type === 'video_link' || block.type === 'link'">
+              <input
+                type="text"
+                [value]="block.content"
+                (input)="onBlockContentInput(block, $any($event.target).value)"
+                placeholder="https://…"
+              />
+              <a *ngIf="block.content" [href]="block.content" target="_blank" class="lesson-open-link">Открыть ↗</a>
+            </div>
+
+            <div class="lesson-content-media" *ngIf="block.type === 'media'">
+              <a *ngIf="block.file" [href]="block.file" target="_blank" class="lesson-file-chip">📎 Открыть файл</a>
+              <span *ngIf="!block.file" class="lesson-file-empty">Файл не загружен</span>
+              <button type="button" class="text-btn" (click)="mediaFileInput.click()">Заменить файл</button>
+              <input type="file" #mediaFileInput style="display: none;" (change)="onBlockFileSelect($event, block)" />
+            </div>
+
+          </ng-container>
+
+          <div class="lesson-editor-footer">
+            <button type="button" class="text-btn danger" (click)="deleteBlock(section, block)">Удалить урок</button>
           </div>
 
         </ng-container>
 
         <ng-template #noBlockSelected>
           <div class="lesson-editor-empty">
-            <p>В разделе «{{ section.title }}» пока нет уроков. Добавь первый ниже.</p>
+            <p>В разделе «{{ section.title }}» пока нет уроков.</p>
+            <button type="button" class="secondary-btn" (click)="addLesson()">+ Добавить урок</button>
           </div>
         </ng-template>
 
@@ -194,40 +237,6 @@
           <p>Выбери раздел слева или создай новый, чтобы начать добавлять уроки.</p>
         </div>
       </ng-template>
-
-      <!-- ALWAYS-VISIBLE QUICK ADD -->
-      <div class="quick-add" *ngIf="course.sections.length > 0">
-        <label>Добавить урок в «{{ selectedSection?.title || course.sections[0].title }}»</label>
-
-        <div class="quick-add-row">
-          <textarea
-            #quickAddInput
-            [(ngModel)]="quickAddValue"
-            rows="2"
-            placeholder="Введите текст, вставьте ссылку на видео/сайт…"
-          ></textarea>
-
-          <div class="quick-add-buttons">
-            <button type="button" class="icon-btn" (click)="quickAddFileInput.click()" title="Прикрепить файл">📎</button>
-            <input
-              type="file"
-              #quickAddFileInput
-              style="display: none;"
-              (change)="onQuickAddFileSelect($event)"
-              accept=".pdf,.png,.jpg,.jpeg,.webp,.mp4,.webm"
-            />
-            <button type="button" class="accent-btn" (click)="submitQuickAdd()" [disabled]="!quickAddValue.trim() && !quickAddFile">
-              Добавить
-            </button>
-          </div>
-        </div>
-
-        <span class="quick-add-file" *ngIf="quickAddFile">📎 {{ quickAddFile.name }}</span>
-        <span class="quick-add-hint">
-          Текст станет статьёй, ссылка на YouTube — видео, обычная ссылка — блоком-ссылкой, прикреплённый файл — вложением.
-        </span>
-        <p class="quick-add-error" *ngIf="quickAddError">{{ quickAddError }}</p>
-      </div>
 
     </section>
 
