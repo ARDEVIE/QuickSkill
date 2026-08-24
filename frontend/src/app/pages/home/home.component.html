@@ -329,9 +329,9 @@
           </div>
           <div class="course-content">
             <h3>{{ course.title }}</h3>
-            <div class="author" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
-              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
-              <p style="margin: 0; font-size: 0.9rem;">{{ course.authorName }}</p>
+            <div class="author">
+              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'">
+              <p>{{ course.authorName }}</p>
             </div>
             <div class="course-meta">
               <span class="rating">★ {{ course.average_rating || '—' }}</span>
