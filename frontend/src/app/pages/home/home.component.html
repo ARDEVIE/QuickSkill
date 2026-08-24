@@ -3,41 +3,89 @@
 <main class="home">
 
   <!-- HERO -->
-  <section class="hero">
+  <section class="hero" [class.hero-compact]="currentUser">
 
     <div class="hero-content">
 
-      <span class="eyebrow">QUICKSKILL</span>
+      <ng-container *ngIf="!currentUser">
+        <span class="eyebrow">QUICKSKILL</span>
 
-      <h1>
-        УЧИСЬ У СТУДЕНТОВ,
-        КОТОРЫЕ УЖЕ
-        РАЗОБРАЛИСЬ В ТЕМЕ.
-      </h1>
+        <h1>
+          УЧИСЬ У СТУДЕНТОВ,
+          КОТОРЫЕ УЖЕ
+          РАЗОБРАЛИСЬ В ТЕМЕ.
+        </h1>
 
-      <p>
-        Делись знаниями. Находи полезные курсы.
-        Учись у тех, кто уже прошёл этот путь.
-      </p>
+        <p>
+          Делись знаниями. Находи полезные курсы.
+          Учись у тех, кто уже прошёл этот путь.
+        </p>
+      </ng-container>
 
-      <div class="hero-search">
+      <ng-container *ngIf="currentUser">
+        <span class="eyebrow">QUICKSKILL</span>
+        <h1 class="welcome-heading">С возвращением, {{ currentUser.first_name || currentUser.username }}!</h1>
+        <p>Вот что может быть полезно прямо сейчас.</p>
+      </ng-container>
+
+      <div class="hero-search" (focusout)="onSearchBlur($event)">
 
         <span class="search-icon"></span>
-      
+
         <input
           type="text"
-          placeholder="Что хочешь изучить?"
+          placeholder="Найти предмет, материал или вопрос..."
           [(ngModel)]="searchQuery"
+          (input)="onSearchInput()"
+          (focus)="onSearchFocus()"
           (keyup.enter)="onSearch()"
         />
-      
+
         <button (click)="onSearch()">
           Найти
         </button>
-      
+
+        <div class="search-dropdown" *ngIf="showResults">
+          <div class="search-loading" *ngIf="isSearching">Ищем…</div>
+
+          <ng-container *ngIf="!isSearching && searchResults as res">
+            <ng-container *ngIf="res.subjects.length === 0 && res.courses.length === 0 && res.materials.length === 0 && res.questions.length === 0">
+              <div class="search-empty">Ничего не найдено. Нажми «Найти» для полного поиска по курсам.</div>
+            </ng-container>
+
+            <div class="search-group" *ngIf="res.subjects.length > 0">
+              <span class="search-group-label">Предметы</span>
+              <a class="search-row" *ngFor="let s of res.subjects" [routerLink]="['/subjects', s.id]" (click)="closeResults()">
+                {{ s.name }}
+              </a>
+            </div>
+
+            <div class="search-group" *ngIf="res.courses.length > 0">
+              <span class="search-group-label">Курсы</span>
+              <a class="search-row" *ngFor="let c of res.courses" [routerLink]="['/courses', c.id]" (click)="closeResults()">
+                {{ c.title }} <span class="search-row-sub">{{ c.category?.name }}</span>
+              </a>
+            </div>
+
+            <div class="search-group" *ngIf="res.materials.length > 0">
+              <span class="search-group-label">Материалы</span>
+              <a class="search-row" *ngFor="let m of res.materials" [routerLink]="['/subjects', m.category.id]" [queryParams]="{tab: 'materials'}" (click)="closeResults()">
+                {{ m.title }} <span class="search-row-sub">{{ m.category?.name }}</span>
+              </a>
+            </div>
+
+            <div class="search-group" *ngIf="res.questions.length > 0">
+              <span class="search-group-label">Вопросы</span>
+              <a class="search-row" *ngFor="let q of res.questions" [routerLink]="['/forum', q.slug]" (click)="closeResults()">
+                {{ q.title }}
+              </a>
+            </div>
+          </ng-container>
+        </div>
+
       </div>
 
-      <div class="hero-buttons">
+      <div class="hero-buttons" *ngIf="!currentUser">
         <button class="primary-btn" routerLink="/courses">
           Начать обучение
         </button>
@@ -45,8 +93,7 @@
 
     </div>
 
-    <div class="hero-art">
-
+    <div class="hero-art" *ngIf="!currentUser">
       <div class="blue-circle"></div>
       <div class="orange-circle"></div>
 
@@ -57,107 +104,249 @@
           new today.
         </strong>
       </div>
-
     </div>
 
   </section>
 
 
-  <!-- CATEGORIES -->
-  <section class="section">
+  <!-- ================= LOGGED-IN DASHBOARD ================= -->
+  <ng-container *ngIf="currentUser">
 
-    <div class="section-header">
-
-      <div>
-        <span class="eyebrow">EXPLORE</span>
-        <h2>Популярные категории</h2>
-      </div>
-
-    </div>
-
-    <div class="categories-grid">
-
-      <div
-        class="category-card"
-        *ngFor="let category of categories"
-        (click)="goToCategory(category.slug)"
-        style="cursor: pointer;">
-
-        <div class="category-icon">
-          {{ category.name.charAt(0) }}
-        </div>
-
+    <!-- MY SUBJECTS -->
+    <section class="section" *ngIf="mySubjects.length > 0">
+      <div class="section-header">
         <div>
-          <h3>{{ category.name }}</h3>
-          <p>{{ category.course_count || 0 }} курсов</p>
+          <span class="eyebrow">MY SUBJECTS</span>
+          <h2>Мои предметы</h2>
         </div>
-
+        <a routerLink="/subjects">Все предметы →</a>
       </div>
 
-    </div>
+      <div class="subject-chip-row">
+        <a class="subject-chip" *ngFor="let s of mySubjects" [routerLink]="['/subjects', s.id]">{{ s.name }}</a>
+      </div>
+    </section>
 
-  </section>
+    <section class="section" *ngIf="!isLoadingDashboard && mySubjects.length === 0">
+      <div class="follow-nudge">
+        <div>
+          <strong>Подпишись на свои предметы</strong>
+          <p>Так «Для вас» и «Мои предметы» будут показывать то, что реально нужно.</p>
+        </div>
+        <a routerLink="/subjects" class="secondary-btn">Выбрать предметы</a>
+      </div>
+    </section>
 
-
-  <!-- COURSES -->
-  <section class="section">
-
-    <div class="section-header">
-
-      <div>
-        <span class="eyebrow">FRESH</span>
-        <h2>Новые курсы</h2>
+    <!-- CONTINUE LEARNING -->
+    <section class="section" *ngIf="continueLearning.length > 0">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">CONTINUE</span>
+          <h2>Продолжить обучение</h2>
+        </div>
       </div>
 
-      <a routerLink="/courses">Все курсы →</a>
-
-    </div>
-
-    <div class="courses-grid">
-
-        <div
-          class="course-card"
-          *ngFor="let course of courses"
-          (click)="goToCourse(course.id)"
-          style="cursor: pointer;">
-      
-          <div
-            class="course-cover"
-            [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
-      
+      <div class="courses-grid">
+        <div class="course-card progress-card" *ngFor="let course of continueLearning" (click)="goToCourse(course.id)">
+          <div class="course-cover" [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
             <span *ngIf="!course.cover">{{ course.category.name }}</span>
-      
           </div>
-      
           <div class="course-content">
-      
             <h3>{{ course.title }}</h3>
-      
-            <div class="author" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
-              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
-              <p style="margin: 0; font-size: 0.9rem;">{{ course.authorName }}</p>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" [style.width.%]="course.progress_percent || 0"></div>
             </div>
-      
-            <div class="course-meta">
-      
-
-              <span class="rating">
-                ★ {{ course.rating }}
-              </span>
-      
-            </div>
-      
+            <span class="progress-label">{{ course.progress_percent || 0 }}% пройдено</span>
           </div>
-      
         </div>
-        
+      </div>
+    </section>
+
+    <!-- FOR YOU -->
+    <section class="section" *ngIf="forYou.length > 0">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">FOR YOU</span>
+          <h2>Для вас</h2>
+        </div>
+      </div>
+
+      <div class="courses-grid">
+        <div class="course-card" *ngFor="let course of forYou" (click)="goToCourse(course.id)">
+          <div class="course-cover" [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
+            <span *ngIf="!course.cover">{{ course.category.name }}</span>
+          </div>
+          <div class="course-content">
+            <h3>{{ course.title }}</h3>
+            <div class="author">
+              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'">
+              <p>{{ course.authorName }}</p>
+            </div>
+            <div class="course-meta">
+              <span class="rating" *ngIf="course.average_rating">★ {{ course.average_rating }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- POPULAR IN KBTU -->
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">TRENDING</span>
+          <h2>Популярно в KBTU</h2>
+        </div>
+        <a routerLink="/courses">Все курсы →</a>
+      </div>
+
+      <div class="courses-grid" *ngIf="popularCourses.length > 0">
+        <div class="course-card" *ngFor="let course of popularCourses" (click)="goToCourse(course.id)">
+          <div class="course-cover" [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
+            <span *ngIf="!course.cover">{{ course.category.name }}</span>
+          </div>
+          <div class="course-content">
+            <h3>{{ course.title }}</h3>
+            <div class="author">
+              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'">
+              <p>{{ course.authorName }}</p>
+            </div>
+            <div class="course-meta">
+              <span class="rating" *ngIf="course.average_rating">★ {{ course.average_rating }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="popular-questions" *ngIf="popularQuestions.length > 0">
+        <a class="popular-question-row" *ngFor="let q of popularQuestions" [routerLink]="['/forum', q.slug]">
+          <span class="pq-votes">{{ q.vote_score }}</span>
+          <span class="pq-title">{{ q.title }}</span>
+          <span class="pq-solved" *ngIf="q.is_solved">✓ Решено</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- RECENT QUESTIONS -->
+    <section class="section" *ngIf="recentQuestions.length > 0">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">FORUM</span>
+          <h2>Последние вопросы</h2>
+        </div>
+        <a routerLink="/forum">На форум →</a>
+      </div>
+
+      <div class="recent-questions">
+        <a class="recent-question-row" *ngFor="let q of recentQuestions" [routerLink]="['/forum', q.slug]">
+          <span class="rq-title">{{ q.title }}</span>
+          <span class="rq-subject" *ngIf="q.category">{{ q.category.name }}</span>
+          <span class="rq-solved" [class.solved]="q.is_solved">{{ q.is_solved ? '✓ Решено' : 'Открыт' }}</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- NEW CONTENT -->
+    <section class="section" *ngIf="newCourses.length > 0">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">FRESH</span>
+          <h2>Новое</h2>
+        </div>
+        <a routerLink="/courses">Все курсы →</a>
+      </div>
+
+      <div class="courses-grid">
+        <div class="course-card" *ngFor="let course of newCourses" (click)="goToCourse(course.id)">
+          <div class="course-cover" [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
+            <span *ngIf="!course.cover">{{ course.category.name }}</span>
+          </div>
+          <div class="course-content">
+            <h3>{{ course.title }}</h3>
+            <div class="author">
+              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'">
+              <p>{{ course.authorName }}</p>
+            </div>
+            <div class="course-meta">
+              <span class="rating" *ngIf="course.average_rating">★ {{ course.average_rating }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="new-materials" *ngIf="newMaterials.length > 0">
+        <a class="new-material-row" *ngFor="let m of newMaterials" [routerLink]="['/subjects', m.category.id]" [queryParams]="{tab: 'materials'}">
+          <span class="nm-title">{{ m.title }}</span>
+          <span class="nm-subject">{{ m.category?.name }}</span>
+        </a>
+      </div>
+    </section>
+
+  </ng-container>
+
+
+  <!-- ================= ANONYMOUS HOMEPAGE ================= -->
+  <ng-container *ngIf="!currentUser">
+
+    <!-- CATEGORIES -->
+    <section class="section">
+
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">EXPLORE</span>
+          <h2>Популярные категории</h2>
+        </div>
+      </div>
+
+      <div class="categories-grid">
+        <div class="category-card" *ngFor="let category of categories" (click)="goToCategory(category.slug)" style="cursor: pointer;">
+          <div class="category-icon">{{ category.name.charAt(0) }}</div>
+          <div>
+            <h3>{{ category.name }}</h3>
+            <p>{{ category.course_count || 0 }} курсов</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- COURSES -->
+    <section class="section">
+
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">FRESH</span>
+          <h2>Новые курсы</h2>
+        </div>
+        <a routerLink="/courses">Все курсы →</a>
+      </div>
+
+      <div class="courses-grid">
+        <div class="course-card" *ngFor="let course of courses" (click)="goToCourse(course.id)" style="cursor: pointer;">
+          <div class="course-cover" [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
+            <span *ngIf="!course.cover">{{ course.category.name }}</span>
+          </div>
+          <div class="course-content">
+            <h3>{{ course.title }}</h3>
+            <div class="author">
+              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'">
+              <p>{{ course.authorName }}</p>
+            </div>
+            <div class="course-meta">
+              <span class="rating">★ {{ course.average_rating || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
         <div *ngIf="courses.length === 0" style="text-align: center; color: #888; padding: 2rem;">
           Курсы пока не добавлены
         </div>
-      
       </div>
 
-  </section>
+    </section>
+
+  </ng-container>
 
 
   <!-- CTA -->
@@ -183,7 +372,7 @@
     routerLink="/create-course">
 
     Создать курс
-    
+
     </button>
 
   </section>

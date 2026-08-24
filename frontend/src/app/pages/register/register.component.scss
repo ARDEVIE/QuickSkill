@@ -81,15 +81,6 @@
     margin-bottom: auto;
   }
   
-  .eyebrow {
-    color: var(--accent);
-  
-    font-size: 11px;
-  
-    font-weight: 800;
-  
-    letter-spacing: 2px;
-  }
   
   .visual-content h1 {
     margin: 18px 0;
@@ -257,7 +248,7 @@
   /* FORM */
   
   .form-group {
-    margin-bottom: 17px;
+    margin-bottom: var(--space-16);
   }
   
   .form-group label {

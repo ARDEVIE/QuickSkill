@@ -228,7 +228,7 @@
   /* FORM */
   
   .form-group {
-    margin-bottom: 20px;
+    margin-bottom: var(--space-16);
   }
   
   .form-group label {

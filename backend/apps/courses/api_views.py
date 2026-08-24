@@ -1,16 +1,17 @@
 # Django modules
-from django.db.models import Q
+from django.db.models import Max, Q
 
 # Third-party modules
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 # Project modules
 from apps.common.permissions import IsAuthorOrReadOnly
-from apps.courses.models import Category, ContentBlock, Course, Favorite, Rating, Section
+from apps.courses.models import Category, CategoryFollow, ContentBlock, Course, Favorite, LessonProgress, Rating, Resource, Section
 from apps.courses.permissions import IsRatingOwnerOrAdminOrReadOnly
 from apps.courses.serializers import (
     CategorySerializer,
@@ -19,17 +20,75 @@ from apps.courses.serializers import (
     CourseListSerializer,
     CourseWriteSerializer,
     RatingSerializer,
+    ResourceSerializer,
+    ResourceWriteSerializer,
     SectionSerializer,
+    SubjectDetailSerializer,
 )
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    from django.db.models import Count, Q
-    queryset = Category.objects.annotate(
-        course_count=Count('courses', filter=Q(courses__is_published=True), distinct=True)
-    ).order_by('-course_count')
+    '''The catalog/forum "category" filter list, and — via retrieve — a subject's hub page.'''
+
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        from django.db.models import Count, Q as _Q
+        queryset = Category.objects.annotate(
+            course_count=Count('courses', filter=_Q(courses__is_published=True), distinct=True)
+        ).order_by('-course_count')
+
+        if self.request.query_params.get('following') == 'true' and self.request.user.is_authenticated:
+            queryset = queryset.filter(followers__user=self.request.user)
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return SubjectDetailSerializer
+        return CategorySerializer
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def follow(self, request, pk=None):
+        '''Toggle the current user's subscription to this subject.'''
+        category = self.get_object()
+        follow, created = CategoryFollow.objects.get_or_create(user=request.user, category=category)
+        if not created:
+            follow.delete()
+        return Response({'following': created})
+
+
+class ResourceViewSet(viewsets.ModelViewSet):
+    '''Loose, subject-scoped materials (PDFs, notes, cheat sheets, links, videos).'''
+
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'description']
+
+    def get_queryset(self):
+        queryset = Resource.objects.select_related('category', 'author')
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category_id=category)
+        author_id = self.request.query_params.get('author')
+        if author_id:
+            queryset = queryset.filter(author_id=author_id)
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'update', 'partial_update'):
+            return ResourceWriteSerializer
+        return ResourceSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=request.user)
+
+        response_serializer = ResourceSerializer(serializer.instance, context=self.get_serializer_context())
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -104,6 +163,13 @@ class CourseViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by('avg_rating')
         elif sort_param == 'rating_desc':
             queryset = queryset.order_by('-avg_rating')
+
+        # 'Continue Learning': courses the user has made any progress in,
+        # most recently-touched first.
+        if self.request.query_params.get('filter') == 'in_progress' and user.is_authenticated:
+            queryset = queryset.filter(sections__blocks__completions__user=user).annotate(
+                last_progress_at=Max('sections__blocks__completions__created_at')
+            ).order_by('-last_progress_at')
 
         return queryset.distinct()
 
@@ -212,6 +278,15 @@ class ContentBlockViewSet(
         if instance.section.course.author != self.request.user:
             raise PermissionDenied("Only the course author can delete this block.")
         instance.delete()
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def complete(self, request, pk=None):
+        '''Toggle the current user's completion mark on this lesson.'''
+        block = self.get_object()
+        progress, created = LessonProgress.objects.get_or_create(user=request.user, block=block)
+        if not created:
+            progress.delete()
+        return Response({'completed': created})
 
 
 class RatingViewSet(

@@ -1,0 +1,100 @@
+<app-header></app-header>
+
+<main class="share-page">
+
+  <div class="page-header">
+    <span class="eyebrow">SHARE</span>
+    <h1>Поделиться материалом</h1>
+    <p>Прикрепи один файл или ссылку — это займёт меньше минуты.</p>
+  </div>
+
+  <section class="share-form" [formGroup]="form">
+
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <!-- FILE / URL -->
+    <div class="form-group">
+      <label>Файл или ссылка</label>
+
+      <div
+        class="drop-zone"
+        [class.dragging]="isDragging"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()"
+        *ngIf="!selectedFile"
+      >
+        <div class="drop-zone-icon">↑</div>
+        <strong>Перетащи файл сюда или нажми, чтобы выбрать</strong>
+        <span>PDF, документ, изображение</span>
+      </div>
+      <input type="file" #fileInput style="display: none;" (change)="onFileInputChange($event)" />
+
+      <div class="file-chip" *ngIf="selectedFile">
+        <span class="file-chip-type">{{ resourceTypeLabel(detectedType || 'document') }}</span>
+        <span class="file-chip-name">{{ selectedFile.name }}</span>
+        <button type="button" (click)="removeFile()">✕</button>
+      </div>
+
+      <div class="url-row" *ngIf="!selectedFile">
+        <span>или вставь ссылку</span>
+        <input
+          type="text"
+          formControlName="url"
+          placeholder="https://… (YouTube, сайт, гугл-документ)"
+          (input)="onUrlInput($any($event.target).value)"
+        />
+        <span class="detected-type-hint" *ngIf="detectedType">{{ resourceTypeLabel(detectedType) }}</span>
+      </div>
+    </div>
+
+    <!-- SUBJECT -->
+    <div class="form-group">
+      <label>Предмет</label>
+      <select formControlName="category">
+        <option value="" disabled>Выберите предмет</option>
+        <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+      </select>
+    </div>
+
+    <!-- TITLE -->
+    <div class="form-group">
+      <label>Название</label>
+      <input type="text" formControlName="title" placeholder="Название материала" (input)="onTitleEdited()" />
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="form-group">
+      <label>Описание <span class="optional-tag">необязательно</span></label>
+      <textarea rows="2" formControlName="description" placeholder="Коротко, о чём это"></textarea>
+    </div>
+
+    <!-- TAGS -->
+    <div class="form-group">
+      <label>Теги <span class="optional-tag">необязательно</span></label>
+      <div class="tag-row">
+        <button
+          type="button"
+          class="tag-chip"
+          *ngFor="let tag of resourceTags"
+          [class.selected]="isTagSelected(tag.value)"
+          (click)="toggleTag(tag.value)"
+        >
+          {{ tag.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/subjects" class="secondary-btn">Отмена</a>
+      <button type="button" class="accent-btn" (click)="submit()" [disabled]="isSubmitting || form.invalid">
+        {{ isSubmitting ? 'Публикуем…' : 'Опубликовать' }}
+      </button>
+    </div>
+
+  </section>
+
+</main>
+
+<app-footer></app-footer>

@@ -1,15 +1,31 @@
 <div class="course-details-page">
     <app-header></app-header>
-  
+
     <main class="details-container">
       <a routerLink="/forum" class="back-link">← Вернуться на форум</a>
-  
+
       <section class="course-hero" *ngIf="question" style="background: var(--primary-light);">
-        <div class="course-intro" style="max-width: 800px; padding: 2rem;">
-          <span class="eyebrow" style="color: var(--primary);">{{ question.category.name }}</span>
+        <app-vote-control
+          class="question-vote"
+          [score]="question.vote_score"
+          [userVote]="question.user_vote"
+          [canVote]="isLoggedIn"
+          (vote)="voteQuestion($event)"
+        ></app-vote-control>
+
+        <div class="course-intro" style="max-width: 800px; padding: 2rem 2rem 2rem 0;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <a *ngIf="question.category" class="eyebrow" [routerLink]="['/subjects', question.category.id]" style="color: var(--primary); text-decoration: none;">{{ question.category.name }}</a>
+            <span class="solved-pill" *ngIf="question.is_solved">✓ Решено</span>
+          </div>
           <h1 style="font-size: 2rem; color: var(--text);">
             {{ question.title }}
           </h1>
+
+          <div class="tag-row" *ngIf="questionTags().length > 0">
+            <span class="tag-pill" *ngFor="let tag of questionTags()">{{ tag }}</span>
+          </div>
+
           <p class="description" style="white-space: pre-wrap; font-size: 1.1rem; color: var(--text-secondary); margin-top: 1rem;">
             {{ question.content }}
           </p>
@@ -18,8 +34,8 @@
             <img *ngIf="question.media_file.match('.(jpeg|jpg|gif|png|webp)$')" [src]="question.media_file" style="max-width: 100%; border-radius: 8px;" />
             <a *ngIf="!question.media_file.match('.(jpeg|jpg|gif|png|webp)$')" [href]="question.media_file" target="_blank" style="color: var(--primary); text-decoration: underline;">Прикрепленный файл</a>
           </div>
-  
-          <div class="author" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; align-items: center; gap: 1rem;">
+
+          <div class="author" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
             <a [routerLink]="['/public-profile', question.author.username]" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; cursor: pointer;">
               <img [src]="question.author.avatar || 'assets/default-avatar.svg'" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
               <div>
@@ -27,10 +43,13 @@
                 <strong>{{ question.author.first_name || question.author.username }}</strong>
               </div>
             </a>
-            <div style="margin-left: auto; display: flex; align-items: center; gap: 1rem;">
-              <div style="color: var(--text-muted); font-size: 0.9rem;">
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div style="color: var(--text-secondary); font-size: 0.9rem;">
                 {{ question.created_at | date:'medium' }}
               </div>
+              <button class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()" *ngIf="isLoggedIn">
+                {{ isFavorited ? '✓ Сохранено' : 'Сохранить' }}
+              </button>
               <div *ngIf="isAuthor" style="display: flex; gap: 0.5rem;">
                 <button [routerLink]="['/forum/ask']" [queryParams]="{edit: question.slug}" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
                   Редактировать
@@ -43,39 +62,49 @@
           </div>
         </div>
       </section>
-  
+
       <div class="details-layout" style="grid-template-columns: 1fr; max-width: 800px; margin-top: 2rem;" *ngIf="question">
-        
+
         <section class="content-section">
           <h2>Ответы ({{ comments.length }})</h2>
-  
-          <div class="lessons-list" style="margin-top: 1.5rem;">
-            <div *ngFor="let comment of comments" class="lesson" [style.border-color]="question.accepted_comment === comment.id ? 'var(--green-color)' : 'var(--border)'" style="flex-direction: column; align-items: flex-start;">
-              
-              <div style="display: flex; justify-content: space-between; width: 100%;">
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                  <img [src]="comment.user.avatar || 'assets/default-avatar.svg'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-                  <strong style="font-size: 1rem;">{{ comment.user.first_name || comment.user.username }}</strong>
-                  <span style="font-size: 0.8rem; color: #999;">{{ comment.created_at | date:'short' }}</span>
-                  <span *ngIf="question.accepted_comment === comment.id" style="color: var(--green-color); font-weight: bold; font-size: 0.9rem;">✓ Решение</span>
-                </div>
-                
-                <button *ngIf="isAuthor && question.accepted_comment !== comment.id" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="acceptAnswer(comment.id)">
-                  Отметить решением
-                </button>
-              </div>
-  
-              <p style="margin-top: 1rem; white-space: pre-wrap; line-height: 1.5; color: var(--text-secondary);">
-                {{ comment.content }}
-              </p>
 
-              <div *ngIf="comment.media_file" style="margin-top: 1rem;">
-                <img *ngIf="comment.media_file.match('.(jpeg|jpg|gif|png|webp)$')" [src]="comment.media_file" style="max-width: 100%; max-height: 300px; border-radius: 8px;" />
-                <a *ngIf="!comment.media_file.match('.(jpeg|jpg|gif|png|webp)$')" [href]="comment.media_file" target="_blank" style="color: var(--primary); text-decoration: underline;">Прикрепленный файл</a>
+          <div class="answers-list">
+            <div *ngFor="let comment of comments" class="answer" [class.accepted]="question.accepted_comment === comment.id">
+
+              <app-vote-control
+                size="sm"
+                [score]="comment.vote_score"
+                [userVote]="comment.user_vote"
+                [canVote]="isLoggedIn"
+                (vote)="voteComment(comment, $event)"
+              ></app-vote-control>
+
+              <div class="answer-body">
+                <div style="display: flex; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
+                  <div style="display: flex; gap: 1rem; align-items: center;">
+                    <img [src]="comment.user.avatar || 'assets/default-avatar.svg'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <strong style="font-size: 1rem;">{{ comment.user.first_name || comment.user.username }}</strong>
+                    <span style="font-size: 0.8rem; color: #999;">{{ comment.created_at | date:'short' }}</span>
+                    <span *ngIf="question.accepted_comment === comment.id" class="accepted-label">✓ Решение</span>
+                  </div>
+
+                  <button *ngIf="isAuthor && question.accepted_comment !== comment.id" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="acceptAnswer(comment.id)">
+                    Отметить решением
+                  </button>
+                </div>
+
+                <p style="margin-top: 1rem; white-space: pre-wrap; line-height: 1.5; color: var(--text-secondary);">
+                  {{ comment.content }}
+                </p>
+
+                <div *ngIf="comment.media_file" style="margin-top: 1rem;">
+                  <img *ngIf="comment.media_file.match('.(jpeg|jpg|gif|png|webp)$')" [src]="comment.media_file" style="max-width: 100%; max-height: 300px; border-radius: 8px;" />
+                  <a *ngIf="!comment.media_file.match('.(jpeg|jpg|gif|png|webp)$')" [href]="comment.media_file" target="_blank" style="color: var(--primary); text-decoration: underline;">Прикрепленный файл</a>
+                </div>
               </div>
             </div>
           </div>
-  
+
           <div class="rating-form" *ngIf="isLoggedIn" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee;">
              <h3 style="margin-bottom: 1rem;">Написать ответ</h3>
              <form [formGroup]="commentForm" (ngSubmit)="onAddComment()">
@@ -93,9 +122,9 @@
           <div *ngIf="!isLoggedIn" style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: 12px; text-align: center;">
             <p>Пожалуйста, <a routerLink="/login" style="color: var(--primary);">войдите</a>, чтобы оставить ответ.</p>
           </div>
-  
+
         </section>
-  
+
       </div>
     </main>
     <app-footer></app-footer>

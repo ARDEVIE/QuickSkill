@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Project modules
-from apps.articles.models import Comment, FavoriteArticle, Question
+from apps.articles.models import Comment, CommentVote, FavoriteArticle, Question, QuestionVote
 
 
 @admin.register(Question)
@@ -21,3 +21,5 @@ class CommentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(FavoriteArticle)
+admin.site.register(QuestionVote)
+admin.site.register(CommentVote)

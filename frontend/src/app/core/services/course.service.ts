@@ -7,6 +7,7 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
+  code?: string;
   course_count?: number;
 }
 
@@ -28,16 +29,23 @@ export interface Course {
   author: Author;
   is_published: boolean;
   created_at: string;
+  average_rating: number | null;
+  ratings_count: number;
+  progress_percent?: number | null;
 }
+
+export type BlockType = 'text' | 'video_link' | 'link' | 'media';
 
 export interface ContentBlock {
   id: number;
   section: number;
-  type: 'text' | 'video_link' | 'media';
+  title: string;
+  type: BlockType;
   content: string | null;
   file: string | null;
   order: number;
   created_at: string;
+  is_completed: boolean;
 }
 
 export interface Section {
@@ -61,8 +69,6 @@ export interface CourseDetail extends Course {
   updated_at: string;
   sections: Section[];
   ratings: Rating[];
-  average_rating: number | null;
-  ratings_count: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -122,8 +128,28 @@ export class CourseService {
     return this.http.post<Section>(`${this.apiUrl}/courses/${courseId}/sections/`, sectionData);
   }
 
+  updateSection(sectionId: number, sectionData: Partial<Pick<Section, 'title' | 'order'>>): Observable<Section> {
+    return this.http.patch<Section>(`${this.apiUrl}/sections/${sectionId}/`, sectionData);
+  }
+
+  deleteSection(sectionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/sections/${sectionId}/`);
+  }
+
   addBlock(sectionId: number, blockData: FormData | any): Observable<ContentBlock> {
     return this.http.post<ContentBlock>(`${this.apiUrl}/sections/${sectionId}/blocks/`, blockData);
+  }
+
+  updateBlock(blockId: number, blockData: FormData | any): Observable<ContentBlock> {
+    return this.http.patch<ContentBlock>(`${this.apiUrl}/blocks/${blockId}/`, blockData);
+  }
+
+  deleteBlock(blockId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/blocks/${blockId}/`);
+  }
+
+  toggleLessonComplete(blockId: number): Observable<{ completed: boolean }> {
+    return this.http.post<{ completed: boolean }>(`${this.apiUrl}/blocks/${blockId}/complete/`, {});
   }
 
   rateCourse(courseId: number, ratingData: { score: number, comment: string }): Observable<Rating> {

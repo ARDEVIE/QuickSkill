@@ -1,0 +1,726 @@
+.editor-page {
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+
+/* =========================
+   TOP BAR
+========================= */
+
+.editor-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+
+  padding: var(--space-12) var(--space-24);
+
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-back {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.topbar-back:hover {
+  color: var(--primary);
+}
+
+.topbar-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-title {
+  display: block;
+  width: 100%;
+
+  border: none;
+  outline: none;
+  background: transparent;
+
+  padding: 4px 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+
+  color: var(--text);
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 800;
+
+  transition: background 0.15s ease;
+}
+
+.topbar-title:hover,
+.topbar-title:focus {
+  background: var(--surface);
+}
+
+.topbar-status {
+  margin: 2px 0 0 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.topbar-status span.published {
+  color: var(--success);
+}
+
+.topbar-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.topbar-actions .secondary-btn,
+.topbar-actions .accent-btn {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.icon-text-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.icon-text-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+
+/* =========================
+   TEXT / ICON BUTTONS (shared small-action look)
+========================= */
+
+.text-btn {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+}
+
+.text-btn:disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.text-btn.danger {
+  color: #dc3545;
+}
+
+.icon-btn {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text);
+}
+
+
+/* =========================
+   CONTEXTUAL (KEBAB) MENU
+========================= */
+
+.kebab-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.contextual-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  margin-top: 4px;
+
+  min-width: 150px;
+  padding: 4px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.12);
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: var(--surface);
+}
+
+.menu-item.danger {
+  color: #dc3545;
+}
+
+
+/* =========================
+   ROW MOVE (reorder) CONTROLS
+========================= */
+
+.row-move {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.move-btn {
+  width: 16px;
+  height: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+  padding: 0;
+
+  color: var(--text-secondary);
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.move-btn:hover {
+  color: var(--primary);
+}
+
+
+/* =========================
+   SETTINGS PANEL
+========================= */
+
+.settings-panel {
+  padding: var(--space-16) var(--space-24);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16);
+}
+
+.settings-panel .form-group {
+  margin-bottom: var(--space-12);
+}
+
+.settings-panel .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.settings-panel select,
+.settings-panel textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.settings-panel textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.settings-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--success);
+  font-size: 11px;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+.settings-actions .accent-btn {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+
+/* =========================
+   MAIN LAYOUT
+========================= */
+
+.loading-state {
+  padding: var(--space-48);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.editor-main {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: var(--space-24);
+
+  padding: var(--space-24);
+  align-items: start;
+}
+
+
+/* =========================
+   CURRICULUM (LEFT)
+========================= */
+
+.curriculum {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: var(--space-16);
+}
+
+.curriculum h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.curriculum-meta {
+  margin: 4px 0 var(--space-16);
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.curriculum-section {
+  margin-bottom: var(--space-12);
+  padding: var(--space-8);
+  border-radius: 10px;
+
+  background: var(--surface);
+  border: 1px solid transparent;
+}
+
+.curriculum-section.active {
+  border-color: var(--primary-light);
+  background: var(--primary-light);
+}
+
+.curriculum-section-header {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.section-title-input {
+  flex: 1;
+  min-width: 0;
+
+  border: none;
+  outline: none;
+  background: transparent;
+
+  padding: 4px 6px;
+  border-radius: 6px;
+
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.section-title-input:hover,
+.section-title-input:focus {
+  background: var(--white);
+}
+
+.curriculum-lessons {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.curriculum-lesson {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  margin-left: 10px;
+  border-radius: 8px;
+
+  transition: background 0.15s ease;
+}
+
+.curriculum-lesson:hover {
+  background: rgba(79, 140, 255, 0.08);
+}
+
+.curriculum-lesson.active {
+  background: var(--white);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.lesson-select {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+
+  padding: 6px 8px;
+
+  border: none;
+  background: transparent;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.lesson-index {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.lesson-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.row-move-lesson {
+  margin-right: 2px;
+}
+
+.empty-hint {
+  margin: 4px 0;
+  padding-left: 12px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.inline-add-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--space-8) 0;
+}
+
+.inline-add-section input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.inline-add-section input:focus {
+  border-color: var(--primary);
+}
+
+.curriculum-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border);
+}
+
+
+/* =========================
+   LESSON EDITOR (RIGHT)
+========================= */
+
+.lesson-editor {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: var(--space-24);
+  min-height: 320px;
+}
+
+.lesson-editor-empty {
+  padding: var(--space-32) 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.lesson-editor-empty .secondary-btn {
+  margin-top: var(--space-12);
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.lesson-editor-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+.lesson-title-input {
+  flex: 1;
+  min-width: 0;
+
+  border: none;
+  outline: none;
+  background: transparent;
+
+  padding: 6px 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+
+  color: var(--text);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.lesson-title-input:hover,
+.lesson-title-input:focus {
+  background: var(--surface);
+}
+
+.lesson-type-tag {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.lesson-content-text {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-12);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.lesson-content-text:focus {
+  border-color: var(--primary);
+}
+
+.lesson-content-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.lesson-content-link input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.lesson-content-link input:focus {
+  border-color: var(--primary);
+}
+
+.lesson-open-link {
+  flex-shrink: 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lesson-content-media {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.lesson-file-chip {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lesson-file-empty {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.lesson-editor-footer {
+  margin-top: var(--space-16);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+
+
+/* =========================
+   CONTENT CHOOSER (empty lesson)
+========================= */
+
+.content-chooser p {
+  margin: 0 0 var(--space-12);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.content-chooser-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.content-chooser-options button {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.content-chooser-options button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .editor-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .editor-topbar {
+    flex-wrap: wrap;
+    padding: var(--space-8) var(--space-16);
+  }
+
+  .topbar-heading {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .topbar-actions {
+    margin-left: auto;
+  }
+
+  .settings-panel {
+    padding: var(--space-16);
+  }
+
+  .settings-row {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-main {
+    padding: var(--space-16);
+    gap: var(--space-16);
+  }
+
+  .lesson-editor {
+    padding: var(--space-16);
+  }
+
+  .content-chooser-options {
+    flex-direction: column;
+  }
+}

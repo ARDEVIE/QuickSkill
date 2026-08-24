@@ -16,6 +16,8 @@ export class CreateQuestionComponent implements OnInit {
   errorMessage = '';
   selectedFile: File | null = null;
   editSlug: string | null = null;
+  tags: string[] = [];
+  tagInput = '';
 
   constructor(
     private fb: FormBuilder,
@@ -40,6 +42,15 @@ export class CreateQuestionComponent implements OnInit {
       if (params['edit']) {
         this.editSlug = params['edit'];
         this.loadQuestionForEdit();
+        return;
+      }
+
+      // Coming from a course lesson ("Задать вопрос") — prefill subject + context.
+      if (params['category'] || params['context']) {
+        this.questionForm.patchValue({
+          category: params['category'] || '',
+          content: params['context'] || ''
+        });
       }
     });
   }
@@ -54,6 +65,7 @@ export class CreateQuestionComponent implements OnInit {
           content: q.content,
           category: q.category?.id || ''
         });
+        this.tags = (q.tags || '').split(',').map(t => t.trim()).filter(Boolean);
         this.isLoading = false;
       },
       error: () => {
@@ -61,6 +73,18 @@ export class CreateQuestionComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  addTagFromInput(): void {
+    const value = this.tagInput.trim();
+    if (value && !this.tags.includes(value)) {
+      this.tags.push(value);
+    }
+    this.tagInput = '';
+  }
+
+  removeTag(tag: string): void {
+    this.tags = this.tags.filter(t => t !== tag);
   }
 
   onFileSelected(event: any): void {
@@ -83,7 +107,8 @@ export class CreateQuestionComponent implements OnInit {
     formData.append('title', this.questionForm.get('title')?.value);
     formData.append('content', this.questionForm.get('content')?.value);
     formData.append('category', this.questionForm.get('category')?.value);
-    
+    formData.append('tags', this.tags.join(','));
+
     if (this.selectedFile) {
       formData.append('media_file', this.selectedFile);
     }

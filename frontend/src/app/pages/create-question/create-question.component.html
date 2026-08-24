@@ -35,7 +35,25 @@
                 <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
               </select>
             </div>
-            
+
+            <div class="form-group">
+              <label>Теги <span style="color: var(--text-secondary); font-weight: 500;">необязательно</span></label>
+              <input
+                type="text"
+                [(ngModel)]="tagInput"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Введи тег и нажми Enter"
+                (keydown.enter)="$event.preventDefault(); addTagFromInput()"
+                (blur)="addTagFromInput()"
+              />
+              <div class="tag-row" *ngIf="tags.length > 0">
+                <span class="tag-chip" *ngFor="let tag of tags">
+                  {{ tag }}
+                  <button type="button" (click)="removeTag(tag)" aria-label="Удалить тег">✕</button>
+                </span>
+              </div>
+            </div>
+
             <div class="form-group">
               <label>Прикрепить медиафайл</label>
               <input type="file" (change)="onFileSelected($event)" accept="image/*,video/*" />
@@ -44,7 +62,7 @@
           </div>
   
           <div class="form-actions">
-            <button type="button" class="create-button" (click)="onSubmit()" [disabled]="isLoading || questionForm.invalid">
+            <button type="button" class="accent-btn" (click)="onSubmit()" [disabled]="isLoading || questionForm.invalid">
               {{ editSlug ? 'Сохранить изменения' : 'Опубликовать вопрос' }} <span>→</span>
             </button>
           </div>

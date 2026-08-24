@@ -1,0 +1,475 @@
+.player-page {
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+
+/* =========================
+   TOP BAR
+========================= */
+
+.player-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+
+  padding: var(--space-12) var(--space-24);
+
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-back {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.topbar-back:hover {
+  color: var(--primary);
+}
+
+.topbar-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: 4px;
+}
+
+.progress-track {
+  flex-shrink: 0;
+  width: 140px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.progress-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.sidebar-toggle {
+  display: none;
+  flex-shrink: 0;
+
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+
+/* =========================
+   MAIN LAYOUT
+========================= */
+
+.loading-state {
+  padding: var(--space-48);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.player-main {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 260px;
+  gap: var(--space-24);
+
+  padding: var(--space-24);
+  align-items: start;
+}
+
+.empty-hint {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+
+/* =========================
+   SIDEBAR (CURRICULUM)
+========================= */
+
+.player-sidebar {
+  position: sticky;
+  top: 80px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: var(--space-16);
+
+  max-height: calc(100vh - 104px);
+  overflow-y: auto;
+}
+
+.sidebar-progress {
+  margin-bottom: var(--space-16);
+  padding-bottom: var(--space-12);
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-progress span {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.sidebar-section {
+  margin-bottom: var(--space-16);
+}
+
+.sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-section h3 {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.sidebar-lesson {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+
+  padding: 7px 8px;
+  margin-bottom: 2px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sidebar-lesson:hover {
+  background: rgba(79, 140, 255, 0.08);
+}
+
+.sidebar-lesson.active {
+  background: var(--primary-light);
+}
+
+.lesson-marker {
+  flex-shrink: 0;
+  width: 16px;
+
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sidebar-lesson.completed .lesson-marker {
+  color: var(--success);
+}
+
+.sidebar-lesson.active .lesson-marker {
+  color: var(--primary);
+}
+
+.lesson-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--text);
+  font-size: 13px;
+}
+
+.sidebar-lesson.completed .lesson-name {
+  color: var(--text-secondary);
+}
+
+.sidebar-lesson.active .lesson-name {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+
+/* =========================
+   LESSON CONTENT (CENTER)
+========================= */
+
+.player-content {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: var(--space-32);
+  min-height: 400px;
+}
+
+.lesson-eyebrow {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.lesson-heading {
+  margin: 0 0 var(--space-24);
+  color: var(--text);
+  font-size: 26px;
+  letter-spacing: -0.5px;
+}
+
+.lesson-body {
+  min-height: 160px;
+  margin-bottom: var(--space-24);
+}
+
+.lesson-text {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.lesson-video-link,
+.lesson-link a,
+.lesson-media a {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.lesson-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--border);
+}
+
+.lesson-actions .secondary-btn {
+  padding: 10px 16px;
+  font-size: 12px;
+}
+
+.complete-btn {
+  padding: 10px 18px;
+  font-size: 12px;
+}
+
+.complete-btn.done {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.player-empty {
+  padding: var(--space-48) 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+
+/* =========================
+   HELP / ASK QUESTION (RIGHT)
+========================= */
+
+.player-help {
+  position: sticky;
+  top: 80px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: var(--space-16);
+}
+
+.player-help h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.player-help p {
+  margin: 0 0 var(--space-12);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.player-help .accent-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.related-questions {
+  margin-top: var(--space-16);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--border);
+}
+
+.related-questions h4 {
+  margin: 0 0 var(--space-8);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.related-question {
+  display: block;
+  margin-bottom: var(--space-8);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.related-question:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+  .player-main {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .player-help {
+    grid-column: 1 / -1;
+    position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .player-main {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-toggle {
+    display: block;
+  }
+
+  .progress-track {
+    width: 90px;
+  }
+
+  .player-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 30;
+
+    width: 280px;
+    max-height: none;
+    border-radius: 0;
+
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .player-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(16, 24, 40, 0.4);
+  }
+
+  .player-help {
+    position: static;
+  }
+}
+
+@media (max-width: 650px) {
+  .player-topbar {
+    padding: var(--space-8) var(--space-16);
+    flex-wrap: wrap;
+  }
+
+  .topbar-heading {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .player-main {
+    padding: var(--space-16);
+    gap: var(--space-16);
+  }
+
+  .player-content {
+    padding: var(--space-16);
+  }
+
+  .lesson-heading {
+    font-size: 21px;
+  }
+
+  .lesson-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

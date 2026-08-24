@@ -1,0 +1,28 @@
+<app-header></app-header>
+
+<main class="subjects-page">
+
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">SUBJECTS</span>
+      <h1>Предметы</h1>
+      <p>Материалы, гайды и вопросы, собранные по университетским предметам.</p>
+    </div>
+    <a routerLink="/share-material" class="accent-btn" *ngIf="currentUser">+ Поделиться материалом</a>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">Загрузка…</div>
+
+  <div class="subjects-grid" *ngIf="!isLoading">
+    <a class="catalog-card subject-card" *ngFor="let s of subjects" [routerLink]="['/subjects', s.id]">
+      <span class="subject-card-code" *ngIf="s.code">{{ s.code }}</span>
+      <h3>{{ s.name }}</h3>
+      <p>{{ s.course_count || 0 }} {{ s.course_count === 1 ? 'курс' : 'курсов' }}</p>
+    </a>
+
+    <p class="empty-hint" *ngIf="subjects.length === 0">Предметов пока нет.</p>
+  </div>
+
+</main>
+
+<app-footer></app-footer>

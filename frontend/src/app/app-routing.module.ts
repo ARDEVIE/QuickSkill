@@ -7,14 +7,18 @@ import { RegisterComponent } from './pages/register/register.component';
 import { CoursesComponent } from './pages/courses/courses.component';
 import { CreateCourseComponent } from './pages/create-course/create-course.component';
 import { CourseDetailsComponent } from './pages/course-details/course-details.component';
-import { EditCourseComponent } from './pages/edit-course/edit-course.component';
-import { ProfileComponent } from './pages/profile/profile.component';
+import { CourseEditorComponent } from './pages/course-editor/course-editor.component';
+import { CoursePlayerComponent } from './pages/course-player/course-player.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { PublicProfileComponent } from './pages/public-profile/public-profile.component';
+import { ShareMaterialComponent } from './pages/share-material/share-material.component';
+import { FavoritesComponent } from './pages/favorites/favorites.component';
+import { SubjectListComponent } from './pages/subject-list/subject-list.component';
+import { SubjectDetailComponent } from './pages/subject-detail/subject-detail.component';
 
 const routes: Routes = [
   {
@@ -54,7 +58,11 @@ const routes: Routes = [
   },
   {
     path: 'courses/:id/edit',
-    component: EditCourseComponent
+    component: CourseEditorComponent
+  },
+  {
+    path: 'courses/:id/learn',
+    component: CoursePlayerComponent
   },
   {
     path: 'courses/:id',
@@ -62,7 +70,23 @@ const routes: Routes = [
   },
   {
     path: 'profile',
-    component: ProfileComponent
+    component: PublicProfileComponent
+  },
+  {
+    path: 'favorites',
+    component: FavoritesComponent
+  },
+  {
+    path: 'subjects',
+    component: SubjectListComponent
+  },
+  {
+    path: 'subjects/:id',
+    component: SubjectDetailComponent
+  },
+  {
+    path: 'share-material',
+    component: ShareMaterialComponent
   },
   {
     path: 'public-profile/:username',

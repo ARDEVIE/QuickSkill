@@ -25,10 +25,15 @@ from apps.common.utils import unique_slugify
 
 
 class Category(Model):
-    '''A topic used to group and filter courses in the catalog.'''
+    '''A university subject (or general topic) that groups courses, questions and resources.
+
+    Deliberately one model, not two: this is also the catalog/forum "category" filter.
+    '''
 
     name = CharField(max_length=100, unique=True)
     slug = SlugField(max_length=120, unique=True, blank=True)
+    code = CharField(max_length=20, blank=True)  # e.g. "CSCI 2105"
+    description = TextField(blank=True)
 
     class Meta:
         verbose_name = 'Category'
@@ -85,13 +90,16 @@ class Section(TimeStampedModel):
 
 
 class ContentBlock(TimeStampedModel):
-    '''A block of content inside a section. Can be text or media (image/video link/pdf).'''
+    '''A single lesson item inside a section: text, a video link, a generic link, or a file.'''
 
     class BlockType(TextChoices):
         TEXT = 'text', 'Text'
+        VIDEO_LINK = 'video_link', 'Video link'
+        LINK = 'link', 'Link'
         MEDIA = 'media', 'Media'
 
     section = ForeignKey(Section, on_delete=CASCADE, related_name='blocks')
+    title = CharField(max_length=200, blank=True)
     type = CharField(max_length=20, choices=BlockType.choices, default=BlockType.TEXT)
     content = TextField(blank=True)  # Used for text content or URL
     file = FileField(upload_to='blocks/media/', blank=True, null=True)
@@ -126,6 +134,26 @@ class Rating(TimeStampedModel):
         return f'{self.user} rated {self.course} {self.score}/5'
 
 
+class LessonProgress(Model):
+    '''Marks that a user has completed a given lesson (content block).'''
+
+    user = ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+        related_name='lesson_progress',
+    )
+    block = ForeignKey(ContentBlock, on_delete=CASCADE, related_name='completions')
+    created_at = DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['user', 'block'], name='unique_user_block_progress'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} completed {self.block}'
+
+
 class Favorite(Model):
     user = ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -143,3 +171,56 @@ class Favorite(Model):
 
     def __str__(self):
         return f'{self.user} -> {self.course}'
+
+
+class CategoryFollow(Model):
+    '''A user following (subscribing to) a subject.'''
+
+    user = ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+        related_name='followed_categories',
+    )
+    category = ForeignKey(Category, on_delete=CASCADE, related_name='followers')
+    created_at = DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['user', 'category'], name='unique_user_category_follow'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} follows {self.category}'
+
+
+class Resource(TimeStampedModel):
+    '''A loose, subject-scoped material — a PDF, cheat sheet, link, etc. — not tied to any course.'''
+
+    class ResourceType(TextChoices):
+        PDF = 'pdf', 'PDF'
+        DOCUMENT = 'document', 'Document'
+        IMAGE = 'image', 'Image'
+        NOTES = 'notes', 'Lecture notes'
+        CHEATSHEET = 'cheatsheet', 'Cheat sheet'
+        PAST_PAPER = 'past_paper', 'Past paper'
+        LINK = 'link', 'Link'
+        VIDEO = 'video', 'Video'
+
+    category = ForeignKey(Category, on_delete=CASCADE, related_name='resources')
+    author = ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+        related_name='resources',
+    )
+    title = CharField(max_length=200)
+    description = TextField(blank=True)
+    type = CharField(max_length=20, choices=ResourceType.choices)
+    url = CharField(max_length=500, blank=True)
+    file = FileField(upload_to='resources/', blank=True, null=True)
+    tags = CharField(max_length=200, blank=True)  # comma-separated, from a fixed client-side set
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.title} ({self.type})'

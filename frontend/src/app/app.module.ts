@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './shared/header/header.component';
 import { FooterComponent } from './shared/footer/footer.component';
+import { VoteControlComponent } from './shared/vote-control/vote-control.component';
 import { HomeComponent } from './pages/home/home.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
@@ -14,34 +15,43 @@ import { CoursesComponent } from './pages/courses/courses.component';
 import { CreateCourseComponent } from './pages/create-course/create-course.component';
 import { CourseDetailsComponent } from './pages/course-details/course-details.component';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
-import { ProfileComponent } from './pages/profile/profile.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
-import { EditCourseComponent } from './pages/edit-course/edit-course.component';
+import { CourseEditorComponent } from './pages/course-editor/course-editor.component';
+import { CoursePlayerComponent } from './pages/course-player/course-player.component';
 import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { PublicProfileComponent } from './pages/public-profile/public-profile.component';
+import { FavoritesComponent } from './pages/favorites/favorites.component';
+import { SubjectListComponent } from './pages/subject-list/subject-list.component';
+import { SubjectDetailComponent } from './pages/subject-detail/subject-detail.component';
+import { ShareMaterialComponent } from './pages/share-material/share-material.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HeaderComponent,
     FooterComponent,
+    VoteControlComponent,
     HomeComponent,
     LoginComponent,
     RegisterComponent,
     CoursesComponent,
     CreateCourseComponent,
     CourseDetailsComponent,
-    ProfileComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
-    EditCourseComponent,
+    CourseEditorComponent,
+    CoursePlayerComponent,
     ForumListComponent,
     QuestionDetailsComponent,
     CreateQuestionComponent,
     PublicProfileComponent,
+    FavoritesComponent,
+    SubjectListComponent,
+    SubjectDetailComponent,
+    ShareMaterialComponent,
   ],
   imports: [
     BrowserModule,

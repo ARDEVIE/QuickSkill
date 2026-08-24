@@ -92,6 +92,29 @@
   }
   
   
+  /* FAVORITES */
+
+  .favorites-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    border-radius: 50%;
+
+    font-size: 18px;
+    color: #667085;
+
+    transition: color 0.2s ease;
+  }
+
+  .favorites-link:hover {
+    color: #4f8cff;
+  }
+
+
   /* SEARCH */
   
   .search-button {

@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # Project modules
 from apps.common.serializers import AuthorSerializer
-from apps.courses.models import Category, ContentBlock, Course, Rating, Section
+from apps.courses.models import Category, ContentBlock, Course, LessonProgress, Rating, Resource, Section
 
 MAX_PDF_SIZE_MB = 10
 MAX_COVER_SIZE_MB = 5
@@ -18,15 +18,101 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'course_count']
+        fields = ['id', 'name', 'slug', 'code', 'course_count']
         read_only_fields = ['slug', 'course_count']
 
 
+class SubjectDetailSerializer(serializers.ModelSerializer):
+    '''Category, dressed up with the stats/actions a Subject hub page needs.
+
+    Kept separate from CategorySerializer so the catalog/forum filter-chip
+    endpoints stay exactly as cheap as they were.
+    '''
+
+    students_count = serializers.SerializerMethodField()
+    materials_count = serializers.SerializerMethodField()
+    guides_count = serializers.SerializerMethodField()
+    questions_count = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = [
+            'id', 'name', 'slug', 'code', 'description',
+            'students_count', 'materials_count', 'guides_count', 'questions_count', 'is_following',
+        ]
+
+    def get_students_count(self, obj) -> int:
+        # No enrollment concept exists yet; subscriber count doubles as "students" for now.
+        return obj.followers.count()
+
+    def get_materials_count(self, obj) -> int:
+        return obj.resources.count()
+
+    def get_guides_count(self, obj) -> int:
+        return obj.courses.filter(is_published=True).count()
+
+    def get_questions_count(self, obj) -> int:
+        return obj.questions.count()
+
+    def get_is_following(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.followers.filter(user=request.user).exists()
+
+
+class ResourceSerializer(serializers.ModelSerializer):
+    '''Read shape — nested category/author, matching CourseListSerializer's convention.'''
+
+    author = AuthorSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        model = Resource
+        fields = ['id', 'category', 'author', 'title', 'description', 'type', 'url', 'file', 'tags', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
+
+
+FILE_RESOURCE_TYPES = (
+    Resource.ResourceType.PDF, Resource.ResourceType.DOCUMENT, Resource.ResourceType.IMAGE,
+    Resource.ResourceType.NOTES, Resource.ResourceType.CHEATSHEET, Resource.ResourceType.PAST_PAPER,
+)
+
+
+class ResourceWriteSerializer(serializers.ModelSerializer):
+    '''Create/update shape — plain category id, so it's actually writable (see CourseWriteSerializer).'''
+
+    class Meta:
+        model = Resource
+        fields = ['id', 'category', 'title', 'description', 'type', 'url', 'file', 'tags']
+        read_only_fields = ['id']
+
+    def validate(self, attrs):
+        resource_type = attrs.get('type')
+        url = attrs.get('url')
+        file = attrs.get('file')
+
+        if resource_type in (Resource.ResourceType.LINK, Resource.ResourceType.VIDEO) and not url:
+            raise serializers.ValidationError({'url': 'This resource type needs a URL.'})
+        if resource_type in FILE_RESOURCE_TYPES and not file:
+            raise serializers.ValidationError({'file': 'This resource type needs a file.'})
+        return attrs
+
+
 class ContentBlockSerializer(serializers.ModelSerializer):
+    is_completed = serializers.SerializerMethodField()
+
     class Meta:
         model = ContentBlock
-        fields = ['id', 'section', 'type', 'content', 'file', 'order', 'created_at']
+        fields = ['id', 'section', 'title', 'type', 'content', 'file', 'order', 'created_at', 'is_completed']
         read_only_fields = ['id', 'section', 'created_at']
+
+    def get_is_completed(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.completions.filter(user=request.user).exists()
 
     def validate(self, attrs):
         block_type = attrs.get('type', getattr(self.instance, 'type', None))
@@ -63,10 +149,14 @@ class CourseListSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     average_rating = serializers.SerializerMethodField()
     ratings_count = serializers.SerializerMethodField()
+    progress_percent = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'cover', 'category', 'author', 'is_published', 'average_rating', 'ratings_count', 'created_at']
+        fields = [
+            'id', 'title', 'description', 'cover', 'category', 'author', 'is_published',
+            'average_rating', 'ratings_count', 'progress_percent', 'created_at',
+        ]
 
     def get_average_rating(self, obj):
         scores = [rating.score for rating in obj.ratings.all()]
@@ -74,6 +164,17 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     def get_ratings_count(self, obj):
         return len(obj.ratings.all())
+
+    def get_progress_percent(self, obj):
+        '''% of this course's lessons the current user has completed, or None if not signed in / no lessons.'''
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        total = ContentBlock.objects.filter(section__course=obj).count()
+        if total == 0:
+            return None
+        completed = LessonProgress.objects.filter(user=request.user, block__section__course=obj).count()
+        return round(completed / total * 100)
 
 
 class CourseDetailSerializer(CourseListSerializer):

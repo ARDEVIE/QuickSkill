@@ -17,9 +17,9 @@
   
         <div class="course-cover">
   
-          <span class="category">
+          <a class="category" *ngIf="course.category" [routerLink]="['/subjects', course.category.id]" style="text-decoration: none;">
             {{ course.category.name }}
-          </span>
+          </a>
 
         </div>
   
@@ -35,7 +35,7 @@
             <button class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()" *ngIf="isLoggedIn">
               {{ isFavorited ? '♥ В избранном' : '♡ В избранное' }}
             </button>
-            <button class="favorite-btn" style="margin-left: 10px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color);" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
+            <button class="favorite-btn" style="margin-left: 10px; background: transparent; border: 1px solid var(--border); color: var(--text);" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
               ✎ Редактировать
             </button>
           </h1>
@@ -124,6 +124,14 @@
                   {{ course.sections.length || 0 }} модулей
                 </p>
               </div>
+              <a
+                *ngIf="course.sections.length > 0"
+                [routerLink]="['/courses', course.id, 'learn']"
+                class="accent-btn"
+                style="text-decoration: none; display: inline-block;"
+              >
+                Начать обучение →
+              </a>
             </div>
 
             <div class="lessons">
@@ -131,20 +139,23 @@
                 <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
                   Модуль {{ i + 1 }}: {{ section.title }}
                 </h3>
-                
-                <div class="lesson" *ngFor="let block of section.blocks; let j = index" style="margin-bottom: 0.5rem; padding-left: 1rem;">
+
+                <a
+                  class="lesson"
+                  *ngFor="let block of section.blocks; let j = index"
+                  [routerLink]="['/courses', course.id, 'learn']"
+                  [queryParams]="{ lesson: block.id }"
+                  style="margin-bottom: 0.5rem; padding-left: 1rem; text-decoration: none; color: inherit; cursor: pointer;"
+                >
                   <div class="lesson-info">
-                    <strong>Урок {{ i + 1 }}.{{ j + 1 }}</strong>
+                    <strong>{{ block.title || ('Урок ' + (i + 1) + '.' + (j + 1)) }}</strong>
                     <span style="color: #666; margin-left: 10px;">
-                      {{ block.type === 'video_link' ? 'Видео' : (block.type === 'media' ? 'Медиа файл' : 'Текст') }}
+                      {{ block.type === 'video_link' ? 'Видео' : (block.type === 'link' ? 'Ссылка' : (block.type === 'media' ? 'Медиа файл' : 'Текст')) }}
                     </span>
                   </div>
-                  
-                  <span class="duration">
-                    <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Смотреть</a>
-                    <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Скачать / Открыть медиа</a>
-                  </span>
-                </div>
+
+                  <span class="duration">Открыть →</span>
+                </a>
                 <div *ngIf="!section.blocks || section.blocks.length === 0" style="padding-left: 1rem; color: #999;">
                   В этом модуле пока нет уроков.
                 </div>
@@ -186,7 +197,7 @@
               <div class="rating-item" *ngFor="let rating of course.ratings" style="padding: 1rem; border-bottom: 1px solid #eee;">
                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                    <strong>{{ rating.user.first_name || rating.user.username }}</strong>
-                   <span style="color: var(--orange-color)">★ {{ rating.score }}</span>
+                   <span style="color: var(--accent)">★ {{ rating.score }}</span>
                  </div>
                  <p style="margin: 0; color: #555;">{{ rating.comment }}</p>
                  <small style="color: #999;">{{ rating.created_at | date }}</small>

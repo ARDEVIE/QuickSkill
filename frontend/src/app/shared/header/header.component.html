@@ -10,6 +10,9 @@
         <a routerLink="/courses" routerLinkActive="active">
           Каталог
         </a>
+        <a routerLink="/subjects" routerLinkActive="active">
+          Предметы
+        </a>
         <a routerLink="/forum" routerLinkActive="active">
           Форум
         </a>
@@ -29,6 +32,9 @@
 
         <ng-container *ngIf="currentUser$ | async as user; else loginLink">
           <div class="user-menu" style="display: flex; align-items: center; gap: 10px;">
+            <a routerLink="/favorites" routerLinkActive="active" class="favorites-link" title="Избранное">
+              ♡
+            </a>
             <a routerLink="/profile" class="login-link" title="Профиль">
               <img [src]="user.avatar || 'assets/default-avatar.svg'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
             </a>

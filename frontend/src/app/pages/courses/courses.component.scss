@@ -9,9 +9,9 @@
 ========================= */
 
 .courses-page main {
-  max-width: 1200px;
+  max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: 0 24px 80px;
+  padding: 0 var(--page-padding-x) var(--page-padding-bottom);
 }
 
 /* =========================
@@ -53,17 +53,6 @@
   z-index: 1;
 
   max-width: 650px;
-}
-
-.eyebrow {
-  display: inline-block;
-
-  color: #4f8cff;
-
-  font-size: 11px;
-  font-weight: 800;
-
-  letter-spacing: 2px;
 }
 
 .catalog-hero h1 {
@@ -303,7 +292,7 @@
 
   grid-template-columns: repeat(4, 1fr);
 
-  gap: 18px;
+  gap: var(--space-16);
 }
 
 /* =========================
@@ -343,7 +332,7 @@
 .course-cover {
   height: 185px;
 
-  padding: 14px;
+  padding: var(--space-16);
 
   box-sizing: border-box;
 
@@ -417,7 +406,7 @@
 ========================= */
 
 .course-body {
-  padding: 17px;
+  padding: var(--space-16);
 }
 
 .course-body h3 {

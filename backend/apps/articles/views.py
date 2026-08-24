@@ -1,3 +1,7 @@
+# Django modules
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
+
 # Third-party modules
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -6,7 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticate
 from rest_framework.response import Response
 
 # Project modules
-from apps.articles.models import Comment, FavoriteArticle, Question
+from apps.articles.models import Comment, CommentVote, FavoriteArticle, Question, QuestionVote
 from apps.articles.permissions import IsCommentOwnerOrAdminOrReadOnly, IsQuestionAuthorOrAdminOrReadOnly
 from apps.articles.serializers import (
     QuestionDetailSerializer,
@@ -15,6 +19,28 @@ from apps.articles.serializers import (
     CommentCreateUpdateSerializer,
     CommentSerializer,
 )
+
+
+def _parse_vote_value(raw):
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value in (1, -1) else None
+
+
+def _apply_vote(vote_model, lookup, value):
+    '''Create/update/toggle-off a vote; returns the resulting user_vote (None if removed).'''
+    existing = vote_model.objects.filter(**lookup).first()
+    if existing and existing.value == value:
+        existing.delete()
+        return None
+    if existing:
+        existing.value = value
+        existing.save(update_fields=['value'])
+        return value
+    vote_model.objects.create(value=value, **lookup)
+    return value
 
 
 class QuestionViewSet(viewsets.ModelViewSet):
@@ -28,7 +54,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
         author_id = self.request.query_params.get('author')
         if author_id:
             queryset = queryset.filter(author_id=author_id)
-            
+
         category = self.request.query_params.get('category')
         if category:
             if category.isdigit():
@@ -36,13 +62,30 @@ class QuestionViewSet(viewsets.ModelViewSet):
             else:
                 queryset = queryset.filter(category__slug=category)
 
-        return queryset
+        if self.request.query_params.get('unresolved') == 'true':
+            queryset = queryset.filter(accepted_comment__isnull=True)
+
+        # Forum tab filters: 'mine' (subjects I follow), 'popular' (by net votes),
+        # 'unanswered' (zero answers), 'new' (default recency ordering).
+        tab_filter = self.request.query_params.get('filter')
+        if tab_filter == 'mine' and self.request.user.is_authenticated:
+            queryset = queryset.filter(category__followers__user=self.request.user)
+        elif tab_filter == 'unanswered':
+            queryset = queryset.filter(comments__isnull=True)
+        elif tab_filter == 'popular':
+            queryset = queryset.annotate(
+                _vote_score=Coalesce(Sum('votes__value'), 0)
+            ).order_by('-_vote_score', '-created_at')
+
+        return queryset.distinct()
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         if self.action == 'comments':
             return [IsAuthenticatedOrReadOnly()]
+        if self.action in ['favorite', 'favorites', 'vote']:
+            return [IsAuthenticated()]
         return [IsAuthenticated(), IsQuestionAuthorOrAdminOrReadOnly()]
 
     def get_serializer_class(self):
@@ -74,10 +117,10 @@ class QuestionViewSet(viewsets.ModelViewSet):
             comments = question.comments.select_related('user').all()
             page = self.paginate_queryset(comments)
             if page is not None:
-                serializer = CommentSerializer(page, many=True)
+                serializer = CommentSerializer(page, many=True, context=self.get_serializer_context())
                 return self.get_paginated_response(serializer.data)
 
-            serializer = CommentSerializer(comments, many=True)
+            serializer = CommentSerializer(comments, many=True, context=self.get_serializer_context())
             return Response(serializer.data)
 
         elif request.method == 'POST':
@@ -85,8 +128,19 @@ class QuestionViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             comment = serializer.save(question=question, user=request.user)
             # Return the created comment with full details
-            response_serializer = CommentSerializer(comment)
+            response_serializer = CommentSerializer(comment, context=self.get_serializer_context())
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def vote(self, request, slug=None):
+        question = self.get_object()
+        vote_value = _parse_vote_value(request.data.get('value'))
+        if vote_value is None:
+            return Response({'detail': 'value must be 1 or -1.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_vote = _apply_vote(QuestionVote, {'question': question, 'user': request.user}, vote_value)
+        vote_score = question.votes.aggregate(total=Sum('value'))['total'] or 0
+        return Response({'vote_score': vote_score, 'user_vote': user_vote})
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def favorite(self, request, slug=None):
@@ -95,6 +149,21 @@ class QuestionViewSet(viewsets.ModelViewSet):
         if not created:
             favorite.delete()
         return Response({'favorited': created})
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def favorites(self, request):
+        '''List of questions the current user has favorited.'''
+        questions = Question.objects.filter(
+            favorited_by__user=request.user
+        ).select_related('author', 'category').distinct()
+
+        page = self.paginate_queryset(questions)
+        if page is not None:
+            serializer = QuestionListSerializer(page, many=True, context=self.get_serializer_context())
+            return self.get_paginated_response(serializer.data)
+
+        serializer = QuestionListSerializer(questions, many=True, context=self.get_serializer_context())
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def accept_answer(self, request, slug=None):
@@ -119,13 +188,40 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(
+    mixins.ListModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = Comment.objects.all()
-    serializer_class = CommentCreateUpdateSerializer
     permission_classes = [IsAuthenticated, IsCommentOwnerOrAdminOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Comment.objects.select_related('user', 'question').order_by('-created_at')
+        author_id = self.request.query_params.get('author')
+        if author_id:
+            queryset = queryset.filter(user_id=author_id)
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CommentSerializer
+        return CommentCreateUpdateSerializer
+
+    def get_permissions(self):
+        if self.action in ('list', 'vote'):
+            return [AllowAny()] if self.action == 'list' else [IsAuthenticated()]
+        return super().get_permissions()
+
+    @action(detail=True, methods=['post'])
+    def vote(self, request, pk=None):
+        comment = self.get_object()
+        vote_value = _parse_vote_value(request.data.get('value'))
+        if vote_value is None:
+            return Response({'detail': 'value must be 1 or -1.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_vote = _apply_vote(CommentVote, {'comment': comment, 'user': request.user}, vote_value)
+        vote_score = comment.votes.aggregate(total=Sum('value'))['total'] or 0
+        return Response({'vote_score': vote_score, 'user_vote': user_vote})
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
