@@ -9,17 +9,45 @@
   --accent-dark: #f27528;
   --accent-light: #fff3ea;
 
+  --success: #2e7d32;
+  --success-light: #e8f5e9;
+
+  --danger: #dc3545;
+  --danger-light: #fdecea;
+
   --white: #ffffff;
   --background: #ffffff;
   --surface: #f8fafc;
+  --surface-hover: #eef2f6;
 
   --text: #111827;
   --text-secondary: #667085;
+  --text-muted: #98a2b3;
 
   --border: #e5e7eb;
+  --border-strong: #cbd5e1;
 
   --shadow-sm: 0 4px 12px rgba(16, 24, 40, 0.06);
   --shadow-md: 0 12px 30px rgba(16, 24, 40, 0.10);
+
+  /* Spacing scale — every margin/padding/gap in the app should resolve to one of these. */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* Page-level layout. Two content tiers: wide (catalog/form pages) and
+     narrow (profile-style single-column pages). Hero/landing sections are
+     intentionally excluded — see home.component.scss. */
+  --page-max-width: 1200px;
+  --page-max-width-narrow: 800px;
+  --page-padding-x: var(--space-24);
+  --page-padding-top: var(--space-48);
+  --page-padding-bottom: var(--space-64);
 }
 
 * {
@@ -60,4 +88,490 @@ a {
 img {
   max-width: 100%;
   display: block;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* Keyboard-navigation focus ring. Applies to every interactive element that
+   doesn't opt out — buttons/links/inputs get a visible ring only when
+   navigated to via keyboard (not on mouse click), matching :focus-visible
+   semantics. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+
+/* =========================
+   TYPOGRAPHY / LAYOUT UTILITIES
+   Previously redefined (or missing) per-component, so the same element
+   looked different page to page.
+========================= */
+
+.eyebrow {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.page-header {
+  margin-bottom: var(--space-32);
+}
+
+.page-header h1 {
+  margin: 8px 0;
+  font-size: 32px;
+  letter-spacing: -1px;
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.section-count,
+.helper-text {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.error-text,
+.error-message {
+  color: var(--danger);
+  font-size: 13px;
+  margin-bottom: var(--space-16);
+}
+
+.selected-file-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--success);
+}
+
+.optional-tag {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.link {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.link.underline {
+  text-decoration: underline;
+}
+
+
+/* =========================
+   CARDS
+   One shared container style for anything presented as a discrete card
+   (course cards, question cards, profile cards, info panels...).
+========================= */
+
+.catalog-card,
+.card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--white);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+a.catalog-card,
+article.catalog-card,
+.catalog-card[role="button"],
+.catalog-card.clickable {
+  cursor: pointer;
+}
+
+a.catalog-card:hover,
+article.catalog-card:hover,
+.catalog-card.clickable:hover {
+  transform: translateY(-4px);
+  border-color: #cfe0ff;
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-hint {
+  padding: var(--space-32) 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-64) 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.empty-hint a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+
+/* =========================
+   BUTTON SYSTEM
+   One shared set of variants, reused by every page instead of each page
+   redefining its own create/add/cancel/submit/save/edit button styles.
+========================= */
+
+.primary-btn,
+.secondary-btn,
+.accent-btn,
+.danger-btn,
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border: none;
+  border-radius: 999px;
+  padding: 14px 26px;
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primary-btn span,
+.secondary-btn span,
+.accent-btn span,
+.danger-btn span,
+.ghost-btn span {
+  margin-left: 2px;
+  font-size: 0.9em;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: var(--white);
+  box-shadow: 0 7px 18px rgba(79, 140, 255, 0.18);
+}
+
+.primary-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.secondary-btn {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.secondary-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.accent-btn {
+  background: var(--accent);
+  color: var(--white);
+}
+
+.accent-btn:hover {
+  background: var(--accent-dark);
+}
+
+.danger-btn {
+  background: var(--white);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.danger-btn:hover {
+  background: var(--danger-light);
+}
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  padding: 8px 14px;
+}
+
+.ghost-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.primary-btn:disabled,
+.secondary-btn:disabled,
+.accent-btn:disabled,
+.danger-btn:disabled,
+.ghost-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Small inline text-only action (e.g. "Редактировать", "Удалить" inside a
+   list row) — not a full button, just a link-weight action. */
+.text-link-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.text-link-btn:hover {
+  text-decoration: underline;
+}
+
+.text-link-btn.danger {
+  color: var(--danger);
+}
+
+/* Circular icon-only button (search, close, kebab menu...). Always pair
+   with aria-label since there's no visible text. */
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+
+  transition: background 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Bookmark/favorite toggle — off state is neutral, on state picks up the
+   accent color so "saved" reads as a positive, not a warning. */
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--text-secondary);
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.favorite-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.favorite-btn.favorited {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+
+/* =========================
+   FORMS
+   Base look for native controls; pages still own their own layout/labels.
+========================= */
+
+.form-group {
+  margin-bottom: var(--space-16);
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: var(--white);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="url"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.08);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+input.has-error,
+textarea.has-error,
+select.has-error {
+  border-color: var(--danger);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(17, 24, 39, 0.5);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 420px;
+  margin: var(--space-16);
+
+  padding: var(--space-32);
+
+  background: var(--white);
+  border-radius: 16px;
+
+  box-shadow: var(--shadow-md);
+}
+
+.modal-content h3 {
+  margin: 0 0 var(--space-16);
+  font-size: 18px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--space-8);
+}
+
+
+/* =========================
+   BADGES / PILLS
+========================= */
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.badge-accent {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.badge-primary {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.badge-success {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.badge-neutral {
+  background: var(--surface);
+  color: var(--text-secondary);
 }

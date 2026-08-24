@@ -4,7 +4,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
   
-    background: #ffffff;
+    background: var(--white);
   }
   
   
@@ -142,7 +142,7 @@
   
     padding: 20px;
   
-    background: #ffffff;
+    background: var(--white);
   
     border-radius: 18px;
   
@@ -171,7 +171,7 @@
     position: relative;
     z-index: 5;
   
-    color: #98a2b3;
+    color: var(--text-muted);
   
     font-size: 10px;
   }
@@ -282,7 +282,7 @@
   }
   
   .form-group input::placeholder {
-    color: #b0b7c3;
+    color: var(--text-muted);
   }
   
   

@@ -35,7 +35,7 @@
   
         <section class="course-form" [formGroup]="courseForm">
   
-          <div *ngIf="errorMessage" class="error-message" style="color: #dc3545; margin-bottom: 1rem; font-size: 0.9rem;">
+          <div *ngIf="errorMessage" class="error-message">
             {{ errorMessage }}
           </div>
   
@@ -167,8 +167,8 @@
               <button type="button" (click)="fileInput.click()">
                 Выбрать файл
               </button>
-              <input type="file" #fileInput (change)="onFileSelected($event)" accept=".png,.jpg,.jpeg,.webp" style="display: none;" />
-              <div *ngIf="selectedFile" style="margin-top: 10px; font-size: 0.9rem; color: #4CAF50;">
+              <input type="file" #fileInput (change)="onFileSelected($event)" accept=".png,.jpg,.jpeg,.webp" hidden />
+              <div class="selected-file-hint" *ngIf="selectedFile">
                 Выбран файл: {{ selectedFile.name }}
               </div>
   
@@ -182,7 +182,7 @@
 
   
         <!-- MODULES BUILDER -->
-        <div class="form-section" style="margin-top: 3rem;">
+        <div class="form-section modules-section">
           <div class="section-heading lesson-heading">
             <div class="section-number">03</div>
             <div>
@@ -191,39 +191,39 @@
             </div>
             <button type="button" class="add-lesson" (click)="openSectionModal()">+ Добавить модуль</button>
           </div>
-  
+
           <div class="lessons-list">
-            <div *ngFor="let section of sections; let i = index" style="margin-bottom: 2rem; border: 1px solid #eee; border-radius: 12px; padding: 1.5rem; background: #fafafa;">
-              
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem;">
-                <h3 style="margin: 0; font-size: 1.2rem;">Модуль {{ i + 1 }}: {{ section.title }}</h3>
-                <button class="secondary-btn" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" (click)="openBlockModal(i)">
+            <div class="module-card" *ngFor="let section of sections; let i = index">
+
+              <div class="module-card-header">
+                <h3>Модуль {{ i + 1 }}: {{ section.title }}</h3>
+                <button type="button" class="secondary-btn sm" (click)="openBlockModal(i)">
                   + Добавить урок
                 </button>
               </div>
 
               <!-- BLOCKS (LESSONS) -->
-              <div class="lesson" *ngFor="let block of section.blocks; let j = index" style="background: #fff; border: 1px solid #eee; margin-bottom: 0.5rem; padding: 1rem; border-radius: 8px;">
+              <div class="lesson module-lesson" *ngFor="let block of section.blocks; let j = index">
                 <div class="lesson-info">
                   <strong>Урок {{ i + 1 }}.{{ j + 1 }}</strong>
-                  <span style="color: #666; margin-left: 10px;">
+                  <span class="lesson-type">
                     {{ block.type === 'video_link' ? 'Видео' : (block.type === 'media' ? 'Медиа файл' : 'Текст') }}
                   </span>
                 </div>
               </div>
 
-              <div *ngIf="!section.blocks || section.blocks.length === 0" style="color: #999; font-size: 0.9rem;">
+              <p class="empty-hint" *ngIf="!section.blocks || section.blocks.length === 0">
                 В этом модуле пока нет уроков.
-              </div>
+              </p>
             </div>
 
-            <div *ngIf="sections.length === 0" style="color: #888; text-align: center; padding: 2rem;">
+            <p class="empty-hint" *ngIf="sections.length === 0">
                У курса пока нет модулей. Создайте первый модуль!
-            </div>
+            </p>
           </div>
         </div>
         
-        <div class="form-actions" style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <div class="form-actions">
           <button type="button" class="accent-btn" (click)="onSubmit(true)" [disabled]="isLoading || courseForm.invalid">
             {{ isLoading ? 'Сохранение...' : 'Создать курс' }}
           </button>
@@ -239,48 +239,48 @@
   </div>
 
   <!-- MODAL: ADD SECTION -->
-  <div class="modal-overlay" *ngIf="showSectionModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div class="modal-content" style="background: #fff; padding: 2rem; border-radius: 12px; width: 100%; max-width: 400px;">
-      <h3 style="margin-top: 0;">Добавить модуль</h3>
+  <div class="modal-overlay" *ngIf="showSectionModal">
+    <div class="modal-content">
+      <h3>Добавить модуль</h3>
       <form [formGroup]="sectionForm" (ngSubmit)="onAddSection()">
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.5rem;">Название модуля</label>
-          <input type="text" formControlName="title" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
+        <div class="form-group">
+          <label>Название модуля</label>
+          <input type="text" formControlName="title">
         </div>
-        <div style="display: flex; gap: 1rem;">
+        <div class="modal-actions">
           <button type="submit" class="accent-btn" [disabled]="sectionForm.invalid">Сохранить</button>
           <button type="button" class="secondary-btn" (click)="showSectionModal = false">Отмена</button>
         </div>
       </form>
     </div>
   </div>
-  
+
   <!-- MODAL: ADD BLOCK -->
-  <div class="modal-overlay" *ngIf="showBlockModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div class="modal-content" style="background: #fff; padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px;">
-      <h3 style="margin-top: 0;">Добавить урок</h3>
+  <div class="modal-overlay" *ngIf="showBlockModal">
+    <div class="modal-content">
+      <h3>Добавить урок</h3>
       <form [formGroup]="blockForm" (ngSubmit)="onAddBlock()">
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.5rem;">Тип контента</label>
-          <select formControlName="type" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;" (change)="onBlockTypeChange()">
+        <div class="form-group">
+          <label>Тип контента</label>
+          <select formControlName="type" (change)="onBlockTypeChange()">
             <option value="video_link">Видео (YouTube/Ссылка)</option>
             <option value="text">Текст (Статья)</option>
             <option value="media">Медиа файл (Фото/Видео/PDF)</option>
           </select>
         </div>
-  
-        <div class="form-group" style="margin-bottom: 1rem;" *ngIf="blockForm.get('type')?.value === 'video_link' || blockForm.get('type')?.value === 'text'">
-          <label style="display: block; margin-bottom: 0.5rem;">Контент (Текст или ссылка)</label>
-          <textarea formControlName="content" rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;" placeholder="Введите текст или ссылку..."></textarea>
+
+        <div class="form-group" *ngIf="blockForm.get('type')?.value === 'video_link' || blockForm.get('type')?.value === 'text'">
+          <label>Контент (Текст или ссылка)</label>
+          <textarea formControlName="content" rows="4" placeholder="Введите текст или ссылку..."></textarea>
         </div>
-  
-        <div class="form-group" style="margin-bottom: 1rem;" *ngIf="blockForm.get('type')?.value === 'media'">
-          <label style="display: block; margin-bottom: 0.5rem;">Загрузить медиа файл</label>
-          <input type="file" (change)="onBlockFileSelect($event)" accept=".pdf,.png,.jpg,.jpeg,.webp,.mp4,.webm" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
-          <div *ngIf="selectedBlockFile" style="margin-top: 10px; font-size: 0.9rem; color: #4CAF50;">Выбран файл: {{ selectedBlockFile.name }}</div>
+
+        <div class="form-group" *ngIf="blockForm.get('type')?.value === 'media'">
+          <label>Загрузить медиа файл</label>
+          <input type="file" (change)="onBlockFileSelect($event)" accept=".pdf,.png,.jpg,.jpeg,.webp,.mp4,.webm">
+          <div class="selected-file-hint" *ngIf="selectedBlockFile">Выбран файл: {{ selectedBlockFile.name }}</div>
         </div>
-  
-        <div style="display: flex; gap: 1rem;">
+
+        <div class="modal-actions">
           <button type="submit" class="accent-btn" [disabled]="blockForm.invalid">Сохранить</button>
           <button type="button" class="secondary-btn" (click)="showBlockModal = false">Отмена</button>
         </div>

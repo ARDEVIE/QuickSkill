@@ -1,119 +1,119 @@
 <div class="course-details-page">
 
     <app-header></app-header>
-  
+
     <main class="details-container">
-  
+
       <!-- BACK -->
-  
+
       <a routerLink="/courses" class="back-link">
         ← Вернуться к каталогу
       </a>
-  
-  
+
+
       <!-- COURSE HERO -->
-  
+
       <section class="course-hero" *ngIf="course">
-  
+
         <div class="course-cover">
-  
+
           <span class="category">
             {{ course.category.name }}
           </span>
 
         </div>
-  
-  
+
+
         <div class="course-intro">
-  
+
           <span class="eyebrow">
             ONLINE COURSE
           </span>
-  
+
           <h1>
             {{ course.title }}
             <button class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()" *ngIf="isLoggedIn">
               {{ isFavorited ? '♥ В избранном' : '♡ В избранное' }}
             </button>
-            <button class="favorite-btn" style="margin-left: 10px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color);" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
+            <button class="secondary-btn edit-course-btn" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
               ✎ Редактировать
             </button>
           </h1>
-  
+
           <p class="description">
             {{ course.description }}
           </p>
-  
-  
+
+
           <div class="course-stats">
-  
+
             <div>
               <strong>★ {{ course.average_rating || 0 }}</strong>
               <span>Рейтинг</span>
             </div>
-  
+
             <div>
               <strong>{{ course.ratings_count || 0 }}</strong>
               <span>Отзывов</span>
             </div>
-  
+
             <div>
               <strong>{{ course.sections.length || 0 }}</strong>
               <span>Модулей</span>
             </div>
-  
+
           </div>
-  
-  
+
+
           <div class="author">
-            <a [routerLink]="['/public-profile', course.author.username]" style="display: flex; gap: 1rem; align-items: center; text-decoration: none; color: inherit;">
+            <a [routerLink]="['/public-profile', course.author.username]" class="author-link">
               <div class="author-avatar" *ngIf="!course.author?.avatar">
                 {{ authorInitials }}
               </div>
-              
-              <div *ngIf="course.author?.avatar" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden;">
-                <img [src]="course.author.avatar" style="width: 100%; height: 100%; object-fit: cover;">
+
+              <div class="author-avatar-image" *ngIf="course.author?.avatar">
+                <img [src]="course.author.avatar" alt="">
               </div>
-    
+
               <div>
                 <span>Автор курса</span>
                 <strong>{{ authorName }}</strong>
               </div>
             </a>
           </div>
-  
+
         </div>
-  
+
       </section>
-  
-  
+
+
       <!-- CONTENT -->
-  
+
       <div class="details-layout">
-  
-  
+
+
         <!-- LEFT -->
-  
+
         <div class="details-main">
-  
-  
+
+
           <!-- ABOUT -->
-  
+
           <section class="content-section" *ngIf="course">
-  
+
             <h2>
               О курсе
             </h2>
-  
+
             <p>
               {{ course.description }}
             </p>
-  
+
           </section>
-  
-  
+
+
           <!-- LEARNING -->
-  
+
           <section class="content-section" *ngIf="course">
             <div class="curriculum-header">
               <div>
@@ -127,46 +127,46 @@
             </div>
 
             <div class="lessons">
-              <div *ngFor="let section of course.sections; let i = index" style="margin-bottom: 2rem;">
-                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+              <div class="module-block" *ngFor="let section of course.sections; let i = index">
+                <h3 class="module-title">
                   Модуль {{ i + 1 }}: {{ section.title }}
                 </h3>
-                
-                <div class="lesson" *ngFor="let block of section.blocks; let j = index" style="margin-bottom: 0.5rem; padding-left: 1rem;">
+
+                <div class="lesson" *ngFor="let block of section.blocks; let j = index">
                   <div class="lesson-info">
                     <strong>Урок {{ i + 1 }}.{{ j + 1 }}</strong>
-                    <span style="color: #666; margin-left: 10px;">
+                    <span class="lesson-type">
                       {{ block.type === 'video_link' ? 'Видео' : (block.type === 'media' ? 'Медиа файл' : 'Текст') }}
                     </span>
                   </div>
-                  
+
                   <span class="duration">
-                    <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Смотреть</a>
-                    <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Скачать / Открыть медиа</a>
+                    <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" class="link underline">Смотреть</a>
+                    <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" class="link underline">Скачать / Открыть медиа</a>
                   </span>
                 </div>
-                <div *ngIf="!section.blocks || section.blocks.length === 0" style="padding-left: 1rem; color: #999;">
+                <p class="empty-hint" *ngIf="!section.blocks || section.blocks.length === 0">
                   В этом модуле пока нет уроков.
-                </div>
+                </p>
               </div>
-              <div *ngIf="!course.sections || course.sections.length === 0" style="color: #888;">
+              <p class="empty-hint" *ngIf="!course.sections || course.sections.length === 0">
                  Материалы пока не добавлены.
-              </div>
+              </p>
             </div>
           </section>
 
 
-          
+
           <!-- RATINGS SECTION -->
           <section class="content-section" *ngIf="course">
             <h2>Отзывы и оценки</h2>
-            
+
             <div class="rating-form" *ngIf="isLoggedIn && !isAuthor">
-               <h3 style="margin-bottom: 1rem; font-size: 1.2rem;">Оставить отзыв</h3>
+               <h3 class="rating-form-title">Оставить отзыв</h3>
                <form [formGroup]="ratingForm" (ngSubmit)="onRateCourse()">
-                  <div class="form-group" style="margin-bottom: 1rem;">
+                  <div class="form-group">
                     <label>Оценка (1-5)</label>
-                    <select formControlName="score" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;">
+                    <select formControlName="score">
                       <option value="5">5 - Отлично</option>
                       <option value="4">4 - Хорошо</option>
                       <option value="3">3 - Нормально</option>
@@ -174,33 +174,33 @@
                       <option value="1">1 - Ужасно</option>
                     </select>
                   </div>
-                  <div class="form-group" style="margin-bottom: 1rem;">
+                  <div class="form-group">
                     <label>Комментарий</label>
-                    <textarea formControlName="comment" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px;" placeholder="Напишите ваш отзыв"></textarea>
+                    <textarea formControlName="comment" rows="3" placeholder="Напишите ваш отзыв"></textarea>
                   </div>
                   <button type="submit" class="accent-btn" [disabled]="ratingForm.invalid || isSubmitting">Отправить отзыв</button>
                </form>
             </div>
 
-            <div class="ratings-list" style="margin-top: 2rem;">
-              <div class="rating-item" *ngFor="let rating of course.ratings" style="padding: 1rem; border-bottom: 1px solid #eee;">
-                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <div class="ratings-list">
+              <div class="rating-item" *ngFor="let rating of course.ratings">
+                 <div class="rating-item-header">
                    <strong>{{ rating.user.first_name || rating.user.username }}</strong>
-                   <span style="color: var(--orange-color)">★ {{ rating.score }}</span>
+                   <span class="rating-item-score">★ {{ rating.score }}</span>
                  </div>
-                 <p style="margin: 0; color: #555;">{{ rating.comment }}</p>
-                 <small style="color: #999;">{{ rating.created_at | date }}</small>
+                 <p class="rating-item-comment">{{ rating.comment }}</p>
+                 <small class="rating-item-date">{{ rating.created_at | date }}</small>
               </div>
-              <p *ngIf="!course.ratings || course.ratings.length === 0" style="color: #888;">Пока нет отзывов.</p>
+              <p class="empty-hint" *ngIf="!course.ratings || course.ratings.length === 0">Пока нет отзывов.</p>
             </div>
           </section>
 
         </div>
       </div>
     </main>
-  
 
-  
+
+
     <app-footer></app-footer>
-  
+
   </div>
