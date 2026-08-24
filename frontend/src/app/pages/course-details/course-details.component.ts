@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { CourseService, CourseDetail } from 'src/app/core/services/course.service';
 import { AuthService, User } from 'src/app/core/services/auth.service';
 
@@ -53,7 +53,7 @@ export class CourseDetailsComponent implements OnInit {
       url: [''],
       content: [''],
       file: [null]
-    });
+    }, { validators: (group: AbstractControl): ValidationErrors | null => this.validateMaterialForm(group) });
 
     this.ratingForm = this.fb.group({
       score: ['5', Validators.required],
@@ -162,25 +162,41 @@ export class CourseDetailsComponent implements OnInit {
     this.activeMaterialLessonId = null;
   }
 
-  onMaterialTypeChange(): void {
-    const type = this.materialForm.get('type')?.value;
+  /**
+   * Runs on every value change (group validator), not just on the type
+   * <select>'s (change) event — so the button reflects real validity from
+   * the moment the form opens, including for the default type.
+   */
+  validateMaterialForm(group: AbstractControl): ValidationErrors | null {
+    const type = group.get('type')?.value;
+    const url = group.get('url')?.value;
+    const content = group.get('content')?.value;
 
-    this.materialForm.get('url')?.clearValidators();
-    this.materialForm.get('content')?.clearValidators();
-
-    if (type === 'video_link' || type === 'link') {
-      this.materialForm.get('url')?.setValidators([Validators.required]);
-    } else if (type === 'text') {
-      this.materialForm.get('content')?.setValidators([Validators.required]);
+    if ((type === 'video_link' || type === 'link') && !url) {
+      return { urlRequired: true };
     }
+    if (type === 'text' && !content) {
+      return { contentRequired: true };
+    }
+    if (type === 'pdf' && !this.selectedFile) {
+      return { fileRequired: true };
+    }
+    return null;
+  }
 
-    this.materialForm.get('url')?.updateValueAndValidity();
-    this.materialForm.get('content')?.updateValueAndValidity();
+  onMaterialTypeChange(): void {
+    // Field values change under the type switch (e.g. a previously picked
+    // PDF no longer applies once you switch to "text") — clear them so
+    // validity isn't based on a stale value from a different type.
+    this.selectedFile = null;
+    this.materialForm.get('url')?.setValue('');
+    this.materialForm.get('content')?.setValue('');
   }
 
   onFileSelect(event: any): void {
     if (event.target.files.length > 0) {
       this.selectedFile = event.target.files[0];
+      this.materialForm.updateValueAndValidity();
     }
   }
 

@@ -241,6 +241,19 @@
                     <button type="submit" class="accent-btn" [disabled]="materialForm.invalid || isSubmitting">Сохранить</button>
                     <button type="button" class="secondary-btn" (click)="closeAddMaterial()">Отмена</button>
                   </div>
+
+                  <p class="form-hint" *ngIf="materialForm.invalid && !materialForm.get('title')?.value">
+                    Укажите название материала.
+                  </p>
+                  <p class="form-hint" *ngIf="materialForm.invalid && materialForm.get('title')?.value && materialForm.errors?.['urlRequired']">
+                    Укажите ссылку.
+                  </p>
+                  <p class="form-hint" *ngIf="materialForm.invalid && materialForm.get('title')?.value && materialForm.errors?.['contentRequired']">
+                    Заполните текст материала.
+                  </p>
+                  <p class="form-hint" *ngIf="materialForm.invalid && materialForm.get('title')?.value && materialForm.errors?.['fileRequired']">
+                    Выберите PDF-файл.
+                  </p>
                 </form>
               </div>
 
