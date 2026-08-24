@@ -12,7 +12,6 @@ import { AuthService, User } from 'src/app/core/services/auth.service';
 export class CourseDetailsComponent implements OnInit {
   course: CourseDetail | null = null;
   isLoading = true;
-  authorInitials = '';
   authorName = '';
 
   isLoggedIn = false;
@@ -86,7 +85,6 @@ export class CourseDetailsComponent implements OnInit {
            const ln = this.course.author.last_name;
            const un = this.course.author.username;
            this.authorName = (fn || un) + (ln ? ' ' + ln : '');
-           this.authorInitials = (fn ? fn[0] : un[0]).toUpperCase() + (ln ? ln[0].toUpperCase() : '');
         }
         this.checkAuthor();
       },

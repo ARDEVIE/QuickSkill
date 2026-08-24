@@ -32,15 +32,11 @@
             <a routerLink="/favorites" routerLinkActive="active" class="favorites-link" title="Избранное">
               ♡
             </a>
-            <a routerLink="/profile" class="login-link">
+            <a routerLink="/profile" class="login-link" title="Профиль">
               <span class="avatar">
-                <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.username" />
+                <img [src]="user.avatar || 'assets/default-avatar.svg'" [alt]="user.username" />
               </span>
-              <span>{{ user.first_name || user.username }}</span>
             </a>
-            <button class="logout-button" (click)="logout()">
-              Выйти
-            </button>
           </div>
         </ng-container>
         <ng-template #loginLink>

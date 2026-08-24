@@ -3,8 +3,7 @@
 <main class="profile-container">
   <div class="profile-header">
     <div class="avatar-placeholder">
-      <img *ngIf="user?.avatar" [src]="user?.avatar" [alt]="user?.username" />
-      <span *ngIf="!user?.avatar">{{ user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U' }}</span>
+      <img [src]="user?.avatar || 'assets/default-avatar.svg'" [alt]="user?.username" />
     </div>
     <div class="profile-info">
       <h1>{{ user?.first_name }} {{ user?.last_name }}</h1>
@@ -48,7 +47,6 @@
 
     <div class="actions">
       <button class="secondary-btn" (click)="setTab('edit')">Редактировать профиль</button>
-      <button class="secondary-btn" (click)="logout()">Выйти</button>
     </div>
   </section>
 
@@ -181,6 +179,10 @@
       <button type="submit" class="accent-btn" [disabled]="profileForm.invalid || isSubmitting" style="margin-top: 1rem;">Сохранить изменения</button>
     </form>
   </section>
+
+  <div class="logout-row">
+    <button class="secondary-btn" (click)="logout()">Выйти</button>
+  </div>
 
 </main>
 

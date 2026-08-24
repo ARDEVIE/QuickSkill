@@ -142,10 +142,7 @@
             </h3>
 
             <div class="author">
-              <img *ngIf="course.author?.avatar" class="author-avatar-mini" [src]="course.author.avatar" [alt]="course.authorName">
-              <div *ngIf="!course.author?.avatar" class="author-avatar-mini author-avatar-mini-fallback">
-                {{ course.authorName.charAt(0) }}
-              </div>
+              <img class="author-avatar-mini" [src]="course.author?.avatar || 'assets/default-avatar.svg'" [alt]="course.authorName">
               <p>{{ course.authorName }}</p>
             </div>
 

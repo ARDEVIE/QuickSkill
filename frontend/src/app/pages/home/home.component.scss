@@ -265,17 +265,6 @@
     object-fit: cover;
   }
 
-  .author-avatar-mini-fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: var(--primary-light);
-    color: var(--primary);
-
-    font-size: 8px;
-    font-weight: 700;
-  }
 
   .rating {
     display: block;

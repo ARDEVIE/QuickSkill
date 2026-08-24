@@ -174,7 +174,7 @@
   
 
   
-          <!-- NEXT STEP HINT -->
+          <!-- CONTENT -->
 
           <div class="form-section">
 
@@ -185,11 +185,64 @@
               </div>
 
               <div>
-                <h2>Материалы курса</h2>
+                <h2>Программа курса</h2>
 
                 <p>
-                  PDF-документы и ссылки на видео добавляются отдельным
-                  шагом — сразу после сохранения курса, на его странице.
+                  Добавь темы и материалы (видео, ссылки, текст, PDF) —
+                  они будут созданы вместе с курсом. Можно пропустить
+                  этот шаг и добавить всё позже, на странице курса.
+                </p>
+              </div>
+
+              <button type="button" class="secondary-btn" style="margin-left: auto;" (click)="openAddLesson()">
+                + Добавить тему
+              </button>
+
+            </div>
+
+            <p *ngIf="draftLessons.length === 0" class="empty-state">
+              Темы пока не добавлены — начните с кнопки «+ Добавить тему» выше.
+            </p>
+
+            <!-- DRAFT LESSONS -->
+            <div class="lesson-block" *ngFor="let lesson of draftLessons; let li = index">
+
+              <div class="lesson-block-header">
+                <div>
+                  <h3>{{ lesson.title }}</h3>
+                  <p *ngIf="lesson.description">{{ lesson.description }}</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button type="button" class="text-link-btn" (click)="openAddMaterial(li)">
+                    + Материал
+                  </button>
+                  <button type="button" class="text-link-btn" style="color: #dc3545;" (click)="removeDraftLesson(li)">
+                    Удалить тему
+                  </button>
+                </div>
+              </div>
+
+              <div class="lessons">
+                <div class="lesson" *ngFor="let material of lesson.materials; let mi = index">
+                  <div class="lesson-number">
+                    {{ (mi + 1).toString().padStart(2, '0') }}
+                  </div>
+                  <div class="lesson-info">
+                    <strong>{{ material.title }}</strong>
+                    <span>{{ materialTypeLabel(material.type) }}</span>
+                    <p class="material-text" *ngIf="material.type === 'text' && material.content">{{ material.content }}</p>
+                  </div>
+                  <span class="duration">
+                    <span *ngIf="(material.type === 'video_link' || material.type === 'link') && material.url">{{ material.url }}</span>
+                    <span *ngIf="material.type === 'pdf' && material.file">{{ material.file.name }}</span>
+                  </span>
+                  <button type="button" class="text-link-btn" style="color: #dc3545;" (click)="removeDraftMaterial(li, mi)">
+                    Убрать
+                  </button>
+                </div>
+
+                <p *ngIf="lesson.materials.length === 0" class="empty-state">
+                  Материалы пока не добавлены.
                 </p>
               </div>
 
@@ -226,106 +279,92 @@
           </div>
   
         </section>
-  
-  
-        <!-- RIGHT: PREVIEW -->
-  
-        <aside class="course-preview">
-  
-          <div class="preview-header">
-  
-            <span class="eyebrow">
-              LIVE PREVIEW
-            </span>
-  
-            <span class="preview-status">
-              Черновик
-            </span>
-  
-          </div>
-  
-  
-          <h2>
-            Предпросмотр
-          </h2>
-  
-  
-          <!-- COURSE CARD -->
-  
-          <div class="preview-card">
-  
-            <div class="preview-cover">
-  
-              <span class="preview-category">
-                Программирование
-              </span>
-  
-              <div class="preview-symbol">
-                &lt;/&gt;
-              </div>
-  
-              <span class="preview-level">
-                Начальный
-              </span>
-  
-            </div>
-  
-  
-            <div class="preview-content">
-  
-              <h3>
-                Название твоего курса
-              </h3>
-  
-              <p>
-                Твоё имя
-              </p>
-  
-  
-              <div class="preview-rating">
-  
-                <span>
-                  ★ 0.0
-                </span>
-  
-                <span>
-                  Новый курс
-                </span>
-  
-              </div>
-  
-            </div>
-  
-          </div>
-  
-  
-          <!-- TIP -->
 
-          <div class="creator-tip">
-
-            <div class="tip-icon">
-              ✦
-            </div>
-
-            <div>
-
-              <strong>
-                Совет для автора
-              </strong>
-
-              <p>
-                Добавь понятное описание и качественную обложку,
-                а после сохранения — материалы курса (PDF или
-                видео), чтобы студентам было чему учиться.
-              </p>
-
-            </div>
-
-          </div>
-  
-        </aside>
-  
       </div>
     </main>
     <app-footer></app-footer>
+  </div>
+
+  <!-- MODAL: ADD LESSON -->
+  <div class="modal-overlay" *ngIf="showAddLesson" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+    <div class="modal-content" style="background: #fff; padding: 2rem; border-radius: 12px; width: 100%; max-width: 400px;">
+      <h3 style="margin-top: 0;">Добавить тему</h3>
+      <div *ngIf="lessonError" class="error-message">{{ lessonError }}</div>
+      <form [formGroup]="lessonForm" (ngSubmit)="onAddLesson()">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem;">Название темы</label>
+          <input type="text" formControlName="title" placeholder="Например: Введение" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem;">Описание (необязательно)</label>
+          <textarea rows="2" formControlName="description" placeholder="Коротко о теме" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;"></textarea>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="accent-btn" [disabled]="lessonForm.invalid">Сохранить</button>
+          <button type="button" class="secondary-btn" (click)="showAddLesson = false">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD MATERIAL -->
+  <div class="modal-overlay" *ngIf="activeMaterialLessonIndex !== null" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+    <div class="modal-content" style="background: #fff; padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px;">
+      <h3 style="margin-top: 0;">Добавить материал</h3>
+      <form [formGroup]="materialForm" (ngSubmit)="onAddMaterial()">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem;">Название материала</label>
+          <input type="text" formControlName="title" placeholder="Например: Конспект урока" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem;">Тип</label>
+          <select formControlName="type" (change)="onMaterialTypeChange()" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
+            <option value="video_link">Видео (ссылка на YouTube и т.п.)</option>
+            <option value="pdf">PDF документ</option>
+            <option value="link">Ссылка на сайт</option>
+            <option value="text">Текст</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'video_link'">
+          <label style="display: block; margin-bottom: 0.5rem;">Ссылка на видео</label>
+          <input type="text" formControlName="url" placeholder="https://youtube.com/..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'link'">
+          <label style="display: block; margin-bottom: 0.5rem;">Ссылка</label>
+          <input type="text" formControlName="url" placeholder="https://..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'pdf'">
+          <label style="display: block; margin-bottom: 0.5rem;">Файл (PDF)</label>
+          <input type="file" (change)="onMaterialFileSelect($event)" accept=".pdf" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;">
+          <div *ngIf="selectedMaterialFile" style="margin-top: 10px; font-size: 0.9rem; color: #4CAF50;">Выбран файл: {{ selectedMaterialFile.name }}</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;" *ngIf="materialForm.get('type')?.value === 'text'">
+          <label style="display: block; margin-bottom: 0.5rem;">Текст</label>
+          <textarea rows="5" formControlName="content" placeholder="Текст материала" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="accent-btn" [disabled]="materialForm.invalid">Сохранить</button>
+          <button type="button" class="secondary-btn" (click)="closeAddMaterial()">Отмена</button>
+        </div>
+
+        <p class="form-hint" *ngIf="materialForm.invalid && !materialForm.get('title')?.value">
+          Укажите название материала.
+        </p>
+        <p class="form-hint" *ngIf="materialForm.invalid && materialForm.get('title')?.value && materialForm.errors?.['urlRequired']">
+          Укажите ссылку.
+        </p>
+        <p class="form-hint" *ngIf="materialForm.invalid && materialForm.get('title')?.value && materialForm.errors?.['contentRequired']">
+          Заполните текст материала.
+        </p>
+        <p class="form-hint" *ngIf="materialForm.invalid && materialForm.get('title')?.value && materialForm.errors?.['fileRequired']">
+          Выберите PDF-файл.
+        </p>
+      </form>
+    </div>
   </div>
