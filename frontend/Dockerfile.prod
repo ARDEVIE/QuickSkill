@@ -1,0 +1,23 @@
+# Build stage
+FROM node:18-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+# Path this project is served under behind the shared esg.kbtu.kz domain,
+# e.g. esg.kbtu.kz/quickskill/. Override at build time if devops assigns a
+# different path: --build-arg BASE_HREF=/other-path/
+ARG BASE_HREF=/quickskill/
+RUN npx ng build --configuration production --base-href="${BASE_HREF}"
+
+# Serve stage
+FROM nginx:alpine
+
+COPY --from=build /app/dist/quickskill-frontend /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
