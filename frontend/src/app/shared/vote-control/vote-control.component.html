@@ -1,0 +1,23 @@
+<div class="vote-control" [class.sm]="size === 'sm'">
+  <button
+    type="button"
+    class="vote-btn up"
+    [class.active]="userVote === 1"
+    [disabled]="!canVote"
+    (click)="onVote(1)"
+    aria-label="Полезно"
+    title="Полезно"
+  >▲</button>
+
+  <span class="vote-score" [class.positive]="score > 0" [class.negative]="score < 0">{{ score }}</span>
+
+  <button
+    type="button"
+    class="vote-btn down"
+    [class.active]="userVote === -1"
+    [disabled]="!canVote"
+    (click)="onVote(-1)"
+    aria-label="Бесполезно"
+    title="Бесполезно"
+  >▼</button>
+</div>

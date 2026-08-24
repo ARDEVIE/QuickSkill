@@ -53,6 +53,7 @@ export class QuestionDetailsComponent implements OnInit {
   loadQuestion(): void {
     this.forumService.getQuestion(this.slug).subscribe(res => {
       this.question = res;
+      this.isFavorited = !!res.is_favorited;
       this.checkAuthor();
     });
   }
@@ -100,7 +101,7 @@ export class QuestionDetailsComponent implements OnInit {
     this.forumService.addComment(this.slug, formData).subscribe({
       next: (comment) => {
         this.comments.push(comment);
-        if (this.question) this.question.comments_count++;
+        if (this.question) this.question.answer_count++;
         this.commentForm.reset();
         this.selectedFile = null;
         this.isSubmitting = false;
@@ -109,6 +110,28 @@ export class QuestionDetailsComponent implements OnInit {
         this.isSubmitting = false;
         alert('Ошибка при отправке ответа');
       }
+    });
+  }
+
+  questionTags(): string[] {
+    if (!this.question) return [];
+    return (this.question.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+  }
+
+  voteQuestion(value: 1 | -1): void {
+    if (!this.isLoggedIn || !this.question) return;
+    this.forumService.voteQuestion(this.slug, value).subscribe(res => {
+      if (!this.question) return;
+      this.question.vote_score = res.vote_score;
+      this.question.user_vote = res.user_vote;
+    });
+  }
+
+  voteComment(comment: Comment, value: 1 | -1): void {
+    if (!this.isLoggedIn) return;
+    this.forumService.voteComment(comment.id, value).subscribe(res => {
+      comment.vote_score = res.vote_score;
+      comment.user_vote = res.user_vote;
     });
   }
 

@@ -37,22 +37,63 @@
   ========================= */
   
   .course-hero {
-    display: grid;
-  
-    grid-template-columns: 380px 1fr;
-  
-    gap: 42px;
-  
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 28px;
+
     padding: 35px;
-  
+
     border-radius: 24px;
-  
+
     background: #ffffff;
-  
+
     border: 1px solid var(--border);
-  
+
     box-shadow:
       0 8px 30px rgba(16, 24, 40, 0.04);
+  }
+
+  .question-vote {
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .solved-pill {
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    background: var(--success-light);
+
+    color: var(--success);
+
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .tag-row {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin-top: 12px;
+  }
+
+  .tag-pill {
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    background: var(--surface);
+
+    color: var(--text-secondary);
+
+    font-size: 10px;
+    font-weight: 600;
   }
   
   
@@ -426,32 +467,81 @@
   
   .lessons {
     display: flex;
-  
+
     flex-direction: column;
-  
+
     gap: 8px;
   }
-  
+
   .lesson {
     display: flex;
-  
+
     align-items: center;
-  
+
     gap: 13px;
-  
+
     padding: 13px;
-  
+
     border: 1px solid var(--border);
-  
+
     border-radius: 11px;
-  
+
     transition: 0.2s ease;
   }
-  
+
   .lesson:hover {
     border-color: #cfe0ff;
-  
+
     transform: translateX(2px);
+  }
+
+
+  /* =========================
+     ANSWERS
+  ========================= */
+
+  .answers-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+
+    margin-top: 1.5rem;
+  }
+
+  .answer {
+    display: flex;
+
+    gap: 16px;
+
+    padding: 18px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    transition: 0.2s ease;
+  }
+
+  .answer.accepted {
+    border-color: var(--success);
+
+    background: var(--success-light);
+  }
+
+  .answer-body {
+    flex: 1;
+
+    min-width: 0;
+  }
+
+  .accepted-label {
+    color: var(--success);
+
+    font-weight: 700;
+
+    font-size: 0.9rem;
   }
   
   .lesson-number {
@@ -679,23 +769,31 @@
   ========================= */
   
   @media (max-width: 950px) {
-  
-    .course-hero {
-      grid-template-columns: 1fr;
-    }
-  
+
     .course-cover {
       min-height: 250px;
     }
-  
+
     .details-layout {
       grid-template-columns: 1fr;
     }
-  
+
     .course-sidebar {
       position: static;
     }
-  
+
+  }
+
+  @media (max-width: 600px) {
+
+    .course-hero {
+      flex-direction: column;
+    }
+
+    .answer {
+      flex-direction: column;
+    }
+
   }
   
   

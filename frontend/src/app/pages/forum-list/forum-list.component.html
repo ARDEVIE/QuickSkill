@@ -1,86 +1,89 @@
-<div class="courses-page">
-    <app-header></app-header>
-  
-    <main>
-      <section class="catalog-hero">
-        <div>
-          <span class="eyebrow">FORUM</span>
-          <h1>Обсуждения и вопросы</h1>
-          <p>Задавай вопросы и делись опытом с другими участниками.</p>
-        </div>
-      </section>
-  
-      <section class="catalog-controls" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="search-box">
-          <span class="search-icon"></span>
-          <input
-            type="text"
-            placeholder="Поиск вопросов..."
-            [value]="searchQuery"
-            (input)="onSearch($event)"
-          />
-        </div>
-        
-        <button class="accent-btn" routerLink="/forum/ask" style="display: flex; align-items: center; gap: 0.5rem;">
-          <span style="font-size: 1.2rem; font-weight: bold;">+</span> Задать вопрос
-        </button>
-      </section>
-  
-      <div class="categories">
-        <button class="category"
-                [class.active]="activeCategory === null"
-                (click)="setCategory(null)">
-          Все темы
-        </button>
-        <button class="category"
-                *ngFor="let cat of categories"
-                [class.active]="activeCategory === cat.id"
-                (click)="setCategory(cat.id)">
-          {{ cat.name }}
-        </button>
+<div class="forum-page">
+  <app-header></app-header>
+
+  <main>
+
+    <div class="page-header">
+      <div>
+        <span class="eyebrow">FORUM</span>
+        <h1>Обсуждения и вопросы</h1>
+        <p>Находи решённые вопросы быстро — или задай свой.</p>
       </div>
-  
-      <div class="catalog-header">
-        <div>
-          <span class="eyebrow">DISCUSSIONS</span>
-          <h2>Последние вопросы</h2>
+      <a routerLink="/forum/ask" class="accent-btn">+ Задать вопрос</a>
+    </div>
+
+    <div class="search-box">
+      <span class="search-icon"></span>
+      <input
+        type="text"
+        placeholder="Поиск по вопросам..."
+        [value]="searchQuery"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <div class="forum-tabs">
+      <button type="button" [class.active-tab]="activeTab === 'mine'" (click)="setTab('mine')" *ngIf="currentUser">Для меня</button>
+      <button type="button" [class.active-tab]="activeTab === 'popular'" (click)="setTab('popular')">Популярные</button>
+      <button type="button" [class.active-tab]="activeTab === 'unanswered'" (click)="setTab('unanswered')">Без ответа</button>
+      <button type="button" [class.active-tab]="activeTab === 'new'" (click)="setTab('new')">Новые</button>
+    </div>
+
+    <div class="categories">
+      <button class="category" [class.active]="activeCategory === null" (click)="setCategory(null)">Все темы</button>
+      <button class="category" *ngFor="let cat of categories" [class.active]="activeCategory === cat.id" (click)="setCategory(cat.id)">
+        {{ cat.name }}
+      </button>
+    </div>
+
+    <div class="catalog-header">
+      <span class="course-count">
+        {{ totalQuestions }} {{ totalQuestions === 1 ? 'вопрос' : (totalQuestions > 1 && totalQuestions < 5 ? 'вопроса' : 'вопросов') }}
+      </span>
+    </div>
+
+    <div class="loading-state" *ngIf="isLoading">Загрузка…</div>
+
+    <div class="question-list" *ngIf="!isLoading">
+      <a class="question-card" *ngFor="let q of questions" [routerLink]="['/forum', q.slug]">
+
+        <div class="qcard-stats">
+          <div class="stat" [class.positive]="q.vote_score > 0" [class.negative]="q.vote_score < 0">
+            <strong>{{ q.vote_score }}</strong>
+            <span>голосов</span>
+          </div>
+          <div class="stat" [class.solved]="q.is_solved">
+            <strong>{{ q.answer_count }}</strong>
+            <span>ответов</span>
+          </div>
         </div>
-        <span class="course-count">
-          {{ totalQuestions }} {{ totalQuestions === 1 ? 'вопрос' : (totalQuestions > 1 && totalQuestions < 5 ? 'вопроса' : 'вопросов') }}
-        </span>
-      </div>
-  
-      <div class="catalog-grid" style="display: flex; flex-direction: column; gap: 1rem;">
-        <article
-          class="catalog-card"
-          *ngFor="let q of questions"
-          [routerLink]="['/forum', q.slug]"
-          style="display: flex; flex-direction: row; gap: 1rem; align-items: center; padding: 1.5rem; width: 100%; border: 1px solid var(--border); border-radius: 12px; background: #fff;"
-        >
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 12px;">
-            <strong style="font-size: 1.2rem;">{{ q.comments_count }}</strong>
-            <span style="font-size: 0.7rem;">ответ</span>
+
+        <div class="qcard-body">
+          <div class="qcard-title-row">
+            <h3>{{ q.title }}</h3>
+            <span class="solved-badge" *ngIf="q.is_solved">✓ Решено</span>
           </div>
-  
-          <div class="course-body" style="flex: 1; margin: 0;">
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem; color: var(--text);">
-              {{ q.title }}
-            </h3>
-            
-            <p class="author" style="font-size: 0.8rem; color: var(--text-secondary);">
-              Автор: {{ q.author.first_name || q.author.username }} в 
-              <span style="color: var(--accent);">{{ q.category.name }}</span> 
-              • {{ q.created_at | date }}
-            </p>
+
+          <p class="qcard-preview" *ngIf="q.preview">{{ q.preview }}</p>
+
+          <div class="qcard-meta">
+            <span class="subject-pill" *ngIf="q.category">{{ q.category.name }}</span>
+            <span class="tag-pill" *ngFor="let tag of questionTags(q)">{{ tag }}</span>
+            <span class="meta-author">{{ q.author.first_name || q.author.username }}</span>
+            <span class="meta-time">{{ q.created_at | date }}</span>
           </div>
-  
-          <div *ngIf="q.accepted_comment" style="color: var(--success); font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 12px;">
-             ✓ Решен
-          </div>
-        </article>
-      </div>
-  
-    </main>
-  
-    <app-footer></app-footer>
-  </div>
+        </div>
+
+      </a>
+
+      <p class="empty-hint" *ngIf="questions.length === 0">
+        Вопросов пока нет.
+        <ng-container *ngIf="activeTab !== 'new'">Попробуй другой фильтр или </ng-container>
+        <a routerLink="/forum/ask">задай первый</a>.
+      </p>
+    </div>
+
+  </main>
+
+  <app-footer></app-footer>
+</div>

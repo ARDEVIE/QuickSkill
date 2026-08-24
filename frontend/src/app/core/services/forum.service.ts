@@ -9,17 +9,22 @@ export interface Question {
   title: string;
   slug: string;
   content: string;
+  preview?: string;
   category: Category;
+  tags: string;
   author: Author;
   created_at: string;
-  views: number;
-  comments_count: number;
+  answer_count: number;
+  is_solved: boolean;
+  vote_score: number;
+  user_vote: 1 | -1 | null;
+  is_favorited?: boolean;
   accepted_comment: number | null;
   media_file?: string | null;
 }
 
 export interface QuestionDetail extends Question {
-  comments: Comment[]; // actually, DRF returns comments via nested? Wait, QuestionDetailSerializer has comments? Let me check. The comments view is separate or nested? Ah, the view has an action `@action comments` which returns comments paginated. But maybe the detail returns some comments? We will fetch them separately anyway.
+  comments: Comment[]; // fetched separately via getComments()
 }
 
 export interface Comment {
@@ -27,6 +32,8 @@ export interface Comment {
   question: number;
   user: Author;
   content: string;
+  vote_score: number;
+  user_vote: 1 | -1 | null;
   created_at: string;
   updated_at: string;
   media_file?: string | null;
@@ -77,6 +84,14 @@ export class ForumService {
 
   acceptAnswer(slug: string, commentId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/questions/${slug}/accept_answer/`, { comment_id: commentId });
+  }
+
+  voteQuestion(slug: string, value: 1 | -1): Observable<{ vote_score: number; user_vote: 1 | -1 | null }> {
+    return this.http.post<{ vote_score: number; user_vote: 1 | -1 | null }>(`${this.apiUrl}/questions/${slug}/vote/`, { value });
+  }
+
+  voteComment(commentId: number, value: 1 | -1): Observable<{ vote_score: number; user_vote: 1 | -1 | null }> {
+    return this.http.post<{ vote_score: number; user_vote: 1 | -1 | null }>(`${this.apiUrl}/comments/${commentId}/vote/`, { value });
   }
 
   toggleFavorite(slug: string): Observable<{ favorited: boolean }> {

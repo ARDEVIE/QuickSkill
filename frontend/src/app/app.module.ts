@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './shared/header/header.component';
 import { FooterComponent } from './shared/footer/footer.component';
+import { VoteControlComponent } from './shared/vote-control/vote-control.component';
 import { HomeComponent } from './pages/home/home.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
@@ -33,6 +34,7 @@ import { ShareMaterialComponent } from './pages/share-material/share-material.co
     AppComponent,
     HeaderComponent,
     FooterComponent,
+    VoteControlComponent,
     HomeComponent,
     LoginComponent,
     RegisterComponent,
