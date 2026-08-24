@@ -12,7 +12,7 @@
     </div>
   </div>
 
-  <div class="profile-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid #eee; margin-bottom: 2rem; padding-bottom: 0.5rem;">
+  <div class="profile-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid #eee; margin-bottom: 2rem; padding-bottom: 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
     <button [class.active-tab]="activeTab === 'info'" (click)="setTab('info')" style="background: none; border: none; font-size: 1rem; cursor: pointer; color: var(--text);">Информация</button>
     <button [class.active-tab]="activeTab === 'my-courses'" (click)="setTab('my-courses')" style="background: none; border: none; font-size: 1rem; cursor: pointer; color: var(--text);">Мои курсы</button>
     <button [class.active-tab]="activeTab === 'drafts'" (click)="setTab('drafts')" style="background: none; border: none; font-size: 1rem; cursor: pointer; color: var(--text);">Черновики</button>
@@ -56,7 +56,7 @@
         class="catalog-card"
         *ngFor="let course of favorites"
         [routerLink]="['/courses', course.id]"
-        style="display: flex; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; cursor: pointer; align-items: center;"
+        style="display: flex; gap: 1rem; padding: 1rem; align-items: center;"
       >
         <div class="course-cover-mini" *ngIf="course.cover" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden;">
           <img [src]="course.cover" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
@@ -81,7 +81,7 @@
         class="catalog-card"
         *ngFor="let course of myCourses"
         [routerLink]="['/courses', course.id]"
-        style="display: flex; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; cursor: pointer; align-items: center;"
+        style="display: flex; gap: 1rem; padding: 1rem; align-items: center;"
       >
         <div class="course-cover-mini" *ngIf="course.cover" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden;">
           <img [src]="course.cover" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
@@ -117,7 +117,7 @@
         class="catalog-card"
         *ngFor="let course of drafts"
         [routerLink]="['/courses', course.id]"
-        style="display: flex; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; cursor: pointer; align-items: center;"
+        style="display: flex; gap: 1rem; padding: 1rem; align-items: center;"
       >
         <div class="course-cover-mini" *ngIf="course.cover" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden;">
           <img [src]="course.cover" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
@@ -153,7 +153,7 @@
         class="catalog-card"
         *ngFor="let question of myQuestions"
         [routerLink]="['/forum', question.slug]"
-        style="display: flex; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; cursor: pointer; align-items: center;"
+        style="display: flex; gap: 1rem; padding: 1rem; align-items: center;"
       >
         <div style="flex: 1;">
           <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--text);">{{ question.title }}</h3>

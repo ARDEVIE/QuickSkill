@@ -9,6 +9,9 @@
           <span class="eyebrow" style="color: var(--primary);">{{ question.category.name }}</span>
           <h1 style="font-size: 2rem; color: var(--text);">
             {{ question.title }}
+            <button class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()" *ngIf="isLoggedIn" style="font-size: 1rem; vertical-align: middle; margin-left: 10px;">
+              {{ isFavorited ? '♥ В избранном' : '♡ В избранное' }}
+            </button>
           </h1>
           <p class="description" style="white-space: pre-wrap; font-size: 1.1rem; color: var(--text-secondary); margin-top: 1rem;">
             {{ question.content }}
@@ -28,7 +31,7 @@
               </div>
             </a>
             <div style="margin-left: auto; display: flex; align-items: center; gap: 1rem;">
-              <div style="color: var(--text-muted); font-size: 0.9rem;">
+              <div style="color: var(--text-secondary); font-size: 0.9rem;">
                 {{ question.created_at | date:'medium' }}
               </div>
               <div *ngIf="isAuthor" style="display: flex; gap: 0.5rem;">
@@ -50,14 +53,14 @@
           <h2>Ответы ({{ comments.length }})</h2>
   
           <div class="lessons-list" style="margin-top: 1.5rem;">
-            <div *ngFor="let comment of comments" class="lesson" [style.border-color]="question.accepted_comment === comment.id ? 'var(--green-color)' : 'var(--border)'" style="flex-direction: column; align-items: flex-start;">
+            <div *ngFor="let comment of comments" class="lesson" [style.border-color]="question.accepted_comment === comment.id ? 'var(--success)' : 'var(--border)'" style="flex-direction: column; align-items: flex-start;">
               
               <div style="display: flex; justify-content: space-between; width: 100%;">
                 <div style="display: flex; gap: 1rem; align-items: center;">
                   <img [src]="comment.user.avatar || 'assets/default-avatar.svg'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
                   <strong style="font-size: 1rem;">{{ comment.user.first_name || comment.user.username }}</strong>
                   <span style="font-size: 0.8rem; color: #999;">{{ comment.created_at | date:'short' }}</span>
-                  <span *ngIf="question.accepted_comment === comment.id" style="color: var(--green-color); font-weight: bold; font-size: 0.9rem;">✓ Решение</span>
+                  <span *ngIf="question.accepted_comment === comment.id" style="color: var(--success); font-weight: bold; font-size: 0.9rem;">✓ Решение</span>
                 </div>
                 
                 <button *ngIf="isAuthor && question.accepted_comment !== comment.id" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="acceptAnswer(comment.id)">

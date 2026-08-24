@@ -1,0 +1,236 @@
+<div class="editor-page">
+
+  <!-- TOP BAR -->
+  <header class="editor-topbar">
+
+    <a routerLink="/courses/{{ courseId }}" class="topbar-back" title="Назад к курсу">←</a>
+
+    <input
+      *ngIf="course"
+      class="topbar-title"
+      [value]="course.title"
+      (input)="onTitleInput($any($event.target).value)"
+      placeholder="Название курса"
+    />
+
+    <span class="status-badge" *ngIf="course" [class.published]="course.is_published">
+      {{ course.is_published ? 'Опубликован' : 'Черновик' }}
+    </span>
+
+    <span class="save-indicator" [ngSwitch]="saveState">
+      <ng-container *ngSwitchCase="'saving'">Сохранение…</ng-container>
+      <ng-container *ngSwitchCase="'saved'">Сохранено</ng-container>
+      <ng-container *ngSwitchCase="'error'">Ошибка сохранения</ng-container>
+    </span>
+
+    <div class="topbar-actions">
+      <button type="button" class="text-btn" (click)="toggleSettings()">⚙ Настройки</button>
+      <button type="button" class="secondary-btn" (click)="openPreview()">Предпросмотр</button>
+      <button type="button" class="accent-btn" (click)="togglePublish()" *ngIf="course">
+        {{ course.is_published ? 'Снять с публикации' : 'Опубликовать' }}
+      </button>
+    </div>
+
+  </header>
+
+  <!-- SETTINGS (progressive disclosure) -->
+  <div class="settings-panel" *ngIf="settingsOpen && course" [formGroup]="settingsForm">
+    <div class="settings-row">
+
+      <div class="form-group">
+        <label>Предмет / категория</label>
+        <select formControlName="category">
+          <option value="" disabled>Выберите предмет</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Обложка</label>
+        <button type="button" class="secondary-btn" (click)="settingsFileInput.click()">Заменить обложку</button>
+        <input type="file" #settingsFileInput style="display: none;" (change)="onSettingsFileSelected($event)" accept=".png,.jpg,.jpeg,.webp" />
+        <span class="settings-hint" *ngIf="settingsFile">Выбран файл: {{ settingsFile.name }}</span>
+      </div>
+
+    </div>
+
+    <div class="form-group">
+      <label>Описание курса</label>
+      <textarea rows="3" formControlName="description" placeholder="Расскажи, чему научится студент"></textarea>
+    </div>
+
+    <div class="settings-actions">
+      <button type="button" class="text-btn" (click)="toggleSettings()">Отмена</button>
+      <button type="button" class="accent-btn" (click)="saveSettings()" [disabled]="isSavingSettings || settingsForm.invalid">
+        {{ isSavingSettings ? 'Сохраняем…' : 'Сохранить' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">Загрузка курса…</div>
+
+  <!-- MAIN: CURRICULUM + LESSON EDITOR -->
+  <div class="editor-main" *ngIf="!isLoading && course">
+
+    <!-- LEFT: CURRICULUM -->
+    <aside class="curriculum">
+
+      <h2>Программа курса</h2>
+      <p class="curriculum-meta">{{ course.sections.length }} {{ course.sections.length === 1 ? 'раздел' : 'разделов' }} · {{ totalLessons() }} уроков</p>
+
+      <div
+        class="curriculum-section"
+        *ngFor="let section of course.sections"
+        [class.active]="section.id === selectedSectionId"
+      >
+        <div class="curriculum-section-header">
+          <input
+            class="section-title-input"
+            [value]="section.title"
+            (focus)="selectSection(section)"
+            (input)="onSectionTitleInput(section, $any($event.target).value)"
+          />
+          <button type="button" class="icon-btn" (click)="deleteSection(section)" title="Удалить раздел">✕</button>
+        </div>
+
+        <div class="curriculum-lessons">
+          <button
+            type="button"
+            class="curriculum-lesson"
+            *ngFor="let block of section.blocks; let i = index"
+            [class.active]="block.id === selectedBlockId"
+            (click)="selectBlock(section, block)"
+          >
+            <span class="lesson-index">{{ (i + 1).toString().padStart(2, '0') }}</span>
+            <span class="lesson-title">{{ block.title || blockTypeLabel(block.type) }}</span>
+          </button>
+
+          <p class="empty-hint" *ngIf="section.blocks.length === 0">Уроков пока нет.</p>
+        </div>
+      </div>
+
+      <p class="empty-hint" *ngIf="course.sections.length === 0">
+        Разделов пока нет — начни с кнопки «+ Добавить раздел» ниже.
+      </p>
+
+      <div class="inline-add-section" *ngIf="addingSection">
+        <input
+          type="text"
+          [(ngModel)]="newSectionTitle"
+          placeholder="Название раздела"
+          (keyup.enter)="confirmAddSection()"
+        />
+        <button type="button" class="text-btn" (click)="confirmAddSection()">Добавить</button>
+        <button type="button" class="text-btn" (click)="toggleAddSection()">Отмена</button>
+      </div>
+
+      <div class="curriculum-actions">
+        <button type="button" class="text-btn" (click)="focusAddLesson()" [disabled]="course.sections.length === 0">
+          + Добавить урок
+        </button>
+        <button type="button" class="text-btn" (click)="toggleAddSection()">
+          + Добавить раздел
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT: SELECTED LESSON EDITOR -->
+    <section class="lesson-editor">
+
+      <ng-container *ngIf="selectedSection as section; else noSectionSelected">
+
+        <ng-container *ngIf="selectedBlock as block; else noBlockSelected">
+
+          <div class="lesson-editor-header">
+            <input
+              class="lesson-title-input"
+              [value]="block.title"
+              (input)="onBlockTitleInput(block, $any($event.target).value)"
+              placeholder="Название урока"
+            />
+            <span class="lesson-type-tag">{{ blockTypeLabel(block.type) }}</span>
+            <button type="button" class="icon-btn" (click)="deleteBlock(section, block)" title="Удалить урок">✕</button>
+          </div>
+
+          <textarea
+            *ngIf="block.type === 'text'"
+            class="lesson-content-text"
+            [value]="block.content"
+            (input)="onBlockContentInput(block, $any($event.target).value)"
+            rows="12"
+            placeholder="Текст урока…"
+          ></textarea>
+
+          <div class="lesson-content-link" *ngIf="block.type === 'video_link' || block.type === 'link'">
+            <input
+              type="text"
+              [value]="block.content"
+              (input)="onBlockContentInput(block, $any($event.target).value)"
+              placeholder="https://…"
+            />
+            <a *ngIf="block.content" [href]="block.content" target="_blank" class="lesson-open-link">Открыть ↗</a>
+          </div>
+
+          <div class="lesson-content-media" *ngIf="block.type === 'media'">
+            <a *ngIf="block.file" [href]="block.file" target="_blank" class="lesson-file-chip">📎 Открыть файл</a>
+            <span *ngIf="!block.file" class="lesson-file-empty">Файл не загружен</span>
+            <button type="button" class="text-btn" (click)="mediaFileInput.click()">Заменить файл</button>
+            <input type="file" #mediaFileInput style="display: none;" (change)="onBlockFileReplace($event, block)" />
+          </div>
+
+        </ng-container>
+
+        <ng-template #noBlockSelected>
+          <div class="lesson-editor-empty">
+            <p>В разделе «{{ section.title }}» пока нет уроков. Добавь первый ниже.</p>
+          </div>
+        </ng-template>
+
+      </ng-container>
+
+      <ng-template #noSectionSelected>
+        <div class="lesson-editor-empty">
+          <p>Выбери раздел слева или создай новый, чтобы начать добавлять уроки.</p>
+        </div>
+      </ng-template>
+
+      <!-- ALWAYS-VISIBLE QUICK ADD -->
+      <div class="quick-add" *ngIf="course.sections.length > 0">
+        <label>Добавить урок в «{{ selectedSection?.title || course.sections[0].title }}»</label>
+
+        <div class="quick-add-row">
+          <textarea
+            #quickAddInput
+            [(ngModel)]="quickAddValue"
+            rows="2"
+            placeholder="Введите текст, вставьте ссылку на видео/сайт…"
+          ></textarea>
+
+          <div class="quick-add-buttons">
+            <button type="button" class="icon-btn" (click)="quickAddFileInput.click()" title="Прикрепить файл">📎</button>
+            <input
+              type="file"
+              #quickAddFileInput
+              style="display: none;"
+              (change)="onQuickAddFileSelect($event)"
+              accept=".pdf,.png,.jpg,.jpeg,.webp,.mp4,.webm"
+            />
+            <button type="button" class="accent-btn" (click)="submitQuickAdd()" [disabled]="!quickAddValue.trim() && !quickAddFile">
+              Добавить
+            </button>
+          </div>
+        </div>
+
+        <span class="quick-add-file" *ngIf="quickAddFile">📎 {{ quickAddFile.name }}</span>
+        <span class="quick-add-hint">
+          Текст станет статьёй, ссылка на YouTube — видео, обычная ссылка — блоком-ссылкой, прикреплённый файл — вложением.
+        </span>
+        <p class="quick-add-error" *ngIf="quickAddError">{{ quickAddError }}</p>
+      </div>
+
+    </section>
+
+  </div>
+
+</div>

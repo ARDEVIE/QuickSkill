@@ -43,6 +43,8 @@ class QuestionViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         if self.action == 'comments':
             return [IsAuthenticatedOrReadOnly()]
+        if self.action in ['favorite', 'favorites']:
+            return [IsAuthenticated()]
         return [IsAuthenticated(), IsQuestionAuthorOrAdminOrReadOnly()]
 
     def get_serializer_class(self):
@@ -95,6 +97,21 @@ class QuestionViewSet(viewsets.ModelViewSet):
         if not created:
             favorite.delete()
         return Response({'favorited': created})
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def favorites(self, request):
+        '''List of questions the current user has favorited.'''
+        questions = Question.objects.filter(
+            favorited_by__user=request.user
+        ).select_related('author', 'category').distinct()
+
+        page = self.paginate_queryset(questions)
+        if page is not None:
+            serializer = QuestionListSerializer(page, many=True, context=self.get_serializer_context())
+            return self.get_paginated_response(serializer.data)
+
+        serializer = QuestionListSerializer(questions, many=True, context=self.get_serializer_context())
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def accept_answer(self, request, slug=None):

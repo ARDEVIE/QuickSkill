@@ -1,0 +1,33 @@
+.favorites-container {
+  max-width: var(--page-max-width-narrow);
+  margin: var(--page-padding-bottom) auto;
+  padding: 0 var(--page-padding-x);
+}
+
+.page-header {
+  margin-bottom: 2.5rem;
+}
+
+.page-header h1 {
+  margin: 8px 0;
+  font-size: 32px;
+  letter-spacing: -1px;
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.favorites-section {
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+
+  h2 {
+    margin: 0 0 1.5rem;
+  }
+}

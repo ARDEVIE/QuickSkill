@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService, User } from 'src/app/core/services/auth.service';
 import { CourseService } from 'src/app/core/services/course.service';
@@ -29,6 +29,7 @@ export class ProfileComponent implements OnInit {
     private courseService: CourseService,
     private forumService: ForumService,
     private router: Router,
+    private route: ActivatedRoute,
     private fb: FormBuilder
   ) {
     this.profileForm = this.fb.group({
@@ -43,6 +44,10 @@ export class ProfileComponent implements OnInit {
     if (!this.authService.accessToken) {
       this.router.navigate(['/login']);
       return;
+    }
+
+    if (this.route.snapshot.queryParamMap.get('tab') === 'favorites') {
+      this.setTab('favorites');
     }
 
     this.loadProfile();

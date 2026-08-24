@@ -1,7 +1,12 @@
 .profile-container {
-  max-width: 800px;
-  margin: 4rem auto;
-  padding: 0 1rem;
+  max-width: var(--page-max-width-narrow);
+  margin: var(--page-padding-bottom) auto;
+  padding: 0 var(--page-padding-x);
+}
+
+.profile-tabs button {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .profile-header {
@@ -13,8 +18,8 @@
   .avatar-placeholder {
     width: 100px;
     height: 100px;
-    background-color: var(--blue-color);
-    color: var(--bg-color);
+    background-color: var(--primary);
+    color: var(--white);
     font-size: 3rem;
     font-weight: 700;
     display: flex;
@@ -26,17 +31,19 @@
 
   .profile-info {
     h1 {
-      margin-bottom: 0.5rem;
+      margin: 8px 0;
+      font-size: 32px;
+      letter-spacing: -1px;
     }
     
     .username {
-      color: var(--text-muted);
+      color: var(--text-secondary);
       margin-bottom: 0.5rem;
     }
 
     .role-badge {
       display: inline-block;
-      background-color: var(--orange-color);
+      background-color: var(--accent);
       color: #fff;
       padding: 0.25rem 0.75rem;
       border-radius: 12px;
@@ -61,14 +68,14 @@
 
     label {
       display: block;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       font-size: 0.85rem;
       margin-bottom: 0.25rem;
     }
 
     p, a {
       font-size: 1rem;
-      color: var(--text-color);
+      color: var(--text);
       font-weight: 500;
     }
 

@@ -35,7 +35,7 @@
             <button class="favorite-btn" [class.favorited]="isFavorited" (click)="toggleFavorite()" *ngIf="isLoggedIn">
               {{ isFavorited ? '♥ В избранном' : '♡ В избранное' }}
             </button>
-            <button class="favorite-btn" style="margin-left: 10px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color);" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
+            <button class="favorite-btn" style="margin-left: 10px; background: transparent; border: 1px solid var(--border); color: var(--text);" *ngIf="isAuthor" [routerLink]="['/courses', course.id, 'edit']">
               ✎ Редактировать
             </button>
           </h1>
@@ -132,18 +132,25 @@
                   Модуль {{ i + 1 }}: {{ section.title }}
                 </h3>
                 
-                <div class="lesson" *ngFor="let block of section.blocks; let j = index" style="margin-bottom: 0.5rem; padding-left: 1rem;">
-                  <div class="lesson-info">
-                    <strong>Урок {{ i + 1 }}.{{ j + 1 }}</strong>
-                    <span style="color: #666; margin-left: 10px;">
-                      {{ block.type === 'video_link' ? 'Видео' : (block.type === 'media' ? 'Медиа файл' : 'Текст') }}
+                <div class="lesson" *ngFor="let block of section.blocks; let j = index" style="margin-bottom: 0.5rem; padding-left: 1rem; flex-direction: column; align-items: stretch;">
+                  <div style="display: flex; align-items: center;">
+                    <div class="lesson-info">
+                      <strong>{{ block.title || ('Урок ' + (i + 1) + '.' + (j + 1)) }}</strong>
+                      <span style="color: #666; margin-left: 10px;">
+                        {{ block.type === 'video_link' ? 'Видео' : (block.type === 'link' ? 'Ссылка' : (block.type === 'media' ? 'Медиа файл' : 'Текст')) }}
+                      </span>
+                    </div>
+
+                    <span class="duration">
+                      <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary); text-decoration: underline;">Смотреть</a>
+                      <a *ngIf="block.type === 'link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary); text-decoration: underline;">Открыть</a>
+                      <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" style="color: var(--primary); text-decoration: underline;">Скачать / Открыть медиа</a>
                     </span>
                   </div>
-                  
-                  <span class="duration">
-                    <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Смотреть</a>
-                    <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" style="color: var(--primary-color); text-decoration: underline;">Скачать / Открыть медиа</a>
-                  </span>
+
+                  <p *ngIf="block.type === 'text' && block.content" style="margin: 0.5rem 0 0; color: var(--text-secondary); white-space: pre-wrap; line-height: 1.6;">
+                    {{ block.content }}
+                  </p>
                 </div>
                 <div *ngIf="!section.blocks || section.blocks.length === 0" style="padding-left: 1rem; color: #999;">
                   В этом модуле пока нет уроков.
@@ -186,7 +193,7 @@
               <div class="rating-item" *ngFor="let rating of course.ratings" style="padding: 1rem; border-bottom: 1px solid #eee;">
                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                    <strong>{{ rating.user.first_name || rating.user.username }}</strong>
-                   <span style="color: var(--orange-color)">★ {{ rating.score }}</span>
+                   <span style="color: var(--accent)">★ {{ rating.score }}</span>
                  </div>
                  <p style="margin: 0; color: #555;">{{ rating.comment }}</p>
                  <small style="color: #999;">{{ rating.created_at | date }}</small>

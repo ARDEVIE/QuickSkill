@@ -85,13 +85,16 @@ class Section(TimeStampedModel):
 
 
 class ContentBlock(TimeStampedModel):
-    '''A block of content inside a section. Can be text or media (image/video link/pdf).'''
+    '''A single lesson item inside a section: text, a video link, a generic link, or a file.'''
 
     class BlockType(TextChoices):
         TEXT = 'text', 'Text'
+        VIDEO_LINK = 'video_link', 'Video link'
+        LINK = 'link', 'Link'
         MEDIA = 'media', 'Media'
 
     section = ForeignKey(Section, on_delete=CASCADE, related_name='blocks')
+    title = CharField(max_length=200, blank=True)
     type = CharField(max_length=20, choices=BlockType.choices, default=BlockType.TEXT)
     content = TextField(blank=True)  # Used for text content or URL
     file = FileField(upload_to='blocks/media/', blank=True, null=True)

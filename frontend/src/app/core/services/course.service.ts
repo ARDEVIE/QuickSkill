@@ -30,10 +30,13 @@ export interface Course {
   created_at: string;
 }
 
+export type BlockType = 'text' | 'video_link' | 'link' | 'media';
+
 export interface ContentBlock {
   id: number;
   section: number;
-  type: 'text' | 'video_link' | 'media';
+  title: string;
+  type: BlockType;
   content: string | null;
   file: string | null;
   order: number;
@@ -122,8 +125,24 @@ export class CourseService {
     return this.http.post<Section>(`${this.apiUrl}/courses/${courseId}/sections/`, sectionData);
   }
 
+  updateSection(sectionId: number, sectionData: Partial<Pick<Section, 'title' | 'order'>>): Observable<Section> {
+    return this.http.patch<Section>(`${this.apiUrl}/sections/${sectionId}/`, sectionData);
+  }
+
+  deleteSection(sectionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/sections/${sectionId}/`);
+  }
+
   addBlock(sectionId: number, blockData: FormData | any): Observable<ContentBlock> {
     return this.http.post<ContentBlock>(`${this.apiUrl}/sections/${sectionId}/blocks/`, blockData);
+  }
+
+  updateBlock(blockId: number, blockData: FormData | any): Observable<ContentBlock> {
+    return this.http.patch<ContentBlock>(`${this.apiUrl}/blocks/${blockId}/`, blockData);
+  }
+
+  deleteBlock(blockId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/blocks/${blockId}/`);
   }
 
   rateCourse(courseId: number, ratingData: { score: number, comment: string }): Observable<Rating> {

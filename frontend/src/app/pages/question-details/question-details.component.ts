@@ -16,6 +16,7 @@ export class QuestionDetailsComponent implements OnInit {
   
   isLoggedIn = false;
   isAuthor = false;
+  isFavorited = false;
   currentUser: User | null = null;
 
   commentForm: FormGroup;
@@ -66,6 +67,15 @@ export class QuestionDetailsComponent implements OnInit {
     if (this.question && this.currentUser) {
       this.isAuthor = this.question.author.id === this.currentUser.id;
     }
+  }
+
+  toggleFavorite(): void {
+    if (!this.slug) return;
+    this.forumService.toggleFavorite(this.slug).subscribe({
+      next: (res) => {
+        this.isFavorited = res.favorited;
+      }
+    });
   }
 
   onFileSelected(event: any): void {

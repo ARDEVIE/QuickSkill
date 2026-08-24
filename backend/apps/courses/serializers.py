@@ -25,7 +25,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class ContentBlockSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentBlock
-        fields = ['id', 'section', 'type', 'content', 'file', 'order', 'created_at']
+        fields = ['id', 'section', 'title', 'type', 'content', 'file', 'order', 'created_at']
         read_only_fields = ['id', 'section', 'created_at']
 
     def validate(self, attrs):
