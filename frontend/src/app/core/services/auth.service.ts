@@ -11,7 +11,7 @@ export interface AuthTokens {
 
 export interface User {
   id: number;
-  email: string;
+  email?: string;
   username: string;
   first_name: string;
   last_name: string;
@@ -20,6 +20,14 @@ export interface User {
   bio?: string;
   telegram_username?: string;
   telegram_url?: string;
+  study_program?: string;
+  study_year?: number | null;
+  is_author?: boolean;
+  courses_count?: number;
+  materials_count?: number;
+  answers_count?: number;
+  helpful_votes?: number;
+  date_joined?: string;
 }
 
 @Injectable({

@@ -1,5 +1,6 @@
 # Django modules
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import (
     CASCADE,
     BooleanField,
@@ -9,6 +10,7 @@ from django.db.models import (
     ImageField,
     Model,
     OneToOneField,
+    PositiveSmallIntegerField,
     TextChoices,
     TextField,
 )
@@ -57,6 +59,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     telegram_username = CharField(max_length=64, blank=True)
     avatar = ImageField(upload_to='avatars/', blank=True, null=True)
     bio = TextField(blank=True)
+    study_program = CharField(max_length=120, blank=True)
+    study_year = PositiveSmallIntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(8)])
     role = CharField(max_length=20, choices=Roles.choices, default=Roles.USER)
     is_active = BooleanField(default=True)
     is_staff = BooleanField(default=False)

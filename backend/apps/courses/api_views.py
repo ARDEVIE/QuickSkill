@@ -71,6 +71,9 @@ class ResourceViewSet(viewsets.ModelViewSet):
         category = self.request.query_params.get('category')
         if category:
             queryset = queryset.filter(category_id=category)
+        author_id = self.request.query_params.get('author')
+        if author_id:
+            queryset = queryset.filter(author_id=author_id)
         return queryset
 
     def get_serializer_class(self):

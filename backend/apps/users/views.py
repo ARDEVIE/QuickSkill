@@ -6,7 +6,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 # Project modules
-from apps.users.serializers import RegisterSerializer, UserSerializer
+from apps.users.serializers import PublicUserSerializer, RegisterSerializer, UserSerializer
 
 
 class LogoutSerializer(serializers.Serializer):
@@ -41,9 +41,11 @@ class MeFavoritesAPIView(generics.ListAPIView):
 
 
 class UserPublicProfileAPIView(generics.RetrieveAPIView):
+    '''Public profile lookup — uses PublicUserSerializer, which omits email.'''
+
     from apps.users.models import CustomUser
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = PublicUserSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'username'
 

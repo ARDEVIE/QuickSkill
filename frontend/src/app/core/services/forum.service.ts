@@ -30,10 +30,13 @@ export interface QuestionDetail extends Question {
 export interface Comment {
   id: number;
   question: number;
+  question_title?: string;
+  question_slug?: string;
   user: Author;
   content: string;
   vote_score: number;
   user_vote: 1 | -1 | null;
+  is_accepted?: boolean;
   created_at: string;
   updated_at: string;
   media_file?: string | null;
@@ -100,5 +103,9 @@ export class ForumService {
 
   getFavoriteQuestions(): Observable<PaginatedResponse<Question> | Question[]> {
     return this.http.get<PaginatedResponse<Question> | Question[]>(`${this.apiUrl}/questions/favorites/`);
+  }
+
+  getUserAnswers(authorId: number): Observable<PaginatedResponse<Comment> | Comment[]> {
+    return this.http.get<PaginatedResponse<Comment> | Comment[]>(`${this.apiUrl}/comments/`, { params: { author: authorId } });
   }
 }

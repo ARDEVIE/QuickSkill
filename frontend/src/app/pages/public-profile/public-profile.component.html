@@ -1,56 +1,237 @@
 <app-header></app-header>
 
-<main class="profile-container" *ngIf="user && !isLoading">
-  <div class="profile-header">
-    <div class="avatar-image">
-      <img [src]="user.avatar || 'assets/default-avatar.svg'" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
-    </div>
+<div class="loading-state" *ngIf="isLoading">Загрузка профиля…</div>
+
+<main class="profile-page" *ngIf="!isLoading && user">
+
+  <!-- HEADER -->
+  <section class="profile-header">
+    <img class="avatar" [src]="user.avatar || 'assets/default-avatar.svg'" alt="Avatar">
+
     <div class="profile-info">
-      <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+      <h1>{{ user.first_name || user.username }} {{ user.last_name }}</h1>
       <p class="username">@{{ user.username }}</p>
+      <p class="program-year" *ngIf="user.study_program || user.study_year">
+        <ng-container *ngIf="user.study_program">{{ user.study_program }}</ng-container>
+        <ng-container *ngIf="user.study_program && user.study_year"> · </ng-container>
+        <ng-container *ngIf="user.study_year">{{ user.study_year }} курс</ng-container>
+      </p>
       <span class="role-badge" *ngIf="user.role === 'admin'">Администратор</span>
     </div>
-  </div>
 
-  <section class="profile-details">
-    <h2>О себе</h2>
-    <p>{{ user.bio || 'Пользователь не добавил информацию о себе' }}</p>
-
-    <div class="info-group" *ngIf="user.telegram_username" style="margin-top: 1rem;">
-      <a [href]="user.telegram_url" target="_blank" class="accent-btn" style="text-decoration: none; display: inline-block;">Связаться в Telegram</a>
+    <div class="header-actions" *ngIf="isOwner">
+      <button class="secondary-btn" (click)="toggleEdit()">{{ isEditing ? 'Отмена' : 'Редактировать профиль' }}</button>
+      <button class="secondary-btn" (click)="logout()">Выйти</button>
     </div>
   </section>
 
-  <section class="profile-favorites" style="margin-top: 2rem;">
-    <h2>Курсы автора ({{ courses.length }})</h2>
-    
-    <div class="catalog-grid" *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
-      <article
-        class="catalog-card"
-        *ngFor="let course of courses"
-        [routerLink]="['/courses', course.id]"
-        style="display: flex; gap: 1rem; padding: 1rem; align-items: center;"
-      >
-        <div class="course-cover-mini" *ngIf="course.cover" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden;">
-          <img [src]="course.cover" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div class="course-cover-mini-placeholder" *ngIf="!course.cover" style="width: 100px; height: 60px; border-radius: 8px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold;">
-          &lt;/&gt;
-        </div>
-        <div>
-          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--text);">{{ course.title }}</h3>
-          <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary);">Рейтинг: {{ $any(course).average_rating || 'Нет оценок' }}</p>
-        </div>
-      </article>
+  <!-- INLINE EDIT -->
+  <section class="edit-panel" *ngIf="isEditing" [formGroup]="profileForm">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Имя</label>
+        <input type="text" formControlName="first_name">
+      </div>
+      <div class="form-group">
+        <label>Фамилия</label>
+        <input type="text" formControlName="last_name">
+      </div>
     </div>
-    
-    <p *ngIf="courses.length === 0" style="color: #888;">Этот автор пока не добавил ни одного курса.</p>
+
+    <div class="form-group">
+      <label>О себе</label>
+      <textarea formControlName="bio" rows="3"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Программа обучения <span class="optional-tag">необязательно</span></label>
+        <input type="text" formControlName="study_program" placeholder="Например, Computer Science">
+      </div>
+      <div class="form-group">
+        <label>Курс <span class="optional-tag">необязательно</span></label>
+        <input type="number" formControlName="study_year" min="1" max="8" placeholder="1–8">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Telegram <span class="optional-tag">необязательно</span></label>
+        <input type="text" formControlName="telegram_username" placeholder="durov">
+      </div>
+      <div class="form-group">
+        <label>Аватар <span class="optional-tag">необязательно</span></label>
+        <input type="file" (change)="onAvatarSelect($event)" accept="image/*">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="accent-btn" (click)="onSaveProfile()" [disabled]="profileForm.invalid || isSubmitting">
+        {{ isSubmitting ? 'Сохраняем…' : 'Сохранить' }}
+      </button>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="profile-stats">
+    <div><strong>{{ user.courses_count || 0 }}</strong><span>курсов</span></div>
+    <div><strong>{{ user.materials_count || 0 }}</strong><span>материалов</span></div>
+    <div><strong>{{ user.answers_count || 0 }}</strong><span>ответов</span></div>
+    <div><strong>{{ user.helpful_votes || 0 }}</strong><span>полезных голосов</span></div>
+  </section>
+
+  <!-- TABS -->
+  <div class="profile-tabs">
+    <button type="button" [class.active-tab]="activeTab === 'overview'" (click)="setTab('overview')">Обзор</button>
+    <button type="button" [class.active-tab]="activeTab === 'courses'" (click)="setTab('courses')">Курсы</button>
+    <button type="button" [class.active-tab]="activeTab === 'materials'" (click)="setTab('materials')">Материалы</button>
+    <button type="button" [class.active-tab]="activeTab === 'answers'" (click)="setTab('answers')">Ответы</button>
+    <button type="button" [class.active-tab]="activeTab === 'questions'" (click)="setTab('questions')">Вопросы</button>
+    <button type="button" [class.active-tab]="activeTab === 'saved'" (click)="setTab('saved')" *ngIf="isOwner">Сохранённое</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section class="tab-content" *ngIf="activeTab === 'overview'">
+    <div class="loading-state" *ngIf="isLoadingOverview">Загрузка…</div>
+
+    <ng-container *ngIf="!isLoadingOverview">
+      <div class="overview-block" *ngIf="overviewCourses.length > 0">
+        <h2>Курсы</h2>
+        <a class="activity-row" *ngFor="let c of overviewCourses" [routerLink]="['/courses', c.id]">
+          <span class="ar-title">{{ c.title }}</span>
+          <span class="ar-meta" *ngIf="c.average_rating">★ {{ c.average_rating }}</span>
+        </a>
+      </div>
+
+      <div class="overview-block" *ngIf="overviewMaterials.length > 0">
+        <h2>Материалы</h2>
+        <a class="activity-row" *ngFor="let m of overviewMaterials" [routerLink]="['/subjects', m.category.id]" [queryParams]="{tab: 'materials'}">
+          <span class="ar-title">{{ m.title }}</span>
+          <span class="ar-meta">{{ m.category?.name }}</span>
+        </a>
+      </div>
+
+      <div class="overview-block" *ngIf="overviewAnswers.length > 0">
+        <h2>Лучшие ответы</h2>
+        <a class="activity-row" *ngFor="let a of overviewAnswers" [routerLink]="['/forum', a.question_slug]">
+          <span class="ar-title">{{ a.question_title }}</span>
+          <span class="ar-meta accepted" *ngIf="a.is_accepted">✓ Решение</span>
+          <span class="ar-meta" *ngIf="!a.is_accepted">{{ a.vote_score }} голосов</span>
+        </a>
+      </div>
+
+      <div class="overview-block" *ngIf="recentActivity.length > 0">
+        <h2>Недавняя активность</h2>
+        <a class="activity-row" *ngFor="let item of recentActivity" [routerLink]="item.route" [queryParams]="item.queryParams">
+          <span class="ar-kind">{{ item.subtitle }}</span>
+          <span class="ar-title">{{ item.title }}</span>
+          <span class="ar-date">{{ item.date | date }}</span>
+        </a>
+      </div>
+
+      <p class="empty-hint" *ngIf="overviewCourses.length === 0 && overviewMaterials.length === 0 && overviewAnswers.length === 0 && recentActivity.length === 0">
+        Пока нет активности.
+      </p>
+    </ng-container>
+  </section>
+
+  <!-- COURSES -->
+  <section class="tab-content" *ngIf="activeTab === 'courses'">
+    <div class="loading-state" *ngIf="isLoadingCourses">Загрузка…</div>
+
+    <ng-container *ngIf="!isLoadingCourses">
+      <div class="list-rows">
+        <a class="list-row" *ngFor="let course of courses" [routerLink]="['/courses', course.id]">
+          <span class="lr-title">{{ course.title }}</span>
+          <span class="lr-meta" *ngIf="course.average_rating">★ {{ course.average_rating }}</span>
+          <button type="button" class="text-link-btn" *ngIf="isOwner" [routerLink]="['/courses', course.id, 'edit']" (click)="$event.stopPropagation()">Изменить</button>
+          <button type="button" class="text-link-btn danger" *ngIf="isOwner" (click)="deleteCourse(course.id); $event.stopPropagation()">Удалить</button>
+        </a>
+      </div>
+
+      <ng-container *ngIf="isOwner && drafts.length > 0">
+        <h3 class="sub-heading">Черновики</h3>
+        <div class="list-rows">
+          <a class="list-row" *ngFor="let course of drafts" [routerLink]="['/courses', course.id]">
+            <span class="lr-title">{{ course.title }}</span>
+            <span class="draft-badge">Черновик</span>
+            <button type="button" class="text-link-btn" [routerLink]="['/courses', course.id, 'edit']" (click)="$event.stopPropagation()">Изменить</button>
+            <button type="button" class="text-link-btn danger" (click)="deleteCourse(course.id); $event.stopPropagation()">Удалить</button>
+          </a>
+        </div>
+      </ng-container>
+
+      <p class="empty-hint" *ngIf="courses.length === 0 && drafts.length === 0">Пока нет курсов.</p>
+    </ng-container>
+  </section>
+
+  <!-- MATERIALS -->
+  <section class="tab-content" *ngIf="activeTab === 'materials'">
+    <div class="loading-state" *ngIf="isLoadingMaterials">Загрузка…</div>
+
+    <div class="list-rows" *ngIf="!isLoadingMaterials">
+      <a class="list-row" *ngFor="let m of materials" [routerLink]="['/subjects', m.category.id]" [queryParams]="{tab: 'materials'}">
+        <span class="lr-title">{{ m.title }}</span>
+        <span class="lr-meta">{{ m.category?.name }}</span>
+      </a>
+      <p class="empty-hint" *ngIf="materials.length === 0">Пока нет материалов.</p>
+    </div>
+  </section>
+
+  <!-- ANSWERS -->
+  <section class="tab-content" *ngIf="activeTab === 'answers'">
+    <div class="loading-state" *ngIf="isLoadingAnswers">Загрузка…</div>
+
+    <div class="list-rows" *ngIf="!isLoadingAnswers">
+      <a class="list-row answer-row" *ngFor="let a of answers" [routerLink]="['/forum', a.question_slug]">
+        <div class="answer-row-main">
+          <span class="lr-title">{{ a.question_title }}</span>
+          <p class="answer-preview">{{ a.content }}</p>
+        </div>
+        <span class="lr-meta accepted" *ngIf="a.is_accepted">✓ Решение</span>
+        <span class="lr-meta">{{ a.vote_score }} голосов</span>
+      </a>
+      <p class="empty-hint" *ngIf="answers.length === 0">Пока нет ответов.</p>
+    </div>
+  </section>
+
+  <!-- QUESTIONS -->
+  <section class="tab-content" *ngIf="activeTab === 'questions'">
+    <div class="loading-state" *ngIf="isLoadingQuestions">Загрузка…</div>
+
+    <div class="list-rows" *ngIf="!isLoadingQuestions">
+      <a class="list-row" *ngFor="let q of questions" [routerLink]="['/forum', q.slug]">
+        <span class="lr-title">{{ q.title }}</span>
+        <span class="lr-meta accepted" *ngIf="q.is_solved">✓ Решено</span>
+        <button type="button" class="text-link-btn danger" *ngIf="isOwner" (click)="deleteQuestion(q.slug); $event.stopPropagation()">Удалить</button>
+      </a>
+      <p class="empty-hint" *ngIf="questions.length === 0">Пока нет вопросов.</p>
+    </div>
+  </section>
+
+  <!-- SAVED (owner only) -->
+  <section class="tab-content" *ngIf="activeTab === 'saved' && isOwner">
+    <div class="loading-state" *ngIf="isLoadingSaved">Загрузка…</div>
+
+    <ng-container *ngIf="!isLoadingSaved">
+      <div class="overview-block" *ngIf="savedCourses.length > 0">
+        <h2>Курсы</h2>
+        <a class="activity-row" *ngFor="let c of savedCourses" [routerLink]="['/courses', c.id]">
+          <span class="ar-title">{{ c.title }}</span>
+        </a>
+      </div>
+
+      <div class="overview-block" *ngIf="savedQuestions.length > 0">
+        <h2>Вопросы</h2>
+        <a class="activity-row" *ngFor="let q of savedQuestions" [routerLink]="['/forum', q.slug]">
+          <span class="ar-title">{{ q.title }}</span>
+        </a>
+      </div>
+
+      <p class="empty-hint" *ngIf="savedCourses.length === 0 && savedQuestions.length === 0">Пока нет сохранённого.</p>
+    </ng-container>
   </section>
 
 </main>
-
-<div *ngIf="isLoading" style="display: flex; justify-content: center; padding: 4rem;">
-  Загрузка профиля...
-</div>
 
 <app-footer></app-footer>

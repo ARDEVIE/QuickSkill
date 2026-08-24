@@ -15,7 +15,6 @@ import { CoursesComponent } from './pages/courses/courses.component';
 import { CreateCourseComponent } from './pages/create-course/create-course.component';
 import { CourseDetailsComponent } from './pages/course-details/course-details.component';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
-import { ProfileComponent } from './pages/profile/profile.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { CourseEditorComponent } from './pages/course-editor/course-editor.component';
@@ -41,7 +40,6 @@ import { ShareMaterialComponent } from './pages/share-material/share-material.co
     CoursesComponent,
     CreateCourseComponent,
     CourseDetailsComponent,
-    ProfileComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
     CourseEditorComponent,

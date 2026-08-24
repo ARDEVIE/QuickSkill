@@ -188,17 +188,28 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(
+    mixins.ListModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = Comment.objects.all()
-    serializer_class = CommentCreateUpdateSerializer
     permission_classes = [IsAuthenticated, IsCommentOwnerOrAdminOrReadOnly]
 
+    def get_queryset(self):
+        queryset = Comment.objects.select_related('user', 'question').order_by('-created_at')
+        author_id = self.request.query_params.get('author')
+        if author_id:
+            queryset = queryset.filter(user_id=author_id)
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CommentSerializer
+        return CommentCreateUpdateSerializer
+
     def get_permissions(self):
-        if self.action == 'vote':
-            return [IsAuthenticated()]
+        if self.action in ('list', 'vote'):
+            return [AllowAny()] if self.action == 'list' else [IsAuthenticated()]
         return super().get_permissions()
 
     @action(detail=True, methods=['post'])

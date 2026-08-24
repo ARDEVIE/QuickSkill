@@ -42,17 +42,23 @@ class QuestionAuthorSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = QuestionAuthorSerializer(read_only=True)
+    question_title = serializers.CharField(source='question.title', read_only=True)
+    question_slug = serializers.CharField(source='question.slug', read_only=True)
     reply_to_user = serializers.SerializerMethodField()
     vote_score = serializers.SerializerMethodField()
     user_vote = serializers.SerializerMethodField()
+    is_accepted = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = [
-            'id', 'question', 'user', 'content', 'media_file', 'parent', 'reply_to_user',
-            'vote_score', 'user_vote', 'created_at', 'updated_at',
+            'id', 'question', 'question_title', 'question_slug', 'user', 'content', 'media_file',
+            'parent', 'reply_to_user', 'vote_score', 'user_vote', 'is_accepted', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+    def get_is_accepted(self, obj) -> bool:
+        return obj.accepted_for.exists()
 
     def get_reply_to_user(self, obj):
         if obj.parent:
