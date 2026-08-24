@@ -10,7 +10,7 @@
         </div>
       </section>
   
-      <section class="catalog-controls" style="display: flex; justify-content: space-between; align-items: center;">
+      <section class="catalog-controls">
         <div class="search-box">
           <span class="search-icon"></span>
           <input
@@ -20,9 +20,9 @@
             (input)="onSearch($event)"
           />
         </div>
-        
-        <button class="accent-btn" routerLink="/forum/ask" style="display: flex; align-items: center; gap: 0.5rem;">
-          <span style="font-size: 1.2rem; font-weight: bold;">+</span> Задать вопрос
+
+        <button class="accent-btn" routerLink="/forum/ask">
+          <span>+</span> Задать вопрос
         </button>
       </section>
   
@@ -50,34 +50,31 @@
         </span>
       </div>
   
-      <div class="catalog-grid" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div class="question-list">
         <article
-          class="catalog-card"
+          class="question-row"
           *ngFor="let q of questions"
           [routerLink]="['/forum', q.slug]"
-          style="display: flex; flex-direction: row; gap: 1rem; align-items: center; padding: 1.5rem; width: 100%; border: 1px solid var(--border); border-radius: 12px; background: #fff;"
         >
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 12px;">
-            <strong style="font-size: 1.2rem;">{{ q.comments_count }}</strong>
-            <span style="font-size: 0.7rem;">ответ</span>
+          <div class="question-row-count">
+            <strong>{{ q.comments_count }}</strong>
+            <span>ответ</span>
           </div>
-  
-          <div class="course-body" style="flex: 1; margin: 0;">
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem; color: var(--text);">
-              {{ q.title }}
-            </h3>
-            
-            <p class="author" style="font-size: 0.8rem; color: var(--text-secondary);">
-              Автор: {{ q.author.first_name || q.author.username }} в 
-              <span style="color: var(--accent);">{{ q.category.name }}</span> 
+
+          <div class="question-row-body">
+            <h3>{{ q.title }}</h3>
+
+            <p class="author">
+              Автор: {{ q.author.first_name || q.author.username }} в
+              <span class="question-row-category">{{ q.category.name }}</span>
               • {{ q.created_at | date }}
             </p>
           </div>
-  
-          <div *ngIf="q.accepted_comment" style="color: var(--green-color); font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 12px;">
-             ✓ Решен
-          </div>
+
+          <span class="badge badge-success" *ngIf="q.accepted_comment">✓ Решён</span>
         </article>
+
+        <p class="empty-hint" *ngIf="questions.length === 0">Вопросов пока нет — стань первым, кто спросит.</p>
       </div>
   
     </main>

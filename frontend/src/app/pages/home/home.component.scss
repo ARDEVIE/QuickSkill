@@ -1,7 +1,7 @@
 .home {
-    max-width: 1200px;
+    max-width: var(--page-max-width);
     margin: 0 auto;
-    padding: 24px;
+    padding: var(--page-padding-x);
   }
   
   .hero {
@@ -20,13 +20,6 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-  }
-  
-  .eyebrow {
-    color: var(--accent);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 2px;
   }
   
   .hero h1 {
@@ -52,30 +45,6 @@
     display: flex;
     gap: 14px;
     margin-top: 28px;
-  }
-  
-  .primary-btn,
-  .secondary-btn,
-  .accent-btn {
-    border: none;
-    border-radius: 999px;
-    padding: 14px 26px;
-    font-weight: 700;
-  }
-  
-  .primary-btn {
-    background: var(--primary);
-    color: white;
-  }
-  
-  .secondary-btn {
-    background: white;
-    border: 1px solid var(--border);
-  }
-  
-  .accent-btn {
-    background: var(--accent);
-    color: white;
   }
   
   .hero-art {
@@ -164,7 +133,9 @@
     display: flex;
     align-items: center;
     gap: 16px;
-  
+
+    cursor: pointer;
+
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 18px;
@@ -212,7 +183,34 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
-    background: white;
+    background: var(--white);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .course-card:hover {
+    transform: translateY(-4px);
+    border-color: #cfe0ff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .course-card .author {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
+  }
+
+  .course-card .author img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .course-card .author p {
+    margin: 0;
+    font-size: 12px;
   }
   
   .course-cover {
@@ -277,88 +275,161 @@
   .hero-search {
     width: 100%;
     max-width: 500px;
-  
-    margin-top: 5px;
-  
-    padding: 6px;
-  
-    background: #ffffff;
-  
-    border: 1px solid #e5e7eb;
-  
+
+    margin-top: var(--space-4);
+
+    padding: var(--space-4);
+
+    background: var(--white);
+
+    border: 1px solid var(--border);
+
     border-radius: 999px;
-  
+
     display: flex;
     align-items: center;
-  
+
     box-shadow: 0 8px 25px rgba(79, 140, 255, 0.08);
   }
-  
+
   .hero-search .search-icon {
-    width: 17px;
-    height: 17px;
-  
-    margin-left: 15px;
-    margin-right: 10px;
-  
-    border: 2px solid #98a2b3;
+    width: 16px;
+    height: 16px;
+
+    margin-left: var(--space-16);
+    margin-right: var(--space-8);
+
+    border: 2px solid var(--text-muted);
     border-radius: 50%;
-  
+
     position: relative;
   }
-  
+
   .hero-search .search-icon::after {
     content: '';
-  
+
     position: absolute;
-  
+
     width: 6px;
     height: 2px;
-  
-    background: #98a2b3;
-  
+
+    background: var(--text-muted);
+
     right: -5px;
     bottom: -2px;
-  
+
     transform: rotate(45deg);
   }
-  
+
   .hero-search input {
     flex: 1;
-  
+
     min-width: 0;
-  
+
     border: none;
     outline: none;
-  
+
     font-size: 13px;
-  
-    color: #111827;
+
+    color: var(--text);
   }
-  
+
   .hero-search input::placeholder {
-    color: #98a2b3;
+    color: var(--text-muted);
   }
-  
+
   .hero-search button {
     border: none;
-  
+
     padding: 12px 22px;
-  
+
     border-radius: 999px;
-  
+
     background: var(--primary);
-  
-    color: #ffffff;
-  
+
+    color: var(--white);
+
     font-size: 12px;
     font-weight: 700;
-  
+
     transition: 0.2s ease;
   }
   
   .hero-search button:hover {
     background: var(--primary-dark);
-  
+
     transform: translateY(-1px);
+  }
+
+
+  /* =========================
+     RESPONSIVE
+     This page previously had zero breakpoints — on narrow viewports the
+     absolutely-positioned hero-art circles/card overlapped the hero text
+     instead of stepping aside, and the 4-column course grid never
+     collapsed.
+  ========================= */
+
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: 1fr;
+      min-height: auto;
+      padding: 40px var(--space-32);
+    }
+
+    .hero-art {
+      display: none;
+    }
+
+    .hero h1 {
+      font-size: 36px;
+    }
+
+    .categories-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .courses-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .home {
+      padding: var(--space-16);
+    }
+
+    .hero {
+      padding: var(--space-24);
+    }
+
+    .hero h1 {
+      font-size: 28px;
+    }
+
+    .hero-buttons {
+      flex-direction: column;
+    }
+
+    .categories-grid,
+    .courses-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section {
+      margin-top: 48px;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-8);
+    }
+
+    .cta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-16);
+      padding: var(--space-24);
+    }
   }

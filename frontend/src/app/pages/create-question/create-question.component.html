@@ -11,9 +11,9 @@
         <a routerLink="/forum" class="back-link">← Вернуться на форум</a>
       </div>
   
-      <div class="create-layout" style="grid-template-columns: 1fr; max-width: 800px;">
+      <div class="create-layout single-column">
         <section class="course-form" [formGroup]="questionForm">
-          <div *ngIf="errorMessage" class="error-message" style="color: #dc3545; margin-bottom: 1rem; font-size: 0.9rem; padding: 0 32px;">
+          <div *ngIf="errorMessage" class="error-message form-error">
             {{ errorMessage }}
           </div>
   
@@ -39,12 +39,12 @@
             <div class="form-group">
               <label>Прикрепить медиафайл</label>
               <input type="file" (change)="onFileSelected($event)" accept="image/*,video/*" />
-              <div *ngIf="selectedFile" style="margin-top: 5px; font-size: 0.9rem; color: #4CAF50;">Выбран файл: {{ selectedFile.name }}</div>
+              <div class="selected-file-hint" *ngIf="selectedFile">Выбран файл: {{ selectedFile.name }}</div>
             </div>
           </div>
   
           <div class="form-actions">
-            <button type="button" class="create-button" (click)="onSubmit()" [disabled]="isLoading || questionForm.invalid">
+            <button type="button" class="accent-btn" (click)="onSubmit()" [disabled]="isLoading || questionForm.invalid">
               {{ editSlug ? 'Сохранить изменения' : 'Опубликовать вопрос' }} <span>→</span>
             </button>
           </div>

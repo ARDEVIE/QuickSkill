@@ -72,17 +72,17 @@
       </div>
 
       <!-- RATING FILTER -->
-      <div class="categories" style="margin-top: 1rem;">
-        <span style="font-size: 0.9rem; color: #888; margin-right: 1rem; align-self: center;">Минимальный рейтинг:</span>
+      <div class="categories filter-row">
+        <span class="filter-label">Минимальный рейтинг:</span>
         <button class="category" [class.active]="minRating === null" (click)="setRatingFilter(null)">Любой</button>
         <button class="category" [class.active]="minRating === 3" (click)="setRatingFilter(3)">3.0+</button>
         <button class="category" [class.active]="minRating === 4" (click)="setRatingFilter(4)">4.0+</button>
         <button class="category" [class.active]="minRating === 4.5" (click)="setRatingFilter(4.5)">4.5+</button>
       </div>
-  
+
       <!-- SORT FILTER -->
-      <div class="categories" style="margin-top: 1rem;">
-        <span style="font-size: 0.9rem; color: #888; margin-right: 1rem; align-self: center;">Сортировка:</span>
+      <div class="categories filter-row">
+        <span class="filter-label">Сортировка:</span>
         <button class="category" [class.active]="currentSort === null" (click)="setSort(null)">По умолчанию</button>
         <button class="category" [class.active]="currentSort === 'rating_desc'" (click)="setSort('rating_desc')">Сначала с высоким рейтингом</button>
         <button class="category" [class.active]="currentSort === 'rating_asc'" (click)="setSort('rating_asc')">Сначала с низким рейтингом</button>
@@ -138,9 +138,9 @@
               {{ course.title }}
             </h3>
   
-            <div class="author" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
-              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
-              <p style="margin: 0;">{{ course.authorName }}</p>
+            <div class="author">
+              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'" alt="">
+              <p>{{ course.authorName }}</p>
             </div>
   
             <div class="course-footer">

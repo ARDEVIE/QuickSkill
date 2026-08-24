@@ -28,9 +28,9 @@
         </button>
 
         <ng-container *ngIf="currentUser$ | async as user; else loginLink">
-          <div class="user-menu" style="display: flex; align-items: center; gap: 10px;">
+          <div class="user-menu">
             <a routerLink="/profile" class="login-link" title="Профиль">
-              <img [src]="user.avatar || 'assets/default-avatar.svg'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+              <img [src]="user.avatar || 'assets/default-avatar.svg'" alt="Профиль">
             </a>
           </div>
         </ng-container>
