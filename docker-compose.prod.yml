@@ -39,11 +39,21 @@ services:
       - default
       - esg-network
 
-  # frontend:
-  #   Как и в docker-compose.yml — frontend/ (Angular) есть, но сюда ещё не
-  #   подключён (свой Dockerfile с Nginx, раздающий собранный SPA и
-  #   проксирующий /api/ на quickskill-backend:8000; сам он тоже цепляется
-  #   к esg-network).
+  quickskill-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        # Path this project is served under behind esg.kbtu.kz, e.g.
+        # esg.kbtu.kz/quickskill/. Override if devops assigns a different one.
+        BASE_HREF: /quickskill/
+    expose:
+      - "80"
+    depends_on:
+      - quickskill-backend
+    networks:
+      - default
+      - esg-network
 
 networks:
   default:

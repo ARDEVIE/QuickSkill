@@ -54,7 +54,7 @@ backend/            Django-проект
 frontend/            Angular SPA (страницы курсов, форума, профиля, авторизации)
 ios-app/             нативный iOS-демо на локальном хранилище, к API не подключён
 docker-compose.yml       локальная разработка (db + backend + frontend)
-docker-compose.prod.yml  прод-конфиг (без frontend-сервиса, см. ниже)
+docker-compose.prod.yml  прод-конфиг (db + backend + frontend, см. раздел «Деплой»)
 setup.sh                 однокомандный локальный запуск через Docker
 ```
 
@@ -183,19 +183,30 @@ Frontend: `cd frontend && npm test` (Karma/Jasmine). CI эти тесты не
 `docker-compose.prod.yml` — отдельный конфиг под требования общего сервера
 (`esg.kbtu.kz`):
 
-- сервисы названы с префиксом проекта (`quickskill-backend`, `quickskill-db`);
+- сервисы названы с префиксом проекта (`quickskill-backend`, `quickskill-db`,
+  `quickskill-frontend`) — на общей Docker-сети `esg-network` крутятся сразу
+  несколько проектов, поэтому общие имена (`backend`, `frontend`, `db`)
+  запрещены;
 - порты не публикуются наружу (`expose`, не `ports`) — доступ только изнутри
   Docker-сети;
-- `quickskill-backend` дополнительно подключается к внешней сети
-  `esg-network` (`external: true`), чтобы её видел общий Nginx;
+- `quickskill-backend` и `quickskill-frontend` дополнительно подключаются к
+  внешней сети `esg-network` (`external: true`), чтобы их видел общий
+  (Public) Nginx; `quickskill-db` — только на внутренней сети проекта;
 - backend стартует через Gunicorn (`gunicorn settings.wsgi:application`), а
   не `manage.py runserver`;
 - статика раздаётся Gunicorn'ом через WhiteNoise (`collectstatic` запускается
-  автоматически при старте контейнера).
-- **frontend в этот конфиг ещё не подключён** — сервис закомментирован с
-  пояснением (нужен отдельный Dockerfile с Nginx, раздающий собранный SPA и
-  проксирующий `/api/`). В отличие от `docker-compose.yml`, где frontend уже
-  есть.
+  автоматически при старте контейнера);
+- `quickskill-frontend` — свой внутренний Nginx (`frontend/Dockerfile.prod` +
+  `frontend/nginx.conf`): multi-stage сборка Angular (`ng build --base-href`)
+  и раздача собранного SPA, с проксированием `/api/`, `/admin/`, `/static/`,
+  `/media/` на `quickskill-backend:8000`. Внутренний Nginx ничего не знает про
+  префикс проекта (`/quickskill`) — `location`-блоки написаны так, будто
+  проект живёт в корне сайта; добавлением префикса на сервере занимается
+  общий Public Nginx.
+- путь, под которым проект будет доступен на `esg.kbtu.kz` (например,
+  `esg.kbtu.kz/quickskill/`), задаётся Angular через `<base href>` на этапе
+  сборки — build-arg `BASE_HREF` в `docker-compose.prod.yml` (по умолчанию
+  `/quickskill/`, при необходимости меняется под фактически выданный путь).
 
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
