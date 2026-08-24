@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService, User } from 'src/app/core/services/auth.service';
+import { AuthService, PublicUser } from 'src/app/core/services/auth.service';
 import { CourseService, Course } from 'src/app/core/services/course.service';
 
 @Component({
@@ -9,7 +9,7 @@ import { CourseService, Course } from 'src/app/core/services/course.service';
   styleUrls: ['./public-profile.component.scss']
 })
 export class PublicProfileComponent implements OnInit {
-  user: User | null = null;
+  user: PublicUser | null = null;
   courses: Course[] = [];
   isLoading = true;
 
@@ -34,7 +34,7 @@ export class PublicProfileComponent implements OnInit {
         // QuickSkill backend doesn't necessarily include courses in public profile unless specified,
         // so let's try to query courses by author if possible.
         // Assuming courses endpoint accepts author=username or author=id.
-        this.courseService.getCourses({ author: this.user.id, public_only: 'true' }).subscribe(res => {
+        this.courseService.getCourses({ author: u.id, public_only: 'true' }).subscribe(res => {
           this.courses = res.results;
           this.isLoading = false;
         });

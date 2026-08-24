@@ -20,26 +20,30 @@
         Учись у тех, кто уже прошёл этот путь.
       </p>
 
-      <div class="hero-search">
+      <form class="hero-search" (ngSubmit)="onHeroSearch()">
 
         <span class="search-icon"></span>
-      
+
         <input
           type="text"
+          name="heroSearch"
           placeholder="Что хочешь изучить?"
-          [(ngModel)]="searchQuery"
-          (keyup.enter)="onSearch()"
+          [(ngModel)]="heroSearchQuery"
         />
-      
-        <button (click)="onSearch()">
+
+        <button type="submit">
           Найти
         </button>
-      
-      </div>
+
+      </form>
 
       <div class="hero-buttons">
         <button class="primary-btn" routerLink="/courses">
           Начать обучение
+        </button>
+
+        <button class="secondary-btn" routerLink="/create-course">
+          Создать курс
         </button>
       </div>
 
@@ -72,6 +76,8 @@
         <span class="eyebrow">EXPLORE</span>
         <h2>Популярные категории</h2>
       </div>
+
+      <a routerLink="/courses">Смотреть все →</a>
 
     </div>
 
@@ -118,46 +124,41 @@
         <div
           class="course-card"
           *ngFor="let course of courses"
-          (click)="goToCourse(course.id)"
-          style="cursor: pointer;">
-      
+          [routerLink]="['/courses', course.id]">
+
           <div
             class="course-cover"
-            [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
-      
-            <span *ngIf="!course.cover">{{ course.category.name }}</span>
-      
+            [style.background]="course.cover ? 'none' : course.color">
+
+            <img *ngIf="course.cover" [src]="course.cover" [alt]="course.title" />
+            <span>{{ course.category.name }}</span>
+
           </div>
-      
+
           <div class="course-content">
-      
+
             <h3>{{ course.title }}</h3>
-      
-            <div class="author" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
-              <img *ngIf="course.author?.avatar" [src]="course.author.avatar" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
-              <div *ngIf="!course.author?.avatar" style="width: 20px; height: 20px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #666;">
+
+            <div class="author">
+              <img *ngIf="course.author?.avatar" class="author-avatar-mini" [src]="course.author.avatar" [alt]="course.authorName">
+              <div *ngIf="!course.author?.avatar" class="author-avatar-mini author-avatar-mini-fallback">
                 {{ course.authorName.charAt(0) }}
               </div>
-              <p style="margin: 0; font-size: 0.9rem;">{{ course.authorName }}</p>
+              <p>{{ course.authorName }}</p>
             </div>
-      
-            <div class="course-meta">
-      
 
-              <span class="rating">
-                ★ {{ course.rating }}
-              </span>
-      
-            </div>
-      
+            <span class="rating" *ngIf="course.average_rating">
+              ★ {{ course.average_rating }}
+            </span>
+
           </div>
-      
+
         </div>
-        
-        <div *ngIf="courses.length === 0" style="text-align: center; color: #888; padding: 2rem;">
+
+        <div *ngIf="courses.length === 0" class="empty-state">
           Курсы пока не добавлены
         </div>
-      
+
       </div>
 
   </section>

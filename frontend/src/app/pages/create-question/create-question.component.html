@@ -11,9 +11,9 @@
         <a routerLink="/forum" class="back-link">← Вернуться на форум</a>
       </div>
   
-      <div class="create-layout" style="grid-template-columns: 1fr; max-width: 800px;">
+      <div class="create-layout single-column">
         <section class="course-form" [formGroup]="questionForm">
-          <div *ngIf="errorMessage" class="error-message" style="color: #dc3545; margin-bottom: 1rem; font-size: 0.9rem; padding: 0 32px;">
+          <div *ngIf="errorMessage" class="error-message">
             {{ errorMessage }}
           </div>
   

@@ -16,11 +16,14 @@ export class QuestionDetailsComponent implements OnInit {
   
   isLoggedIn = false;
   isAuthor = false;
+  isFavorited = false;
   currentUser: User | null = null;
 
   commentForm: FormGroup;
   isSubmitting = false;
   selectedFile: File | null = null;
+  commentError: string | null = null;
+  acceptError: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -75,14 +78,21 @@ export class QuestionDetailsComponent implements OnInit {
     }
   }
 
+  toggleFavorite(): void {
+    this.forumService.toggleFavorite(this.slug).subscribe({
+      next: (res) => { this.isFavorited = res.favorited; }
+    });
+  }
+
   onAddComment(): void {
     if (this.commentForm.invalid) return;
 
     this.isSubmitting = true;
-    
+    this.commentError = null;
+
     const formData = new FormData();
     formData.append('content', this.commentForm.get('content')?.value);
-    
+
     if (this.selectedFile) {
       formData.append('media_file', this.selectedFile);
     }
@@ -97,18 +107,21 @@ export class QuestionDetailsComponent implements OnInit {
       },
       error: () => {
         this.isSubmitting = false;
-        alert('Ошибка при отправке ответа');
+        this.commentError = 'Ошибка при отправке ответа';
       }
     });
   }
 
   acceptAnswer(commentId: number): void {
     if (!this.question) return;
+    this.acceptError = null;
     this.forumService.acceptAnswer(this.slug, commentId).subscribe({
       next: () => {
         if (this.question) this.question.accepted_comment = commentId;
       },
-      error: () => alert('Ошибка при принятии решения')
+      error: () => {
+        this.acceptError = 'Ошибка при отметке решения';
+      }
     });
   }
 

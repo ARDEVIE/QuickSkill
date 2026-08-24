@@ -5,9 +5,6 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 interface UICourse extends Course {
-  rating: string;
-  students: string;
-  lessons: string;
   color: string;
   icon: string;
   authorName: string;
@@ -35,6 +32,8 @@ export class CoursesComponent implements OnInit {
   constructor(private courseService: CourseService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
+    this.searchQuery = this.route.snapshot.queryParamMap.get('search') || '';
+
     this.fetchCategories();
 
     this.route.queryParams.subscribe(params => {
@@ -118,9 +117,6 @@ export class CoursesComponent implements OnInit {
     return {
       ...course,
       authorName: course.author ? (course.author.first_name || course.author.username) : 'Неизвестно',
-      rating: course.average_rating ? course.average_rating.toString() : '0',
-      students: '100', // Placeholder
-      lessons: '10 уроков', // Placeholder
       color: this.colors[index % this.colors.length],
       icon: this.icons[index % this.icons.length]
     };

@@ -5,7 +5,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Project modules
-from apps.users.views import LogoutAPIView, MeAPIView, RegisterAPIView, MeFavoritesAPIView, UserPublicProfileAPIView
+from apps.users.views import LogoutAPIView, MeAPIView, RegisterAPIView, UserPublicProfileAPIView
 from apps.users.password_reset_views import PasswordResetRequestAPIView, PasswordResetConfirmAPIView
 
 app_name = 'users_api'
@@ -18,6 +18,5 @@ urlpatterns = [
     path('auth/password-reset/', PasswordResetRequestAPIView.as_view(), name='password_reset'),
     path('auth/password-reset-confirm/', PasswordResetConfirmAPIView.as_view(), name='password_reset_confirm'),
     path('users/me/', MeAPIView.as_view(), name='me'),
-    path('users/me/favorites/', MeFavoritesAPIView.as_view(), name='me_favorites'),
     path('users/<str:username>/', UserPublicProfileAPIView.as_view(), name='public_profile'),
 ]

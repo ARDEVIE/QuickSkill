@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -22,6 +22,8 @@ import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { PublicProfileComponent } from './pages/public-profile/public-profile.component';
+import { InfoPageComponent } from './pages/info-page/info-page.component';
+import { FavoritesComponent } from './pages/favorites/favorites.component';
 
 @NgModule({
   declarations: [
@@ -42,13 +44,15 @@ import { PublicProfileComponent } from './pages/public-profile/public-profile.co
     QuestionDetailsComponent,
     CreateQuestionComponent,
     PublicProfileComponent,
+    InfoPageComponent,
+    FavoritesComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    ReactiveFormsModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }

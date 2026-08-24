@@ -30,8 +30,23 @@
   .back-link:hover {
     text-decoration: underline;
   }
-  
-  
+
+
+  /* =========================
+     LOADING
+  ========================= */
+
+  .loading-state {
+    padding: 60px 0;
+
+    text-align: center;
+
+    color: var(--text-secondary);
+
+    font-size: 13px;
+  }
+
+
   /* =========================
      HERO
   ========================= */
@@ -76,64 +91,66 @@
     justify-content: center;
   }
   
-  .course-cover::before {
+  .course-cover:not(.has-image)::before {
     content: '';
-  
+
     position: absolute;
-  
+
     width: 260px;
     height: 260px;
-  
+
     border-radius: 50%;
-  
+
     background: var(--primary);
-  
+
     right: -80px;
     bottom: -90px;
-  
+
     opacity: 0.9;
   }
-  
-  .course-cover::after {
+
+  .course-cover:not(.has-image)::after {
     content: '';
-  
+
     position: absolute;
-  
+
     width: 130px;
     height: 130px;
-  
+
     border-radius: 50%;
-  
+
     background: var(--accent);
-  
+
     left: -40px;
     top: -30px;
   }
-  
-  .category,
-  .level {
+
+  .cover-image {
     position: absolute;
-  
-    z-index: 2;
-  
-    padding: 7px 11px;
-  
-    border-radius: 999px;
-  
-    background: rgba(255,255,255,0.92);
-  
-    font-size: 9px;
-    font-weight: 700;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
   }
   
   .category {
+    position: absolute;
+
+    z-index: 2;
+
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,0.92);
+
+    font-size: 9px;
+    font-weight: 700;
+
     left: 16px;
     top: 16px;
-  }
-  
-  .level {
-    left: 16px;
-    bottom: 16px;
   }
   
   .cover-icon {
@@ -294,15 +311,7 @@
   ========================= */
   
   .details-layout {
-    display: grid;
-  
-    grid-template-columns: minmax(0, 1fr) 320px;
-  
-    gap: 24px;
-  
     margin-top: 28px;
-  
-    align-items: start;
   }
   
   .details-main {
@@ -350,61 +359,6 @@
   
   .content-section > p:last-child {
     margin-bottom: 0;
-  }
-  
-  
-  /* =========================
-     LEARNING
-  ========================= */
-  
-  .learning-grid {
-    display: grid;
-  
-    grid-template-columns: 1fr 1fr;
-  
-    gap: 10px;
-  }
-  
-  .learning-card {
-    display: flex;
-  
-    align-items: flex-start;
-  
-    gap: 10px;
-  
-    padding: 14px;
-  
-    border-radius: 11px;
-  
-    background: #f8fafc;
-  }
-  
-  .learning-card span {
-    width: 22px;
-    height: 22px;
-  
-    flex-shrink: 0;
-  
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  
-    border-radius: 6px;
-  
-    background: #fff0e5;
-  
-    color: var(--accent);
-  
-    font-size: 10px;
-    font-weight: 800;
-  }
-  
-  .learning-card p {
-    margin: 2px 0 0;
-  
-    font-size: 10px;
-  
-    line-height: 1.5;
   }
   
   
@@ -504,8 +458,200 @@
   
   .duration {
     color: #98a2b3;
-  
+
     font-size: 9px;
+  }
+
+  .material-link {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .material-text {
+    margin: 6px 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: 10px;
+    line-height: 1.6;
+
+    white-space: pre-wrap;
+  }
+
+
+  /* =========================
+     LESSON BLOCKS (topics)
+  ========================= */
+
+  .lesson-block {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lesson-block:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .lesson-block-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: flex-start;
+
+    margin-bottom: 14px;
+  }
+
+  .lesson-block-header h3 {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .lesson-block-header p {
+    margin: 4px 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: 10px;
+  }
+
+  .text-link-btn {
+    border: none;
+    background: transparent;
+
+    color: var(--primary);
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .text-link-btn:hover {
+    text-decoration: underline;
+  }
+
+  .lesson-form {
+    margin: 14px 0;
+    padding: 18px;
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    background: var(--surface);
+  }
+
+  .empty-state {
+    color: var(--text-secondary);
+
+    font-size: 12px;
+  }
+
+
+  /* =========================
+     MATERIAL / RATING FORMS
+  ========================= */
+
+  .error-message {
+    margin-bottom: 1rem;
+
+    color: #dc3545;
+
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+
+      margin-bottom: 6px;
+
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+
+      box-sizing: border-box;
+
+      padding: 0.5rem;
+
+      border: 1px solid var(--border);
+
+      border-radius: 8px;
+
+      font-family: inherit;
+      font-size: 12px;
+    }
+  }
+
+  .form-actions-row {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .rating-form {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+
+    border-bottom: 1px solid var(--border);
+
+    h3 {
+      margin: 0 0 1rem;
+
+      font-size: 1.1rem;
+    }
+  }
+
+  .ratings-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rating-item {
+    padding: 1rem 0;
+
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rating-item:last-child {
+    border-bottom: none;
+  }
+
+  .rating-item-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-bottom: 0.5rem;
+  }
+
+  .rating-score {
+    color: var(--accent);
+  }
+
+  .rating-comment {
+    margin: 0;
+
+    color: var(--text-secondary);
+
+    font-size: 12px;
+  }
+
+  .rating-date {
+    color: #98a2b3;
+
+    font-size: 10px;
   }
   
   
@@ -568,25 +714,28 @@
   }
   
   .start-button {
+    display: block;
     width: 100%;
-  
+    box-sizing: border-box;
+
     margin-top: 20px;
-  
+
     padding: 13px 16px;
-  
+
     border: none;
-  
+
     border-radius: 10px;
-  
+
     background: var(--primary);
-  
+
     color: #ffffff;
-  
+
     font-size: 11px;
     font-weight: 700;
-  
+    text-align: center;
+
     cursor: pointer;
-  
+
     transition: 0.2s ease;
   }
   
@@ -598,8 +747,13 @@
   
   .start-button span {
     margin-left: 7px;
-  
+
     font-size: 14px;
+  }
+
+  .edit-course-btn {
+    width: 100%;
+    margin-top: 1rem;
   }
   
   .included {
@@ -695,15 +849,7 @@
     .course-cover {
       min-height: 250px;
     }
-  
-    .details-layout {
-      grid-template-columns: 1fr;
-    }
-  
-    .course-sidebar {
-      position: static;
-    }
-  
+
   }
   
   

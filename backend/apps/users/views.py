@@ -6,7 +6,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 # Project modules
-from apps.users.serializers import RegisterSerializer, UserSerializer
+from apps.users.models import CustomUser
+from apps.users.serializers import PublicUserSerializer, RegisterSerializer, UserSerializer
 
 
 class LogoutSerializer(serializers.Serializer):
@@ -26,24 +27,11 @@ class MeAPIView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class MeFavoritesAPIView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_serializer_class(self):
-        from apps.courses.serializers import CourseListSerializer
-        return CourseListSerializer
-
-    def get_queryset(self):
-        # returns the actual Course objects the user has favorited
-        user = self.request.user
-        from apps.courses.models import Course
-        return Course.objects.filter(favorited_by__user=user).select_related('author', 'category').distinct()
-
-
 class UserPublicProfileAPIView(generics.RetrieveAPIView):
-    from apps.users.models import CustomUser
+    '''Public profile lookup by username — no email or other private fields exposed.'''
+
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = PublicUserSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'username'
 

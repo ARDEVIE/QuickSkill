@@ -1,13 +1,9 @@
-import logging
-
 # Third-party modules
 from rest_framework import serializers
 
-logger = logging.getLogger(__name__)
-
 # Project modules
 from apps.common.serializers import AuthorSerializer
-from apps.courses.models import Category, ContentBlock, Course, Rating, Section
+from apps.courses.models import Category, Course, Lesson, Material, Rating
 
 MAX_PDF_SIZE_MB = 10
 MAX_COVER_SIZE_MB = 5
@@ -22,30 +18,56 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['slug', 'course_count']
 
 
-class ContentBlockSerializer(serializers.ModelSerializer):
+class MaterialSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ContentBlock
-        fields = ['id', 'section', 'type', 'content', 'file', 'order', 'created_at']
-        read_only_fields = ['id', 'section', 'created_at']
+        model = Material
+        fields = ['id', 'course', 'lesson', 'title', 'type', 'file', 'url', 'content', 'order', 'created_at']
+        read_only_fields = ['id', 'course', 'lesson', 'created_at']
 
     def validate(self, attrs):
-        block_type = attrs.get('type', getattr(self.instance, 'type', None))
+        '''Enforce that each material type carries exactly the fields it needs.'''
+        material_type = attrs.get('type', getattr(self.instance, 'type', None))
         file = attrs.get('file', getattr(self.instance, 'file', None))
+        url = attrs.get('url', getattr(self.instance, 'url', None))
+        content = attrs.get('content', getattr(self.instance, 'content', None))
 
-        if block_type == ContentBlock.BlockType.MEDIA:
-            if file and file.size > MAX_PDF_SIZE_MB * 1024 * 1024:
+        if material_type == Material.MaterialType.PDF:
+            if not file:
+                raise serializers.ValidationError(
+                    {'file': 'PDF material must have a file attached.'}
+                )
+            if url:
+                raise serializers.ValidationError({'url': 'PDF material must not have a URL.'})
+            if not file.name.lower().endswith('.pdf'):
+                raise serializers.ValidationError({'file': 'Only PDF files are allowed.'})
+            if getattr(file, 'content_type', None) != 'application/pdf':
+                raise serializers.ValidationError(
+                    {'file': 'Uploaded file must be a PDF (application/pdf).'}
+                )
+            if file.size > MAX_PDF_SIZE_MB * 1024 * 1024:
                 raise serializers.ValidationError(
                     {'file': f'File must be smaller than {MAX_PDF_SIZE_MB}MB.'}
                 )
+        elif material_type in (Material.MaterialType.VIDEO_LINK, Material.MaterialType.LINK):
+            if not url:
+                raise serializers.ValidationError({'url': 'This material must have a URL.'})
+            if file:
+                raise serializers.ValidationError(
+                    {'file': 'This material must not have a file.'}
+                )
+        elif material_type == Material.MaterialType.TEXT:
+            if not content:
+                raise serializers.ValidationError({'content': 'Text material must have content.'})
+
         return attrs
 
 
-class SectionSerializer(serializers.ModelSerializer):
-    blocks = ContentBlockSerializer(many=True, read_only=True)
+class LessonSerializer(serializers.ModelSerializer):
+    materials = MaterialSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Section
-        fields = ['id', 'course', 'title', 'order', 'blocks', 'created_at']
+        model = Lesson
+        fields = ['id', 'course', 'title', 'description', 'order', 'materials', 'created_at']
         read_only_fields = ['id', 'course', 'created_at']
 
 
@@ -66,7 +88,10 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'cover', 'category', 'author', 'is_published', 'average_rating', 'ratings_count', 'created_at']
+        fields = [
+            'id', 'title', 'description', 'cover', 'category', 'author',
+            'is_published', 'average_rating', 'ratings_count', 'created_at',
+        ]
 
     def get_average_rating(self, obj):
         scores = [rating.score for rating in obj.ratings.all()]
@@ -77,60 +102,30 @@ class CourseListSerializer(serializers.ModelSerializer):
 
 
 class CourseDetailSerializer(CourseListSerializer):
-    sections = SectionSerializer(many=True, read_only=True)
+    lessons = LessonSerializer(many=True, read_only=True)
+    materials = serializers.SerializerMethodField()
     ratings = RatingSerializer(many=True, read_only=True)
 
     class Meta(CourseListSerializer.Meta):
         fields = CourseListSerializer.Meta.fields + [
-            'updated_at', 'sections', 'ratings'
+            'updated_at', 'lessons', 'materials', 'ratings',
         ]
+
+    def get_materials(self, obj):
+        '''Materials not grouped under any lesson (kept for backwards compatibility).'''
+        ungrouped = obj.materials.filter(lesson__isnull=True)
+        return MaterialSerializer(ungrouped, many=True).data
 
 
 class CourseWriteSerializer(serializers.ModelSerializer):
     '''Create/update fields only; excludes author so it can't be spoofed by the client.'''
-    sections_data = serializers.JSONField(write_only=True, required=False)
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'cover', 'category', 'is_published', 'sections_data']
+        fields = ['id', 'title', 'description', 'cover', 'category', 'is_published']
         read_only_fields = ['id']
 
     def validate_cover(self, value):
         if value and value.size > MAX_COVER_SIZE_MB * 1024 * 1024:
             raise serializers.ValidationError(f'Cover image must be smaller than {MAX_COVER_SIZE_MB}MB.')
         return value
-
-    def create(self, validated_data):
-        sections_data = validated_data.pop('sections_data', None)
-        course = super().create(validated_data)
-
-        if sections_data:
-            import json
-            try:
-                if isinstance(sections_data, str):
-                    sections_list = json.loads(sections_data)
-                else:
-                    sections_list = sections_data
-                for s_idx, section_dict in enumerate(sections_list):
-                    section = Section.objects.create(
-                        course=course,
-                        title=section_dict.get('title', f'Модуль {s_idx + 1}'),
-                        order=s_idx
-                    )
-                    blocks = section_dict.get('blocks', [])
-                    for b_idx, block_dict in enumerate(blocks):
-                        block = ContentBlock.objects.create(
-                            section=section,
-                            type=block_dict.get('type', 'text'),
-                            content=block_dict.get('content', ''),
-                            order=b_idx
-                        )
-                        file_key = f'file_{s_idx}_{b_idx}'
-                        if 'request' in self.context:
-                            request_files = self.context['request'].FILES
-                            if file_key in request_files:
-                                block.file = request_files[file_key]
-                                block.save()
-            except Exception:
-                logger.error("Error creating course structure", exc_info=True)
-        return course

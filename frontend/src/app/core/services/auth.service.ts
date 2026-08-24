@@ -22,6 +22,19 @@ export interface User {
   telegram_url?: string;
 }
 
+export interface PublicUser {
+  id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  avatar: string | null;
+  bio?: string;
+  telegram_username?: string;
+  telegram_url?: string;
+  role: string;
+  is_author: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -92,18 +105,14 @@ export class AuthService {
     );
   }
 
-  updateProfile(data: FormData | Partial<User>): Observable<User> {
+  updateProfile(data: Partial<User> | FormData): Observable<User> {
     return this.http.patch<User>(`${this.apiUrl}/users/me/`, data).pipe(
       tap(user => this.currentUserSubject.next(user))
     );
   }
 
-  getFavorites(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/users/me/favorites/`);
-  }
-
-  getPublicProfile(username: string): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/users/${username}/`);
+  getPublicProfile(username: string): Observable<PublicUser> {
+    return this.http.get<PublicUser>(`${this.apiUrl}/users/${username}/`);
   }
 
   private storeTokens(tokens: AuthTokens): void {

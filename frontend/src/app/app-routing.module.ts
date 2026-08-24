@@ -15,6 +15,9 @@ import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
 import { PublicProfileComponent } from './pages/public-profile/public-profile.component';
+import { InfoPageComponent } from './pages/info-page/info-page.component';
+import { FAQ_PAGE, SUPPORT_PAGE, TERMS_PAGE } from './pages/info-page/info-page.content';
+import { FavoritesComponent } from './pages/favorites/favorites.component';
 
 const routes: Routes = [
   {
@@ -69,12 +72,32 @@ const routes: Routes = [
     component: PublicProfileComponent
   },
   {
+    path: 'favorites',
+    component: FavoritesComponent
+  },
+  {
     path: 'forgot-password',
     component: ForgotPasswordComponent
   },
   {
     path: 'reset-password/:uid/:token',
     component: ResetPasswordComponent
+  },
+
+  {
+    path: 'faq',
+    component: InfoPageComponent,
+    data: { info: FAQ_PAGE }
+  },
+  {
+    path: 'support',
+    component: InfoPageComponent,
+    data: { info: SUPPORT_PAGE }
+  },
+  {
+    path: 'terms',
+    component: InfoPageComponent,
+    data: { info: TERMS_PAGE }
   }
 ];
 

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService, User } from 'src/app/core/services/auth.service';
 import { CourseService } from 'src/app/core/services/course.service';
 import { ForumService } from 'src/app/core/services/forum.service';
@@ -13,13 +13,12 @@ import { ForumService } from 'src/app/core/services/forum.service';
 export class ProfileComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
-  activeTab: 'info' | 'favorites' | 'edit' | 'my-courses' | 'drafts' | 'my-questions' = 'info';
+  activeTab: 'info' | 'edit' | 'my-courses' | 'drafts' | 'my-questions' = 'info';
 
-  favorites: any[] = [];
   myCourses: any[] = [];
   drafts: any[] = [];
   myQuestions: any[] = [];
-  
+
   profileForm: FormGroup;
   selectedAvatar: File | null = null;
   isSubmitting = false;
@@ -69,13 +68,8 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  setTab(tab: 'info' | 'favorites' | 'edit' | 'my-courses' | 'drafts' | 'my-questions'): void {
+  setTab(tab: 'info' | 'edit' | 'my-courses' | 'drafts' | 'my-questions'): void {
     this.activeTab = tab;
-    if (tab === 'favorites' && this.favorites.length === 0) {
-      this.authService.getFavorites().subscribe(res => {
-        this.favorites = (res as any).results || res;
-      });
-    }
     if ((tab === 'my-courses' || tab === 'drafts') && this.myCourses.length === 0 && this.drafts.length === 0 && this.user) {
       this.courseService.getCourses({ author: this.user.id }).subscribe(res => {
         const allCourses = res.results || [];

@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 # Project modules
-from apps.courses.models import Category, Course, Favorite, Rating
+from apps.courses.models import Category, Course, Favorite, Lesson, Material, Rating
 
 User = get_user_model()
 
@@ -46,6 +46,71 @@ class CategoryModelTests(TestCase):
     def test_slug_keeps_cyrillic_instead_of_going_blank(self):
         category = Category.objects.create(name='Вёрстка')
         self.assertEqual(category.slug, 'вёрстка')
+
+
+class MaterialModelTests(TestCase):
+    def setUp(self):
+        self.author = create_user()
+        self.course = Course.objects.create(title='Django basics', author=self.author)
+
+    def test_pdf_without_file_is_invalid(self):
+        material = Material(course=self.course, title='Slides', type=Material.MaterialType.PDF)
+        with self.assertRaises(ValidationError):
+            material.clean()
+
+    def test_pdf_with_url_is_invalid(self):
+        material = Material(
+            course=self.course,
+            title='Slides',
+            type=Material.MaterialType.PDF,
+            file=SimpleUploadedFile('slides.pdf', b'%PDF-1.4 fake', content_type='application/pdf'),
+            url='https://example.com/video',
+        )
+        with self.assertRaises(ValidationError):
+            material.clean()
+
+    def test_video_link_without_url_is_invalid(self):
+        material = Material(
+            course=self.course, title='Lecture', type=Material.MaterialType.VIDEO_LINK
+        )
+        with self.assertRaises(ValidationError):
+            material.clean()
+
+    def test_video_link_with_file_is_invalid(self):
+        material = Material(
+            course=self.course,
+            title='Lecture',
+            type=Material.MaterialType.VIDEO_LINK,
+            url='https://example.com/video',
+            file=SimpleUploadedFile('slides.pdf', b'%PDF-1.4 fake', content_type='application/pdf'),
+        )
+        with self.assertRaises(ValidationError):
+            material.clean()
+
+    def test_valid_video_link_passes_clean(self):
+        material = Material(
+            course=self.course,
+            title='Lecture',
+            type=Material.MaterialType.VIDEO_LINK,
+            url='https://example.com/video',
+        )
+        material.clean()  # should not raise
+
+    def test_link_without_url_is_invalid(self):
+        material = Material(course=self.course, title='Docs', type=Material.MaterialType.LINK)
+        with self.assertRaises(ValidationError):
+            material.clean()
+
+    def test_text_without_content_is_invalid(self):
+        material = Material(course=self.course, title='Notes', type=Material.MaterialType.TEXT)
+        with self.assertRaises(ValidationError):
+            material.clean()
+
+    def test_valid_text_passes_clean(self):
+        material = Material(
+            course=self.course, title='Notes', type=Material.MaterialType.TEXT, content='Hello'
+        )
+        material.clean()  # should not raise
 
 
 class FavoriteModelTests(TestCase):
@@ -235,6 +300,149 @@ class CoursePermissionAPITests(APITestCase):
         self.assertFalse(Course.objects.filter(id=course.id).exists())
 
 
+class MaterialAPITests(APITestCase):
+    def setUp(self):
+        self.author = create_user(email='author@example.com', username='author')
+        self.other = create_user(email='other@example.com', username='other')
+        self.course = Course.objects.create(
+            title='Django basics', author=self.author, is_published=True
+        )
+
+    def test_author_can_add_video_link_material(self):
+        self.client.force_authenticate(self.author)
+        response = self.client.post(
+            reverse('course-materials', args=[self.course.id]),
+            {'title': 'Lecture 1', 'type': 'video_link', 'url': 'https://example.com/video'},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.course.materials.count(), 1)
+
+    def test_author_can_add_pdf_material(self):
+        self.client.force_authenticate(self.author)
+        pdf = SimpleUploadedFile(
+            'slides.pdf', b'%PDF-1.4 fake pdf content', content_type='application/pdf'
+        )
+
+        response = self.client.post(
+            reverse('course-materials', args=[self.course.id]),
+            {'title': 'Slides', 'type': 'pdf', 'file': pdf},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        material = Material.objects.get(id=response.data['id'])
+        self.assertTrue(material.file.name.endswith('.pdf'))
+
+    def test_pdf_material_rejects_non_pdf_extension(self):
+        self.client.force_authenticate(self.author)
+        fake_file = SimpleUploadedFile('notes.txt', b'just text', content_type='text/plain')
+
+        response = self.client.post(
+            reverse('course-materials', args=[self.course.id]),
+            {'title': 'Notes', 'type': 'pdf', 'file': fake_file},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_non_author_cannot_add_material(self):
+        self.client.force_authenticate(self.other)
+        response = self.client.post(
+            reverse('course-materials', args=[self.course.id]),
+            {'title': 'Lecture 1', 'type': 'video_link', 'url': 'https://example.com/video'},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_non_author_cannot_delete_material(self):
+        material = Material.objects.create(
+            course=self.course,
+            title='Lecture 1',
+            type=Material.MaterialType.VIDEO_LINK,
+            url='https://example.com/video',
+        )
+        self.client.force_authenticate(self.other)
+
+        response = self.client.delete(reverse('material-detail', args=[material.id]))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_author_can_delete_own_material(self):
+        material = Material.objects.create(
+            course=self.course,
+            title='Lecture 1',
+            type=Material.MaterialType.VIDEO_LINK,
+            url='https://example.com/video',
+        )
+        self.client.force_authenticate(self.author)
+
+        response = self.client.delete(reverse('material-detail', args=[material.id]))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class LessonAPITests(APITestCase):
+    def setUp(self):
+        self.author = create_user(email='author@example.com', username='author')
+        self.other = create_user(email='other@example.com', username='other')
+        self.course = Course.objects.create(
+            title='Django basics', author=self.author, is_published=True
+        )
+
+    def test_author_can_create_lesson(self):
+        self.client.force_authenticate(self.author)
+        response = self.client.post(
+            reverse('course-lessons', args=[self.course.id]),
+            {'title': 'Introduction', 'description': 'First topic'},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.course.lessons.count(), 1)
+
+    def test_non_author_cannot_create_lesson(self):
+        self.client.force_authenticate(self.other)
+        response = self.client.post(
+            reverse('course-lessons', args=[self.course.id]), {'title': 'Introduction'}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_author_can_add_link_and_text_material_to_lesson(self):
+        self.client.force_authenticate(self.author)
+        lesson = Lesson.objects.create(course=self.course, title='Introduction')
+
+        link_response = self.client.post(
+            reverse('lesson-materials', args=[lesson.id]),
+            {'title': 'Docs', 'type': 'link', 'url': 'https://example.com'},
+        )
+        text_response = self.client.post(
+            reverse('lesson-materials', args=[lesson.id]),
+            {'title': 'Notes', 'type': 'text', 'content': 'Some notes'},
+        )
+
+        self.assertEqual(link_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(text_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(lesson.materials.count(), 2)
+
+    def test_course_detail_groups_materials_by_lesson(self):
+        lesson = Lesson.objects.create(course=self.course, title='Introduction')
+        Material.objects.create(
+            course=self.course, lesson=lesson, title='Video', type=Material.MaterialType.VIDEO_LINK,
+            url='https://example.com/video',
+        )
+        Material.objects.create(
+            course=self.course, title='Ungrouped link', type=Material.MaterialType.LINK,
+            url='https://example.com',
+        )
+
+        response = self.client.get(reverse('course-detail', args=[self.course.id]))
+
+        self.assertEqual(len(response.data['lessons']), 1)
+        self.assertEqual(len(response.data['lessons'][0]['materials']), 1)
+        self.assertEqual(len(response.data['materials']), 1)
+
+
 class FavoriteAPITests(APITestCase):
     def setUp(self):
         self.author = create_user(email='author@example.com', username='author')
@@ -258,6 +466,23 @@ class FavoriteAPITests(APITestCase):
         response = self.client.post(reverse('course-favorite', args=[self.course.id]))
         self.assertFalse(response.data['favorited'])
         self.assertFalse(Favorite.objects.filter(user=self.fan, course=self.course).exists())
+
+    def test_favorites_list_requires_authentication(self):
+        response = self.client.get(reverse('course-favorites'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_favorites_list_returns_only_favorited_courses(self):
+        other_course = Course.objects.create(
+            title='Not favorited', author=self.author, is_published=True
+        )
+        Favorite.objects.create(user=self.fan, course=self.course)
+        self.client.force_authenticate(self.fan)
+
+        response = self.client.get(reverse('course-favorites'))
+
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.course.id, ids)
+        self.assertNotIn(other_course.id, ids)
 
 
 class CategoryAPITests(APITestCase):

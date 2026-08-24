@@ -42,6 +42,35 @@ class UserSerializer(serializers.ModelSerializer):
         return value.strip().lstrip('@')
 
 
+class PublicUserSerializer(serializers.ModelSerializer):
+    '''Public-safe profile — no email or other private fields, unlike UserSerializer.'''
+
+    telegram_url = serializers.SerializerMethodField()
+    is_author = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'telegram_username',
+            'telegram_url',
+            'avatar',
+            'bio',
+            'role',
+            'is_author',
+        ]
+        read_only_fields = fields
+
+    def get_telegram_url(self, obj) -> str | None:
+        if not obj.telegram_username:
+            return None
+        username = obj.telegram_username.lstrip('@')
+        return f'https://t.me/{username}'
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
 

@@ -1,5 +1,5 @@
 # Django modules
-from django.db.models import Q
+from django.db.models import Avg, Count, Q
 
 # Third-party modules
 from rest_framework import mixins, status, viewsets
@@ -10,21 +10,20 @@ from rest_framework.response import Response
 
 # Project modules
 from apps.common.permissions import IsAuthorOrReadOnly
-from apps.courses.models import Category, ContentBlock, Course, Favorite, Rating, Section
+from apps.courses.models import Category, Course, Favorite, Lesson, Material, Rating
 from apps.courses.permissions import IsRatingOwnerOrAdminOrReadOnly
 from apps.courses.serializers import (
     CategorySerializer,
-    ContentBlockSerializer,
     CourseDetailSerializer,
     CourseListSerializer,
     CourseWriteSerializer,
+    LessonSerializer,
+    MaterialSerializer,
     RatingSerializer,
-    SectionSerializer,
 )
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    from django.db.models import Count, Q
     queryset = Category.objects.annotate(
         course_count=Count('courses', filter=Q(courses__is_published=True), distinct=True)
     ).order_by('-course_count')
@@ -37,38 +36,42 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         '''Anyone sees published courses; authenticated users also see their own drafts.'''
-        queryset = Course.objects.select_related('category', 'author').prefetch_related('ratings', 'sections', 'sections__blocks')
+        queryset = Course.objects.select_related('category', 'author').prefetch_related(
+            'ratings', 'lessons', 'lessons__materials'
+        )
         user = self.request.user
+
+        # Anyone sees published courses; authenticated users also see their own
+        # drafts, in both the catalog list and single-course lookups.
+        if user.is_authenticated:
+            queryset = queryset.filter(Q(is_published=True) | Q(author=user))
+        else:
+            queryset = queryset.filter(is_published=True)
+
         if self.action == 'list':
             author_id = self.request.query_params.get('author')
             public_only = self.request.query_params.get('public_only') == 'true'
 
             if author_id:
                 queryset = queryset.filter(author_id=author_id)
-                if not public_only and user.is_authenticated and str(user.id) == str(author_id):
-                    pass # Can see own drafts
-                else:
+                # Browsing someone else's profile (or explicitly asking for
+                # public_only) hides that author's drafts, even if you're logged in.
+                is_own_profile = user.is_authenticated and str(user.id) == str(author_id)
+                if public_only or not is_own_profile:
                     queryset = queryset.filter(is_published=True)
-            else:
-                queryset = queryset.filter(is_published=True)
-        else:
-            if user.is_authenticated:
-                queryset = queryset.filter(Q(is_published=True) | Q(author=user))
-            else:
-                queryset = queryset.filter(is_published=True)
 
         categories_param = self.request.query_params.get('categories')
         if categories_param:
             categories_list = categories_param.split(',')
             category_ids = [c for c in categories_list if c.isdigit()]
             category_slugs = [c for c in categories_list if not c.isdigit()]
-            
+
             q_objects = Q()
             if category_ids:
                 q_objects |= Q(category_id__in=category_ids)
             if category_slugs:
                 q_objects |= Q(category__slug__in=category_slugs)
-            
+
             if q_objects:
                 queryset = queryset.filter(q_objects)
         else:
@@ -78,13 +81,13 @@ class CourseViewSet(viewsets.ModelViewSet):
                     queryset = queryset.filter(category_id=category)
                 else:
                     queryset = queryset.filter(category__slug=category)
+
         min_rating = self.request.query_params.get('min_rating')
         sort_param = self.request.query_params.get('sort')
-        
+
         if min_rating or sort_param in ['rating_asc', 'rating_desc']:
-            from django.db.models import Avg
             queryset = queryset.annotate(avg_rating=Avg('ratings__score'))
-            
+
         if min_rating:
             queryset = queryset.filter(avg_rating__gte=float(min_rating))
 
@@ -99,7 +102,7 @@ class CourseViewSet(viewsets.ModelViewSet):
             ).filter(
                 Q(search=search_query) | Q(similarity__gt=0.1)
             ).order_by('-similarity')
-            
+
         if sort_param == 'rating_asc':
             queryset = queryset.order_by('avg_rating')
         elif sort_param == 'rating_desc':
@@ -118,11 +121,27 @@ class CourseViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(detail=True, methods=['post'])
-    def sections(self, request, pk=None):
-        '''Author-only: create a new section in this course.'''
+    def materials(self, request, pk=None):
+        '''Author-only: attach a PDF, link, video-link, or text material directly to this course.'''
         course = self.get_object()
 
-        serializer = SectionSerializer(data=request.data)
+        serializer = MaterialSerializer(data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        serializer.save(course=course, lesson=None)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get', 'post'])
+    def lessons(self, request, pk=None):
+        '''List a course's lessons, or (author-only) create a new one.'''
+        course = self.get_object()
+
+        if request.method == 'GET':
+            lessons = course.lessons.prefetch_related('materials')
+            serializer = LessonSerializer(lessons, many=True, context=self.get_serializer_context())
+            return Response(serializer.data)
+
+        # POST: get_object() above already enforced IsAuthorOrReadOnly for this write.
+        serializer = LessonSerializer(data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         serializer.save(course=course)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -136,6 +155,20 @@ class CourseViewSet(viewsets.ModelViewSet):
             favorite.delete()
         return Response({'favorited': created})
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def favorites(self, request):
+        '''List the courses the current user has favorited.'''
+        courses = Course.objects.filter(favorited_by__user=request.user).select_related(
+            'category', 'author'
+        )
+        page = self.paginate_queryset(courses)
+        if page is not None:
+            serializer = CourseListSerializer(page, many=True, context=self.get_serializer_context())
+            return self.get_paginated_response(serializer.data)
+
+        serializer = CourseListSerializer(courses, many=True, context=self.get_serializer_context())
+        return Response(serializer.data)
+
     @action(detail=True, methods=['get', 'post'], permission_classes=[IsAuthenticatedOrReadOnly])
     def ratings(self, request, pk=None):
         '''List a course's reviews, or leave/update your own (one per user per course).'''
@@ -145,73 +178,61 @@ class CourseViewSet(viewsets.ModelViewSet):
             ratings = course.ratings.select_related('user')
             page = self.paginate_queryset(ratings)
             if page is not None:
-                serializer = RatingSerializer(page, many=True)
+                serializer = RatingSerializer(page, many=True, context=self.get_serializer_context())
                 return self.get_paginated_response(serializer.data)
 
-            serializer = RatingSerializer(ratings, many=True)
+            serializer = RatingSerializer(ratings, many=True, context=self.get_serializer_context())
             return Response(serializer.data)
 
         if course.author == request.user:
             raise PermissionDenied("You can't rate your own course.")
 
-        serializer = RatingSerializer(data=request.data)
+        serializer = RatingSerializer(data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         rating, _ = Rating.objects.update_or_create(
             course=course,
             user=request.user,
             defaults=serializer.validated_data,
         )
-        response_serializer = RatingSerializer(rating)
+        response_serializer = RatingSerializer(rating, context=self.get_serializer_context())
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
-class SectionViewSet(
+class MaterialViewSet(
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    '''Retrieve/update/delete a section; creation happens via CourseViewSet.sections().'''
+    '''Retrieve/update/delete a single material; creation happens via CourseViewSet.materials()
+    or LessonViewSet.materials().'''
 
-    queryset = Section.objects.select_related('course__author')
-    serializer_class = SectionSerializer
+    queryset = Material.objects.select_related('course__author')
+    serializer_class = MaterialSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
-    @action(detail=True, methods=['post'])
-    def blocks(self, request, pk=None):
-        '''Author-only: attach a content block to this section.'''
-        section = self.get_object()
-        # Verify user is author of the course
-        if section.course.author != request.user:
-            raise PermissionDenied("Only the course author can add blocks.")
 
-        serializer = ContentBlockSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(section=section)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-class ContentBlockViewSet(
+class LessonViewSet(
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    '''Retrieve/update/delete a content block; creation happens via SectionViewSet.blocks().'''
+    '''Retrieve/update/delete a single lesson; creation happens via CourseViewSet.lessons().'''
 
-    queryset = ContentBlock.objects.select_related('section__course__author')
-    serializer_class = ContentBlockSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly] # Ideally IsAuthorOrReadOnly but we'd need to adapt permission class to check section.course.author
+    queryset = Lesson.objects.select_related('course__author').prefetch_related('materials')
+    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
-    def perform_update(self, serializer):
-        if serializer.instance.section.course.author != self.request.user:
-            raise PermissionDenied("Only the course author can update this block.")
-        serializer.save()
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAuthorOrReadOnly])
+    def materials(self, request, pk=None):
+        '''Author-only: attach a material to this lesson.'''
+        lesson = self.get_object()
 
-    def perform_destroy(self, instance):
-        if instance.section.course.author != self.request.user:
-            raise PermissionDenied("Only the course author can delete this block.")
-        instance.delete()
+        serializer = MaterialSerializer(data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        serializer.save(course=lesson.course, lesson=lesson)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class RatingViewSet(
