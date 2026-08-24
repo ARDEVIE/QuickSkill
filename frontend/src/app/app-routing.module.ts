@@ -8,6 +8,7 @@ import { CoursesComponent } from './pages/courses/courses.component';
 import { CreateCourseComponent } from './pages/create-course/create-course.component';
 import { CourseDetailsComponent } from './pages/course-details/course-details.component';
 import { CourseEditorComponent } from './pages/course-editor/course-editor.component';
+import { CoursePlayerComponent } from './pages/course-player/course-player.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
@@ -56,6 +57,10 @@ const routes: Routes = [
   {
     path: 'courses/:id/edit',
     component: CourseEditorComponent
+  },
+  {
+    path: 'courses/:id/learn',
+    component: CoursePlayerComponent
   },
   {
     path: 'courses/:id',

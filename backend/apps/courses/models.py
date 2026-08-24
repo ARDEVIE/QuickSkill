@@ -129,6 +129,26 @@ class Rating(TimeStampedModel):
         return f'{self.user} rated {self.course} {self.score}/5'
 
 
+class LessonProgress(Model):
+    '''Marks that a user has completed a given lesson (content block).'''
+
+    user = ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+        related_name='lesson_progress',
+    )
+    block = ForeignKey(ContentBlock, on_delete=CASCADE, related_name='completions')
+    created_at = DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['user', 'block'], name='unique_user_block_progress'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} completed {self.block}'
+
+
 class Favorite(Model):
     user = ForeignKey(
         settings.AUTH_USER_MODEL,

@@ -124,6 +124,14 @@
                   {{ course.sections.length || 0 }} модулей
                 </p>
               </div>
+              <a
+                *ngIf="course.sections.length > 0"
+                [routerLink]="['/courses', course.id, 'learn']"
+                class="accent-btn"
+                style="text-decoration: none; display: inline-block;"
+              >
+                Начать обучение →
+              </a>
             </div>
 
             <div class="lessons">
@@ -131,27 +139,23 @@
                 <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
                   Модуль {{ i + 1 }}: {{ section.title }}
                 </h3>
-                
-                <div class="lesson" *ngFor="let block of section.blocks; let j = index" style="margin-bottom: 0.5rem; padding-left: 1rem; flex-direction: column; align-items: stretch;">
-                  <div style="display: flex; align-items: center;">
-                    <div class="lesson-info">
-                      <strong>{{ block.title || ('Урок ' + (i + 1) + '.' + (j + 1)) }}</strong>
-                      <span style="color: #666; margin-left: 10px;">
-                        {{ block.type === 'video_link' ? 'Видео' : (block.type === 'link' ? 'Ссылка' : (block.type === 'media' ? 'Медиа файл' : 'Текст')) }}
-                      </span>
-                    </div>
 
-                    <span class="duration">
-                      <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary); text-decoration: underline;">Смотреть</a>
-                      <a *ngIf="block.type === 'link' && block.content" [href]="block.content" target="_blank" style="color: var(--primary); text-decoration: underline;">Открыть</a>
-                      <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" style="color: var(--primary); text-decoration: underline;">Скачать / Открыть медиа</a>
+                <a
+                  class="lesson"
+                  *ngFor="let block of section.blocks; let j = index"
+                  [routerLink]="['/courses', course.id, 'learn']"
+                  [queryParams]="{ lesson: block.id }"
+                  style="margin-bottom: 0.5rem; padding-left: 1rem; text-decoration: none; color: inherit; cursor: pointer;"
+                >
+                  <div class="lesson-info">
+                    <strong>{{ block.title || ('Урок ' + (i + 1) + '.' + (j + 1)) }}</strong>
+                    <span style="color: #666; margin-left: 10px;">
+                      {{ block.type === 'video_link' ? 'Видео' : (block.type === 'link' ? 'Ссылка' : (block.type === 'media' ? 'Медиа файл' : 'Текст')) }}
                     </span>
                   </div>
 
-                  <p *ngIf="block.type === 'text' && block.content" style="margin: 0.5rem 0 0; color: var(--text-secondary); white-space: pre-wrap; line-height: 1.6;">
-                    {{ block.content }}
-                  </p>
-                </div>
+                  <span class="duration">Открыть →</span>
+                </a>
                 <div *ngIf="!section.blocks || section.blocks.length === 0" style="padding-left: 1rem; color: #999;">
                   В этом модуле пока нет уроков.
                 </div>

@@ -41,6 +41,7 @@ export interface ContentBlock {
   file: string | null;
   order: number;
   created_at: string;
+  is_completed: boolean;
 }
 
 export interface Section {
@@ -143,6 +144,10 @@ export class CourseService {
 
   deleteBlock(blockId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/blocks/${blockId}/`);
+  }
+
+  toggleLessonComplete(blockId: number): Observable<{ completed: boolean }> {
+    return this.http.post<{ completed: boolean }>(`${this.apiUrl}/blocks/${blockId}/complete/`, {});
   }
 
   rateCourse(courseId: number, ratingData: { score: number, comment: string }): Observable<Rating> {

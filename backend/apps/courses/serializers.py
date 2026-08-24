@@ -23,10 +23,18 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ContentBlockSerializer(serializers.ModelSerializer):
+    is_completed = serializers.SerializerMethodField()
+
     class Meta:
         model = ContentBlock
-        fields = ['id', 'section', 'title', 'type', 'content', 'file', 'order', 'created_at']
+        fields = ['id', 'section', 'title', 'type', 'content', 'file', 'order', 'created_at', 'is_completed']
         read_only_fields = ['id', 'section', 'created_at']
+
+    def get_is_completed(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.completions.filter(user=request.user).exists()
 
     def validate(self, attrs):
         block_type = attrs.get('type', getattr(self.instance, 'type', None))

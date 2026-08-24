@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 # Project modules
 from apps.common.permissions import IsAuthorOrReadOnly
-from apps.courses.models import Category, ContentBlock, Course, Favorite, Rating, Section
+from apps.courses.models import Category, ContentBlock, Course, Favorite, LessonProgress, Rating, Section
 from apps.courses.permissions import IsRatingOwnerOrAdminOrReadOnly
 from apps.courses.serializers import (
     CategorySerializer,
@@ -212,6 +212,15 @@ class ContentBlockViewSet(
         if instance.section.course.author != self.request.user:
             raise PermissionDenied("Only the course author can delete this block.")
         instance.delete()
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def complete(self, request, pk=None):
+        '''Toggle the current user's completion mark on this lesson.'''
+        block = self.get_object()
+        progress, created = LessonProgress.objects.get_or_create(user=request.user, block=block)
+        if not created:
+            progress.delete()
+        return Response({'completed': created})
 
 
 class RatingViewSet(

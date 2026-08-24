@@ -1,0 +1,144 @@
+<div class="player-page">
+
+  <!-- TOP BAR -->
+  <header class="player-topbar">
+    <a [routerLink]="['/courses', courseId]" class="topbar-back" title="К странице курса">←</a>
+
+    <div class="topbar-heading" *ngIf="course">
+      <strong class="topbar-title">{{ course.title }}</strong>
+      <div class="progress-row">
+        <div class="progress-track"><div class="progress-fill" [style.width.%]="progressPercent"></div></div>
+        <span class="progress-label">{{ progressPercent }}% завершено</span>
+      </div>
+    </div>
+
+    <button type="button" class="sidebar-toggle" (click)="toggleSidebar()" *ngIf="course">☰ Программа</button>
+
+    <button
+      type="button"
+      class="favorite-btn"
+      [class.favorited]="isFavorited"
+      (click)="toggleFavorite()"
+      *ngIf="currentUser"
+    >
+      {{ isFavorited ? '♥ В избранном' : '♡ В избранное' }}
+    </button>
+  </header>
+
+  <div class="loading-state" *ngIf="isLoading">Загрузка курса…</div>
+
+  <div class="player-main" *ngIf="!isLoading && course">
+
+    <!-- LEFT: CURRICULUM -->
+    <aside class="player-sidebar" [class.open]="sidebarOpen">
+      <div class="sidebar-progress">
+        <div class="progress-track"><div class="progress-fill" [style.width.%]="progressPercent"></div></div>
+        <span>{{ progressPercent }}% завершено · {{ completedCount }} из {{ flatLessons.length }}</span>
+      </div>
+
+      <div class="sidebar-section" *ngFor="let section of course.sections">
+        <h3>{{ section.title }}</h3>
+
+        <button
+          type="button"
+          class="sidebar-lesson"
+          *ngFor="let block of section.blocks"
+          [class.active]="block.id === selectedBlockId"
+          [class.completed]="block.is_completed"
+          (click)="selectLesson(block)"
+        >
+          <span class="lesson-marker">
+            <ng-container *ngIf="block.is_completed">✓</ng-container>
+            <ng-container *ngIf="!block.is_completed && block.id === selectedBlockId">▶</ng-container>
+          </span>
+          <span class="lesson-name">{{ block.title || blockTypeLabel(block.type) }}</span>
+        </button>
+
+        <p class="empty-hint" *ngIf="section.blocks.length === 0">Уроков пока нет.</p>
+      </div>
+
+      <p class="empty-hint" *ngIf="course.sections.length === 0">В этом курсе пока нет программы.</p>
+    </aside>
+
+    <div class="sidebar-backdrop" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+
+    <!-- CENTER: LESSON CONTENT -->
+    <main class="player-content">
+
+      <ng-container *ngIf="selectedEntry as entry; else emptyPlayer">
+
+        <p class="lesson-eyebrow">Урок {{ selectedIndex + 1 }} из {{ flatLessons.length }} · {{ entry.section.title }}</p>
+        <h1 class="lesson-heading">{{ entry.block.title || blockTypeLabel(entry.block.type) }}</h1>
+
+        <div class="lesson-body">
+
+          <p *ngIf="entry.block.type === 'text' && entry.block.content" class="lesson-text">{{ entry.block.content }}</p>
+          <p *ngIf="entry.block.type === 'text' && !entry.block.content" class="empty-hint">Автор пока не добавил текст этого урока.</p>
+
+          <div class="lesson-video" *ngIf="entry.block.type === 'video_link'">
+            <a *ngIf="entry.block.content" [href]="entry.block.content" target="_blank" class="lesson-video-link">▶ Смотреть видео</a>
+            <p *ngIf="!entry.block.content" class="empty-hint">Ссылка на видео пока не добавлена.</p>
+          </div>
+
+          <div class="lesson-link" *ngIf="entry.block.type === 'link'">
+            <a *ngIf="entry.block.content" [href]="entry.block.content" target="_blank">🔗 {{ entry.block.content }}</a>
+            <p *ngIf="!entry.block.content" class="empty-hint">Ссылка пока не добавлена.</p>
+          </div>
+
+          <div class="lesson-media" *ngIf="entry.block.type === 'media'">
+            <a *ngIf="entry.block.file" [href]="entry.block.file" target="_blank">📎 Открыть файл</a>
+            <p *ngIf="!entry.block.file" class="empty-hint">Файл ещё не загружен.</p>
+          </div>
+
+        </div>
+
+        <div class="lesson-actions">
+          <button type="button" class="secondary-btn" (click)="goPrev()" [disabled]="!hasPrev">← Предыдущий урок</button>
+          <button
+            type="button"
+            class="accent-btn complete-btn"
+            [class.done]="entry.block.is_completed"
+            (click)="toggleComplete()"
+            [disabled]="isTogglingComplete"
+            *ngIf="currentUser"
+          >
+            {{ entry.block.is_completed ? '✓ Пройдено' : 'Отметить как пройдено' }}
+          </button>
+          <button type="button" class="secondary-btn" (click)="goNext()" [disabled]="!hasNext">Следующий урок →</button>
+        </div>
+
+      </ng-container>
+
+      <ng-template #emptyPlayer>
+        <div class="player-empty">
+          <p *ngIf="course.sections.length === 0">В этом курсе пока нет уроков. Загляните позже.</p>
+          <p *ngIf="course.sections.length > 0">Выбери урок в программе курса слева, чтобы начать.</p>
+        </div>
+      </ng-template>
+
+    </main>
+
+    <!-- RIGHT: ASK A QUESTION -->
+    <aside class="player-help" *ngIf="selectedEntry">
+      <h3>Есть вопрос по этому уроку?</h3>
+      <p>
+        Спроси на форуме — вопрос сразу привяжется к курсу «{{ course.title }}»<ng-container *ngIf="course.category">
+          и предмету «{{ course.category.name }}»</ng-container>.
+      </p>
+      <button type="button" class="accent-btn" (click)="askQuestion()">Задать вопрос</button>
+
+      <div class="related-questions" *ngIf="relatedQuestions.length > 0">
+        <h4>Похожие вопросы</h4>
+        <a *ngFor="let q of relatedQuestions" [routerLink]="['/forum', q.slug]" class="related-question">
+          {{ q.title }}
+        </a>
+      </div>
+
+      <p class="empty-hint" *ngIf="!isLoadingQuestions && relatedQuestions.length === 0">
+        По этому предмету пока нет вопросов на форуме.
+      </p>
+    </aside>
+
+  </div>
+
+</div>

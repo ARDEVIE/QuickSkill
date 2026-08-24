@@ -18,6 +18,7 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { CourseEditorComponent } from './pages/course-editor/course-editor.component';
+import { CoursePlayerComponent } from './pages/course-player/course-player.component';
 import { ForumListComponent } from './pages/forum-list/forum-list.component';
 import { QuestionDetailsComponent } from './pages/question-details/question-details.component';
 import { CreateQuestionComponent } from './pages/create-question/create-question.component';
@@ -39,6 +40,7 @@ import { FavoritesComponent } from './pages/favorites/favorites.component';
     ForgotPasswordComponent,
     ResetPasswordComponent,
     CourseEditorComponent,
+    CoursePlayerComponent,
     ForumListComponent,
     QuestionDetailsComponent,
     CreateQuestionComponent,

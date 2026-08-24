@@ -40,6 +40,15 @@ export class CreateQuestionComponent implements OnInit {
       if (params['edit']) {
         this.editSlug = params['edit'];
         this.loadQuestionForEdit();
+        return;
+      }
+
+      // Coming from a course lesson ("Задать вопрос") — prefill subject + context.
+      if (params['category'] || params['context']) {
+        this.questionForm.patchValue({
+          category: params['category'] || '',
+          content: params['context'] || ''
+        });
       }
     });
   }
