@@ -139,10 +139,7 @@
             </h3>
   
             <div class="author" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
-              <img *ngIf="course.author?.avatar" [src]="course.author.avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
-              <div *ngIf="!course.author?.avatar" style="width: 24px; height: 24px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #666;">
-                {{ course.authorName.charAt(0) }}
-              </div>
+              <img [src]="course.author?.avatar || 'assets/default-avatar.svg'" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
               <p style="margin: 0;">{{ course.authorName }}</p>
             </div>
   

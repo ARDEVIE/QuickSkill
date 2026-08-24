@@ -2,11 +2,8 @@
 
 <main class="profile-container">
   <div class="profile-header">
-    <div class="avatar-placeholder" *ngIf="!user?.avatar">
-      {{ user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U' }}
-    </div>
-    <div class="avatar-image" *ngIf="user?.avatar">
-      <img [src]="user?.avatar" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+    <div class="avatar-placeholder">
+      <img [src]="user?.avatar || 'assets/default-avatar.svg'" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
     </div>
     <div class="profile-info">
       <h1>{{ user?.first_name }} {{ user?.last_name }}</h1>
@@ -49,9 +46,6 @@
       </a>
     </div>
 
-    <div class="actions">
-      <button class="secondary-btn" (click)="logout()">Выйти</button>
-    </div>
   </section>
 
   <!-- FAVORITES TAB -->
@@ -208,6 +202,10 @@
       <button type="submit" class="accent-btn" [disabled]="profileForm.invalid || isSubmitting" style="margin-top: 1rem;">Сохранить изменения</button>
     </form>
   </section>
+
+  <div class="logout-row">
+    <button class="secondary-btn" (click)="logout()">Выйти</button>
+  </div>
 
 </main>
 

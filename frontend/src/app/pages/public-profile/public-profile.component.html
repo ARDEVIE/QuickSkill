@@ -2,11 +2,8 @@
 
 <main class="profile-container" *ngIf="user && !isLoading">
   <div class="profile-header">
-    <div class="avatar-placeholder" *ngIf="!user.avatar">
-      {{ (user.first_name || user.username).charAt(0) }}
-    </div>
-    <div class="avatar-image" *ngIf="user.avatar">
-      <img [src]="user.avatar" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+    <div class="avatar-image">
+      <img [src]="user.avatar || 'assets/default-avatar.svg'" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
     </div>
     <div class="profile-info">
       <h1>{{ user.first_name }} {{ user.last_name }}</h1>
