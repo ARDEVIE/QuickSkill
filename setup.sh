@@ -22,7 +22,7 @@ else
     info "backend/settings/.env уже есть, не трогаю"
 fi
 
-info "Собираю и поднимаю quickskill-db + quickskill-backend (docker compose up --build)"
+info "Собираю и поднимаю quickskill-db + quickskill-backend + quickskill-frontend (docker compose up --build)"
 docker compose up --build -d
 
 info "Жду, пока backend ответит на /api/docs/ (миграции применяются автоматически)"
@@ -44,6 +44,7 @@ cat <<'EOF'
 
 Готово! QuickSkill поднят локально:
 
+  Frontend (Angular):       http://localhost:4200/
   Swagger UI (JWT API):     http://localhost:8000/api/docs/
   Админка:                  http://localhost:8000/admin/
 

@@ -49,6 +49,8 @@ class CourseViewSet(viewsets.ModelViewSet):
                     pass # Can see own drafts
                 else:
                     queryset = queryset.filter(is_published=True)
+            elif user.is_authenticated:
+                queryset = queryset.filter(Q(is_published=True) | Q(author=user))
             else:
                 queryset = queryset.filter(is_published=True)
         else:
