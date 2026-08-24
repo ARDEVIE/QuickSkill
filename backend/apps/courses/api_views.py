@@ -1,10 +1,11 @@
 # Django modules
-from django.db.models import Q
+from django.db.models import Max, Q
 
 # Third-party modules
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -29,12 +30,19 @@ from apps.courses.serializers import (
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     '''The catalog/forum "category" filter list, and — via retrieve — a subject's hub page.'''
 
-    from django.db.models import Count, Q
-    queryset = Category.objects.annotate(
-        course_count=Count('courses', filter=Q(courses__is_published=True), distinct=True)
-    ).order_by('-course_count')
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        from django.db.models import Count, Q as _Q
+        queryset = Category.objects.annotate(
+            course_count=Count('courses', filter=_Q(courses__is_published=True), distinct=True)
+        ).order_by('-course_count')
+
+        if self.request.query_params.get('following') == 'true' and self.request.user.is_authenticated:
+            queryset = queryset.filter(followers__user=self.request.user)
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -55,6 +63,8 @@ class ResourceViewSet(viewsets.ModelViewSet):
     '''Loose, subject-scoped materials (PDFs, notes, cheat sheets, links, videos).'''
 
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'description']
 
     def get_queryset(self):
         queryset = Resource.objects.select_related('category', 'author')
@@ -150,6 +160,13 @@ class CourseViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by('avg_rating')
         elif sort_param == 'rating_desc':
             queryset = queryset.order_by('-avg_rating')
+
+        # 'Continue Learning': courses the user has made any progress in,
+        # most recently-touched first.
+        if self.request.query_params.get('filter') == 'in_progress' and user.is_authenticated:
+            queryset = queryset.filter(sections__blocks__completions__user=user).annotate(
+                last_progress_at=Max('sections__blocks__completions__created_at')
+            ).order_by('-last_progress_at')
 
         return queryset.distinct()
 

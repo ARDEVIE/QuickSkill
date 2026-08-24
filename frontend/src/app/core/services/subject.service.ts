@@ -36,8 +36,14 @@ export class SubjectService {
 
   constructor(private http: HttpClient) {}
 
-  getSubjects(): Observable<PaginatedResponse<Category> | Category[]> {
-    return this.http.get<PaginatedResponse<Category> | Category[]>(`${this.apiUrl}/categories/`);
+  getSubjects(params?: any): Observable<PaginatedResponse<Category> | Category[]> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key]) httpParams = httpParams.set(key, params[key]);
+      });
+    }
+    return this.http.get<PaginatedResponse<Category> | Category[]>(`${this.apiUrl}/categories/`, { params: httpParams });
   }
 
   getSubject(id: number): Observable<SubjectDetail> {

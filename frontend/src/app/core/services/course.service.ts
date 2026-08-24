@@ -31,6 +31,7 @@ export interface Course {
   created_at: string;
   average_rating: number | null;
   ratings_count: number;
+  progress_percent?: number | null;
 }
 
 export type BlockType = 'text' | 'video_link' | 'link' | 'media';

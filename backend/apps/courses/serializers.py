@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # Project modules
 from apps.common.serializers import AuthorSerializer
-from apps.courses.models import Category, ContentBlock, Course, Rating, Resource, Section
+from apps.courses.models import Category, ContentBlock, Course, LessonProgress, Rating, Resource, Section
 
 MAX_PDF_SIZE_MB = 10
 MAX_COVER_SIZE_MB = 5
@@ -149,10 +149,14 @@ class CourseListSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     average_rating = serializers.SerializerMethodField()
     ratings_count = serializers.SerializerMethodField()
+    progress_percent = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'cover', 'category', 'author', 'is_published', 'average_rating', 'ratings_count', 'created_at']
+        fields = [
+            'id', 'title', 'description', 'cover', 'category', 'author', 'is_published',
+            'average_rating', 'ratings_count', 'progress_percent', 'created_at',
+        ]
 
     def get_average_rating(self, obj):
         scores = [rating.score for rating in obj.ratings.all()]
@@ -160,6 +164,17 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     def get_ratings_count(self, obj):
         return len(obj.ratings.all())
+
+    def get_progress_percent(self, obj):
+        '''% of this course's lessons the current user has completed, or None if not signed in / no lessons.'''
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        total = ContentBlock.objects.filter(section__course=obj).count()
+        if total == 0:
+            return None
+        completed = LessonProgress.objects.filter(user=request.user, block__section__course=obj).count()
+        return round(completed / total * 100)
 
 
 class CourseDetailSerializer(CourseListSerializer):
