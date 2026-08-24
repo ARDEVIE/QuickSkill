@@ -95,35 +95,7 @@
     <section class="subject-content" *ngIf="activeTab === 'materials'">
       <div class="section-toolbar">
         <p class="section-count">{{ materials.length }} материалов</p>
-        <button type="button" class="text-link-btn" (click)="toggleAddMaterial()" *ngIf="currentUser">
-          {{ addingMaterial ? 'Отмена' : '+ Добавить материал' }}
-        </button>
-      </div>
-
-      <div class="inline-material-form" *ngIf="addingMaterial" [formGroup]="materialForm">
-        <div *ngIf="materialError" class="error-message">{{ materialError }}</div>
-        <div class="form-row">
-          <input type="text" formControlName="title" placeholder="Название материала" />
-          <select formControlName="type">
-            <option value="link">Ссылка</option>
-            <option value="video">Видео</option>
-            <option value="pdf">PDF</option>
-            <option value="notes">Конспект</option>
-            <option value="cheatsheet">Шпаргалка</option>
-            <option value="past_paper">Прошлый экзамен</option>
-          </select>
-        </div>
-        <div class="form-row" *ngIf="!needsFile()">
-          <input type="text" formControlName="url" placeholder="https://…" />
-        </div>
-        <div class="form-row" *ngIf="needsFile()">
-          <input type="file" (change)="onMaterialFileSelect($event)" />
-        </div>
-        <div class="form-actions-row">
-          <button type="button" class="accent-btn" (click)="submitMaterial()" [disabled]="isSubmittingMaterial || materialForm.invalid">
-            {{ isSubmittingMaterial ? 'Добавляем…' : 'Добавить' }}
-          </button>
-        </div>
+        <button type="button" class="text-link-btn" (click)="shareMaterial()" *ngIf="currentUser">+ Поделиться материалом</button>
       </div>
 
       <div class="loading-state" *ngIf="isLoadingMaterials">Загрузка…</div>

@@ -19,6 +19,7 @@ import { PublicProfileComponent } from './pages/public-profile/public-profile.co
 import { FavoritesComponent } from './pages/favorites/favorites.component';
 import { SubjectListComponent } from './pages/subject-list/subject-list.component';
 import { SubjectDetailComponent } from './pages/subject-detail/subject-detail.component';
+import { ShareMaterialComponent } from './pages/share-material/share-material.component';
 
 const routes: Routes = [
   {
@@ -83,6 +84,10 @@ const routes: Routes = [
   {
     path: 'subjects/:id',
     component: SubjectDetailComponent
+  },
+  {
+    path: 'share-material',
+    component: ShareMaterialComponent
   },
   {
     path: 'public-profile/:username',

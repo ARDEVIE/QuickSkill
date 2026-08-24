@@ -70,8 +70,14 @@ class ResourceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Resource
-        fields = ['id', 'category', 'author', 'title', 'type', 'url', 'file', 'created_at']
+        fields = ['id', 'category', 'author', 'title', 'description', 'type', 'url', 'file', 'tags', 'created_at']
         read_only_fields = ['id', 'author', 'created_at']
+
+
+FILE_RESOURCE_TYPES = (
+    Resource.ResourceType.PDF, Resource.ResourceType.DOCUMENT, Resource.ResourceType.IMAGE,
+    Resource.ResourceType.NOTES, Resource.ResourceType.CHEATSHEET, Resource.ResourceType.PAST_PAPER,
+)
 
 
 class ResourceWriteSerializer(serializers.ModelSerializer):
@@ -79,7 +85,7 @@ class ResourceWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Resource
-        fields = ['id', 'category', 'title', 'type', 'url', 'file']
+        fields = ['id', 'category', 'title', 'description', 'type', 'url', 'file', 'tags']
         read_only_fields = ['id']
 
     def validate(self, attrs):
@@ -89,8 +95,7 @@ class ResourceWriteSerializer(serializers.ModelSerializer):
 
         if resource_type in (Resource.ResourceType.LINK, Resource.ResourceType.VIDEO) and not url:
             raise serializers.ValidationError({'url': 'This resource type needs a URL.'})
-        if resource_type in (Resource.ResourceType.PDF, Resource.ResourceType.NOTES,
-                              Resource.ResourceType.CHEATSHEET, Resource.ResourceType.PAST_PAPER) and not file:
+        if resource_type in FILE_RESOURCE_TYPES and not file:
             raise serializers.ValidationError({'file': 'This resource type needs a file.'})
         return attrs
 

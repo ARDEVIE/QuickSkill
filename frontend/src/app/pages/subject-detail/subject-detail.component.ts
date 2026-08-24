@@ -1,14 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Course, CourseService } from 'src/app/core/services/course.service';
 import { ForumService, Question } from 'src/app/core/services/forum.service';
 import { AuthService, User } from 'src/app/core/services/auth.service';
 import { Resource, ResourceType, SubjectDetail, SubjectService } from 'src/app/core/services/subject.service';
+import { resourceTypeLabel } from 'src/app/core/utils/resource-type.util';
 
 type Tab = 'overview' | 'materials' | 'guides' | 'questions';
-
-const FILE_TYPES: ResourceType[] = ['pdf', 'notes', 'cheatsheet', 'past_paper'];
 
 @Component({
   selector: 'app-subject-detail',
@@ -35,11 +33,6 @@ export class SubjectDetailComponent implements OnInit {
   materials: Resource[] = [];
   materialsLoadedOnce = false;
   isLoadingMaterials = false;
-  addingMaterial = false;
-  materialForm: FormGroup;
-  materialFile: File | null = null;
-  materialError: string | null = null;
-  isSubmittingMaterial = false;
 
   // Guides
   guides: Course[] = [];
@@ -57,15 +50,8 @@ export class SubjectDetailComponent implements OnInit {
     private subjectService: SubjectService,
     private courseService: CourseService,
     private forumService: ForumService,
-    private authService: AuthService,
-    private fb: FormBuilder
-  ) {
-    this.materialForm = this.fb.group({
-      title: ['', Validators.required],
-      type: ['link', Validators.required],
-      url: ['']
-    });
-  }
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -87,7 +73,9 @@ export class SubjectDetailComponent implements OnInit {
       next: (subject) => {
         this.subject = subject;
         this.isLoading = false;
-        this.setTab('overview');
+        const requestedTab = this.route.snapshot.queryParamMap.get('tab') as Tab | null;
+        const validTabs: Tab[] = ['overview', 'materials', 'guides', 'questions'];
+        this.setTab(requestedTab && validTabs.includes(requestedTab) ? requestedTab : 'overview');
       },
       error: () => {
         this.isLoading = false;
@@ -181,63 +169,10 @@ export class SubjectDetailComponent implements OnInit {
     this.router.navigate(['/forum/ask'], { queryParams: { category: this.subject.id } });
   }
 
-  // ---------- Materials form ----------
+  // ---------- Materials ----------
 
-  toggleAddMaterial(): void {
-    this.addingMaterial = !this.addingMaterial;
-    this.materialForm.reset({ type: 'link' });
-    this.materialFile = null;
-    this.materialError = null;
-  }
-
-  onMaterialFileSelect(event: any): void {
-    const file = event.target.files[0];
-    if (file) this.materialFile = file;
-  }
-
-  needsFile(): boolean {
-    return FILE_TYPES.includes(this.materialForm.get('type')?.value);
-  }
-
-  submitMaterial(): void {
-    if (!this.currentUser) return;
-    if (this.materialForm.invalid) return;
-
-    const type: ResourceType = this.materialForm.get('type')?.value;
-    if (this.needsFile() && !this.materialFile) {
-      this.materialError = 'Прикрепите файл.';
-      return;
-    }
-    if (!this.needsFile() && !this.materialForm.get('url')?.value) {
-      this.materialError = 'Укажите ссылку.';
-      return;
-    }
-
-    this.isSubmittingMaterial = true;
-    this.materialError = null;
-
-    const formData = new FormData();
-    formData.append('category', String(this.subjectId));
-    formData.append('title', this.materialForm.get('title')?.value);
-    formData.append('type', type);
-    if (this.needsFile() && this.materialFile) {
-      formData.append('file', this.materialFile);
-    } else {
-      formData.append('url', this.materialForm.get('url')?.value);
-    }
-
-    this.subjectService.createResource(formData).subscribe({
-      next: (resource) => {
-        this.materials.unshift(resource);
-        if (this.subject) this.subject.materials_count++;
-        this.isSubmittingMaterial = false;
-        this.toggleAddMaterial();
-      },
-      error: () => {
-        this.isSubmittingMaterial = false;
-        this.materialError = 'Не удалось добавить материал.';
-      }
-    });
+  shareMaterial(): void {
+    this.router.navigate(['/share-material'], { queryParams: { subject: this.subjectId } });
   }
 
   deleteMaterial(resource: Resource): void {
@@ -255,14 +190,6 @@ export class SubjectDetailComponent implements OnInit {
   }
 
   resourceTypeLabel(type: ResourceType): string {
-    switch (type) {
-      case 'pdf': return 'PDF';
-      case 'notes': return 'Конспект';
-      case 'cheatsheet': return 'Шпаргалка';
-      case 'past_paper': return 'Прошлый экзамен';
-      case 'link': return 'Ссылка';
-      case 'video': return 'Видео';
-      default: return type;
-    }
+    return resourceTypeLabel(type);
   }
 }

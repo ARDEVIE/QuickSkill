@@ -198,6 +198,8 @@ class Resource(TimeStampedModel):
 
     class ResourceType(TextChoices):
         PDF = 'pdf', 'PDF'
+        DOCUMENT = 'document', 'Document'
+        IMAGE = 'image', 'Image'
         NOTES = 'notes', 'Lecture notes'
         CHEATSHEET = 'cheatsheet', 'Cheat sheet'
         PAST_PAPER = 'past_paper', 'Past paper'
@@ -211,9 +213,11 @@ class Resource(TimeStampedModel):
         related_name='resources',
     )
     title = CharField(max_length=200)
+    description = TextField(blank=True)
     type = CharField(max_length=20, choices=ResourceType.choices)
     url = CharField(max_length=500, blank=True)
     file = FileField(upload_to='resources/', blank=True, null=True)
+    tags = CharField(max_length=200, blank=True)  # comma-separated, from a fixed client-side set
 
     class Meta:
         ordering = ['-created_at']

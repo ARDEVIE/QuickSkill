@@ -13,16 +13,18 @@ export interface SubjectDetail extends Category {
   is_following: boolean;
 }
 
-export type ResourceType = 'pdf' | 'notes' | 'cheatsheet' | 'past_paper' | 'link' | 'video';
+export type ResourceType = 'pdf' | 'document' | 'image' | 'notes' | 'cheatsheet' | 'past_paper' | 'link' | 'video';
 
 export interface Resource {
   id: number;
   category: Category;
   author: Author;
   title: string;
+  description: string;
   type: ResourceType;
   url: string | null;
   file: string | null;
+  tags: string;
   created_at: string;
 }
 

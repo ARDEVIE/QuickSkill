@@ -3,9 +3,12 @@
 <main class="subjects-page">
 
   <div class="page-header">
-    <span class="eyebrow">SUBJECTS</span>
-    <h1>Предметы</h1>
-    <p>Материалы, гайды и вопросы, собранные по университетским предметам.</p>
+    <div>
+      <span class="eyebrow">SUBJECTS</span>
+      <h1>Предметы</h1>
+      <p>Материалы, гайды и вопросы, собранные по университетским предметам.</p>
+    </div>
+    <a routerLink="/share-material" class="accent-btn" *ngIf="currentUser">+ Поделиться материалом</a>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">Загрузка…</div>

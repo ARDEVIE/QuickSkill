@@ -26,6 +26,7 @@ import { PublicProfileComponent } from './pages/public-profile/public-profile.co
 import { FavoritesComponent } from './pages/favorites/favorites.component';
 import { SubjectListComponent } from './pages/subject-list/subject-list.component';
 import { SubjectDetailComponent } from './pages/subject-detail/subject-detail.component';
+import { ShareMaterialComponent } from './pages/share-material/share-material.component';
 
 @NgModule({
   declarations: [
@@ -50,6 +51,7 @@ import { SubjectDetailComponent } from './pages/subject-detail/subject-detail.co
     FavoritesComponent,
     SubjectListComponent,
     SubjectDetailComponent,
+    ShareMaterialComponent,
   ],
   imports: [
     BrowserModule,
