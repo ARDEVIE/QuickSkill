@@ -33,7 +33,7 @@ export interface Course {
 export interface ContentBlock {
   id: number;
   section: number;
-  type: 'text' | 'video_link' | 'media';
+  type: 'text' | 'video_link' | 'media' | 'document_link';
   content: string | null;
   file: string | null;
   order: number;

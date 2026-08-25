@@ -207,7 +207,7 @@
                 <div class="lesson-info">
                   <strong>Урок {{ i + 1 }}.{{ j + 1 }}</strong>
                   <span class="lesson-type">
-                    {{ block.type === 'video_link' ? 'Видео' : (block.type === 'media' ? 'Медиа файл' : 'Текст') }}
+                    {{ block.type === 'video_link' ? 'Видео' : (block.type === 'document_link' ? 'Документ' : (block.type === 'media' ? 'Медиа файл' : 'Текст')) }}
                   </span>
                 </div>
               </div>
@@ -264,12 +264,13 @@
           <label>Тип контента</label>
           <select formControlName="type" (change)="onBlockTypeChange()">
             <option value="video_link">Видео (YouTube/Ссылка)</option>
+            <option value="document_link">Документ (ссылка на PDF)</option>
             <option value="text">Текст (Статья)</option>
             <option value="media">Медиа файл (Фото/Видео/PDF)</option>
           </select>
         </div>
 
-        <div class="form-group" *ngIf="blockForm.get('type')?.value === 'video_link' || blockForm.get('type')?.value === 'text'">
+        <div class="form-group" *ngIf="blockForm.get('type')?.value === 'video_link' || blockForm.get('type')?.value === 'document_link' || blockForm.get('type')?.value === 'text'">
           <label>Контент (Текст или ссылка)</label>
           <textarea formControlName="content" rows="4" placeholder="Введите текст или ссылку..."></textarea>
         </div>

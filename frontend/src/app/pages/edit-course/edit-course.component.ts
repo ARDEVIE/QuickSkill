@@ -100,7 +100,7 @@ export class EditCourseComponent implements OnInit {
 
   onBlockTypeChange(): void {
     const type = this.blockForm.get('type')?.value;
-    if (type === 'video_link' || type === 'text') {
+    if (type === 'video_link' || type === 'document_link' || type === 'text') {
       this.blockForm.get('content')?.setValidators([Validators.required]);
     } else {
       this.blockForm.get('content')?.clearValidators();
@@ -183,7 +183,7 @@ export class EditCourseComponent implements OnInit {
     formData.append('type', this.blockForm.get('type')?.value);
     
     const type = this.blockForm.get('type')?.value;
-    if (type === 'video_link' || type === 'text') {
+    if (type === 'video_link' || type === 'document_link' || type === 'text') {
        formData.append('content', this.blockForm.get('content')?.value);
     }
     if (type === 'media' && this.selectedBlockFile) {
