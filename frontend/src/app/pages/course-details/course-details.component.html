@@ -15,7 +15,7 @@
 
       <section class="course-hero" *ngIf="course">
 
-        <div class="course-cover">
+        <div class="course-cover" [class.has-image]="course.cover" [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : 'url(assets/default-course-cover.svg) center/cover no-repeat'">
 
           <span class="category">
             {{ course.category.name }}
@@ -132,17 +132,16 @@
                   Модуль {{ i + 1 }}: {{ section.title }}
                 </h3>
 
-                <div class="lesson" *ngFor="let block of section.blocks; let j = index">
+                <div class="lesson lesson-clickable" *ngFor="let block of section.blocks; let j = index" (click)="openLesson(block, i, j)">
                   <div class="lesson-info">
                     <strong>Урок {{ i + 1 }}.{{ j + 1 }}</strong>
                     <span class="lesson-type">
-                      {{ block.type === 'video_link' ? 'Видео' : (block.type === 'media' ? 'Медиа файл' : 'Текст') }}
+                      {{ block.type === 'video_link' ? 'Видео' : (block.type === 'document_link' ? 'Документ' : (block.type === 'media' ? 'Медиа файл' : 'Текст')) }}
                     </span>
                   </div>
 
                   <span class="duration">
-                    <a *ngIf="block.type === 'video_link' && block.content" [href]="block.content" target="_blank" class="link underline">Смотреть</a>
-                    <a *ngIf="block.type === 'media' && block.file" [href]="block.file" target="_blank" class="link underline">Скачать / Открыть медиа</a>
+                    <a class="link underline">Открыть</a>
                   </span>
                 </div>
                 <p class="empty-hint" *ngIf="!section.blocks || section.blocks.length === 0">
@@ -200,6 +199,47 @@
     </main>
 
 
+    <!-- LESSON POPUP -->
+    <div class="modal-overlay" *ngIf="activeBlock" (click)="closeLesson()">
+      <div class="modal-content lesson-modal-content" (click)="$event.stopPropagation()">
+        <div class="lesson-modal-header">
+          <h3>{{ activeBlockLabel }}</h3>
+          <button type="button" class="lesson-modal-close" (click)="closeLesson()">✕</button>
+        </div>
+
+        <!-- TEXT -->
+        <p class="lesson-modal-text" *ngIf="activeBlock.type === 'text'">{{ activeBlock.content }}</p>
+        <p class="empty-hint" *ngIf="activeBlock.type === 'text' && !activeBlock.content">
+          В этом уроке пока нет текста.
+        </p>
+
+        <!-- VIDEO -->
+        <ng-container *ngIf="activeBlock.type === 'video_link'">
+          <iframe *ngIf="activeEmbedUrl" class="lesson-modal-frame" [src]="activeEmbedUrl" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          <p *ngIf="!activeEmbedUrl && activeBlock.content">
+            <a [href]="activeBlock.content" target="_blank" class="link underline">Открыть видео по ссылке</a>
+          </p>
+        </ng-container>
+
+        <!-- DOCUMENT LINK -->
+        <ng-container *ngIf="activeBlock.type === 'document_link'">
+          <iframe *ngIf="activeEmbedUrl" class="lesson-modal-frame lesson-modal-doc" [src]="activeEmbedUrl"></iframe>
+          <p *ngIf="activeBlock.content">
+            <a [href]="activeBlock.content" target="_blank" class="link underline">Открыть документ в новой вкладке</a>
+          </p>
+        </ng-container>
+
+        <!-- MEDIA FILE -->
+        <ng-container *ngIf="activeBlock.type === 'media'">
+          <img *ngIf="isImageFile(activeBlock.file)" class="lesson-modal-image" [src]="activeBlock.file" alt="" />
+          <iframe *ngIf="!isImageFile(activeBlock.file) && activeEmbedUrl" class="lesson-modal-frame lesson-modal-doc" [src]="activeEmbedUrl"></iframe>
+          <p *ngIf="activeBlock.file">
+            <a [href]="activeBlock.file" target="_blank" class="link underline">Скачать / открыть в новой вкладке</a>
+          </p>
+          <p class="empty-hint" *ngIf="!activeBlock.file">В этом уроке пока нет файла.</p>
+        </ng-container>
+      </div>
+    </div>
 
     <app-footer></app-footer>
 

@@ -73,7 +73,7 @@ export class CreateCourseComponent implements OnInit {
 
   onBlockTypeChange(): void {
     const type = this.blockForm.get('type')?.value;
-    if (type === 'video_link' || type === 'text') {
+    if (type === 'video_link' || type === 'document_link' || type === 'text') {
       this.blockForm.get('content')?.setValidators([Validators.required]);
     } else {
       this.blockForm.get('content')?.clearValidators();
@@ -113,7 +113,7 @@ export class CreateCourseComponent implements OnInit {
     
     this.sections[this.activeSectionIndex].blocks.push({
       type,
-      content: type === 'video_link' || type === 'text' ? this.blockForm.get('content')?.value : '',
+      content: type === 'video_link' || type === 'document_link' || type === 'text' ? this.blockForm.get('content')?.value : '',
       file: type === 'media' ? this.selectedBlockFile : null
     });
     this.showBlockModal = false;

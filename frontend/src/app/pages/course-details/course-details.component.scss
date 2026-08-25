@@ -7,6 +7,11 @@
   margin-left: var(--space-8);
 }
 
+.course-cover.has-image::before,
+.course-cover.has-image::after {
+  display: none;
+}
+
 .author-avatar-image {
   width: 48px;
   height: 48px;
@@ -75,4 +80,57 @@
 
 .rating-item-date {
   color: var(--text-muted);
+}
+
+.lesson-clickable {
+  cursor: pointer;
+}
+
+.lesson-modal-content {
+  max-width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.lesson-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-16);
+}
+
+.lesson-modal-header h3 {
+  margin: 0;
+}
+
+.lesson-modal-close {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1;
+  padding: var(--space-8);
+}
+
+.lesson-modal-text {
+  white-space: pre-line;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.lesson-modal-frame {
+  width: 100%;
+  height: 60vh;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.lesson-modal-doc {
+  height: 70vh;
+}
+
+.lesson-modal-image {
+  width: 100%;
+  border-radius: 12px;
 }

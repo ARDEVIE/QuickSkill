@@ -1,12 +1,14 @@
 # Python modules
 import base64
+import shutil
+import tempfile
 
 # Django modules
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 # Third-party modules
@@ -276,6 +278,23 @@ class CategoryAPITests(APITestCase):
 
 
 class CourseCoverAPITests(APITestCase):
+    '''Uploads real files, so it points MEDIA_ROOT at a scratch dir instead of
+    writing test covers into the real media directory (which used to leave
+    stray cover.png files behind after every test run).'''
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._media_root = tempfile.mkdtemp()
+        cls._override = override_settings(MEDIA_ROOT=cls._media_root)
+        cls._override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._override.disable()
+        shutil.rmtree(cls._media_root, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):
         self.author = create_user(email='author@example.com', username='author')
 

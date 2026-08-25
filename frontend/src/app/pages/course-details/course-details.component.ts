@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CourseService, CourseDetail } from 'src/app/core/services/course.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { CourseService, CourseDetail, ContentBlock } from 'src/app/core/services/course.service';
 import { AuthService, User } from 'src/app/core/services/auth.service';
 
 @Component({
@@ -24,11 +25,17 @@ export class CourseDetailsComponent implements OnInit {
   isSubmitting = false;
   ratingForm: FormGroup;
 
+  // Lesson popup
+  activeBlock: ContentBlock | null = null;
+  activeBlockLabel = '';
+  activeEmbedUrl: SafeResourceUrl | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private courseService: CourseService,
     private authService: AuthService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private sanitizer: DomSanitizer
   ) {
     this.ratingForm = this.fb.group({
       score: ['5', Validators.required],
@@ -117,5 +124,41 @@ export class CourseDetailsComponent implements OnInit {
         alert('Ошибка или вы уже оставили отзыв');
       }
     });
+  }
+
+  openLesson(block: ContentBlock, moduleIndex: number, lessonIndex: number): void {
+    this.activeBlock = block;
+    this.activeBlockLabel = `Урок ${moduleIndex + 1}.${lessonIndex + 1}`;
+    this.activeEmbedUrl = null;
+
+    if (block.type === 'video_link' && block.content) {
+      const youtubeId = this.extractYoutubeId(block.content);
+      if (youtubeId) {
+        this.activeEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+          `https://www.youtube.com/embed/${youtubeId}`
+        );
+      }
+    } else if (block.type === 'document_link' && block.content) {
+      this.activeEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(block.content);
+    } else if (block.type === 'media' && block.file) {
+      this.activeEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(block.file);
+    }
+  }
+
+  closeLesson(): void {
+    this.activeBlock = null;
+    this.activeEmbedUrl = null;
+  }
+
+  isImageFile(url: string | null): boolean {
+    if (!url) return false;
+    return /\.(png|jpe?g|gif|webp|svg)$/i.test(url);
+  }
+
+  private extractYoutubeId(url: string): string | null {
+    const match = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+    );
+    return match ? match[1] : null;
   }
 }

@@ -121,7 +121,7 @@
 
           <div
             class="course-cover"
-            [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : course.color">
+            [style.background]="course.cover ? 'url(' + course.cover + ') center/cover no-repeat' : 'url(assets/default-course-cover.svg) center/cover no-repeat'">
 
             <span *ngIf="!course.cover">{{ course.category.name }}</span>
 

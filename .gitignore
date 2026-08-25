@@ -14,6 +14,9 @@ db.sqlite3
 
 # Uploaded and collected static/media files
 staticfiles/
+# Real media storage is the Docker volume mounted over backend/media in
+# docker-compose (see media_data), so local uploads here are throwaway.
+backend/media/courses/
 
 # System files and IDE settings
 .DS_Store
