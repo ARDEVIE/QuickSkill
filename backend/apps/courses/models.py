@@ -90,6 +90,7 @@ class ContentBlock(TimeStampedModel):
     class BlockType(TextChoices):
         TEXT = 'text', 'Text'
         MEDIA = 'media', 'Media'
+        VIDEO_LINK = 'video_link', 'Video link'
 
     section = ForeignKey(Section, on_delete=CASCADE, related_name='blocks')
     type = CharField(max_length=20, choices=BlockType.choices, default=BlockType.TEXT)
