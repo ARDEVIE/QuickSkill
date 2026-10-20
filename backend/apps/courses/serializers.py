@@ -1,13 +1,14 @@
+# Python modules
 import logging
 
 # Third-party modules
 from rest_framework import serializers
 
-logger = logging.getLogger(__name__)
-
 # Project modules
 from apps.common.serializers import AuthorSerializer
 from apps.courses.models import Category, ContentBlock, Course, Rating, Section
+
+logger = logging.getLogger(__name__)
 
 MAX_PDF_SIZE_MB = 10
 MAX_COVER_SIZE_MB = 5
@@ -105,6 +106,7 @@ class CourseWriteSerializer(serializers.ModelSerializer):
         course = super().create(validated_data)
 
         if sections_data:
+            # Python modules
             import json
             try:
                 if isinstance(sections_data, str):

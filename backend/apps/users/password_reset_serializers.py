@@ -1,14 +1,15 @@
 # Django modules
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 
 # Third-party modules
 from rest_framework import serializers
 
 # Project modules
 from apps.users.models import CustomUser
+
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()

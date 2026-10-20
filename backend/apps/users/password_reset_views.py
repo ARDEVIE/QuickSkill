@@ -1,7 +1,7 @@
 # Django modules
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 # Third-party modules
 from rest_framework import generics, permissions, status
@@ -9,7 +9,11 @@ from rest_framework.response import Response
 
 # Project modules
 from apps.users.models import CustomUser
-from apps.users.password_reset_serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+from apps.users.password_reset_serializers import (
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
+)
+
 
 class PasswordResetRequestAPIView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]

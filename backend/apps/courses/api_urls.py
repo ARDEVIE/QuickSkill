@@ -2,7 +2,13 @@
 from rest_framework.routers import DefaultRouter
 
 # Project modules
-from apps.courses.api_views import CategoryViewSet, CourseViewSet, RatingViewSet, SectionViewSet, ContentBlockViewSet
+from apps.courses.api_views import (
+    CategoryViewSet,
+    ContentBlockViewSet,
+    CourseViewSet,
+    RatingViewSet,
+    SectionViewSet,
+)
 
 router = DefaultRouter()
 router.register('categories', CategoryViewSet, basename='category')

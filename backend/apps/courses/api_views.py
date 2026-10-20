@@ -24,6 +24,7 @@ from apps.courses.serializers import (
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    # Django modules
     from django.db.models import Count, Q
     queryset = Category.objects.annotate(
         course_count=Count('courses', filter=Q(courses__is_published=True), distinct=True)
@@ -84,6 +85,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         sort_param = self.request.query_params.get('sort')
         
         if min_rating or sort_param in ['rating_asc', 'rating_desc']:
+            # Django modules
             from django.db.models import Avg
             queryset = queryset.annotate(avg_rating=Avg('ratings__score'))
             
@@ -93,7 +95,9 @@ class CourseViewSet(viewsets.ModelViewSet):
         # Full-Text Search replacement
         search_query = self.request.query_params.get('search')
         if search_query:
+            # Django modules
             from django.contrib.postgres.search import SearchVector, TrigramSimilarity
+
             # Using TrigramSimilarity for better partial matches and SearchVector for FTS
             queryset = queryset.annotate(
                 search=SearchVector('title', 'description'),

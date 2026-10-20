@@ -2,12 +2,12 @@
 from django.conf import settings
 from django.db.models import (
     CASCADE,
+    SET_NULL,
     CharField,
     DateTimeField,
     FileField,
     ForeignKey,
     Model,
-    SET_NULL,
     SlugField,
     TextField,
     UniqueConstraint,

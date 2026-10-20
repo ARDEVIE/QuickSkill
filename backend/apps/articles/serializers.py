@@ -2,9 +2,9 @@
 from rest_framework import serializers
 
 # Project modules
-from apps.users.models import CustomUser
 from apps.articles.models import Comment, Question
 from apps.courses.serializers import CategorySerializer
+from apps.users.models import CustomUser
 
 
 class QuestionAuthorSerializer(serializers.ModelSerializer):

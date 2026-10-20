@@ -5,7 +5,6 @@ import tempfile
 
 # Django modules
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings

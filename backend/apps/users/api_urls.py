@@ -5,8 +5,14 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Project modules
-from apps.users.views import LogoutAPIView, MeAPIView, RegisterAPIView, MeFavoritesAPIView, UserPublicProfileAPIView
-from apps.users.password_reset_views import PasswordResetRequestAPIView, PasswordResetConfirmAPIView
+from apps.users.password_reset_views import PasswordResetConfirmAPIView, PasswordResetRequestAPIView
+from apps.users.views import (
+    LogoutAPIView,
+    MeAPIView,
+    MeFavoritesAPIView,
+    RegisterAPIView,
+    UserPublicProfileAPIView,
+)
 
 app_name = 'users_api'
 

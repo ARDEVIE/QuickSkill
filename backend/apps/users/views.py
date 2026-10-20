@@ -30,17 +30,20 @@ class MeFavoritesAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_serializer_class(self):
+        # Project modules
         from apps.courses.serializers import CourseListSerializer
         return CourseListSerializer
 
     def get_queryset(self):
         # returns the actual Course objects the user has favorited
         user = self.request.user
+        # Project modules
         from apps.courses.models import Course
         return Course.objects.filter(favorited_by__user=user).select_related('author', 'category').distinct()
 
 
 class UserPublicProfileAPIView(generics.RetrieveAPIView):
+    # Project modules
     from apps.users.models import CustomUser
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer

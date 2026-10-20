@@ -7,13 +7,16 @@ from rest_framework.response import Response
 
 # Project modules
 from apps.articles.models import Comment, FavoriteArticle, Question
-from apps.articles.permissions import IsCommentOwnerOrAdminOrReadOnly, IsQuestionAuthorOrAdminOrReadOnly
+from apps.articles.permissions import (
+    IsCommentOwnerOrAdminOrReadOnly,
+    IsQuestionAuthorOrAdminOrReadOnly,
+)
 from apps.articles.serializers import (
+    CommentCreateUpdateSerializer,
+    CommentSerializer,
     QuestionDetailSerializer,
     QuestionListSerializer,
     QuestionWriteSerializer,
-    CommentCreateUpdateSerializer,
-    CommentSerializer,
 )
 
 
